@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "CommonJS",
+    "target": "ES2019"
+  }
+}

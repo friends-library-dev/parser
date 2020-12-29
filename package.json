@@ -1,0 +1,22 @@
+{
+  "name": "@friends-library/parser",
+  "version": "1.0.0",
+  "description": "experimental asciidoc parser",
+  "main": "./dist/index.js",
+  "browser": false,
+  "author": "Jared Henderson <jared@netrivet.com>",
+  "repository": "github:friends-library-dev/parser",
+  "license": "MIT",
+  "scripts": {
+    "test": "fldev test",
+    "test:watch": "fldev test:watch",
+    "lint": "fldev lint",
+    "lint:fix": "fldev lint:fix",
+    "ts:check": "fldev ts:check",
+    "format": "fldev format",
+    "compile": "fldev ts:compile"
+  },
+  "devDependencies": {
+    "@friends-library/dev": "^4.1.16"
+  }
+}
