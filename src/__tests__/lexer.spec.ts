@@ -53,33 +53,72 @@ describe(`lexer`, () => {
   });
 
   test('class designation', () => {
-    const [leftBrace, dot, klass, rightBrace] = tokens(`[.foo-bar]`);
-    expect(leftBrace).toMatchObject({ type: T.LEFT_BRACE, literal: `[` });
-    expect(dot).toMatchObject({ type: T.DOT, literal: `.` });
-    expect(klass).toMatchObject({ type: T.TEXT, literal: `foo-bar` });
-    expect(rightBrace).toMatchObject({ type: T.RIGHT_BRACE, literal: `]` });
+    expect(simpleTokens(`[.foo-bar]`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.DOT, literal: `.` },
+      { type: T.TEXT, literal: `foo-bar` },
+      { type: T.RIGHT_BRACE, literal: `]` },
+    ]);
   });
 
   test('complex bracket sequence', () => {
-    expect(tokens(`[quote.epigraph, , Ps. 37:18]\n`)).toMatchObject([
-      { type: T.LEFT_BRACE },
+    expect(simpleTokens(`[quote.epigraph, , Ps. 37:18]\n`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
       { type: T.TEXT, literal: `quote` },
-      { type: T.DOT },
+      { type: T.DOT, literal: `.` },
+      { type: T.TEXT, literal: `epigraph` },
       { type: T.COMMA, literal: `,` },
       { type: T.WHITESPACE, literal: ` ` },
       { type: T.COMMA, literal: `,` },
       { type: T.WHITESPACE, literal: ` ` },
       { type: T.TEXT, literal: `Ps` },
-      { type: T.DOT },
+      { type: T.DOT, literal: `.` },
       { type: T.WHITESPACE, literal: ` ` },
       { type: T.TEXT, literal: `37:18` },
-      { type: T.RIGHT_BRACE },
-      { type: T.EOL },
-      { type: T.EOF },
+      { type: T.RIGHT_BRACE, literal: `]` },
+    ]);
+  });
+
+  test('quote block', () => {
+    expect(simpleTokens(`[quote]\n____\nfoo\n____`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.TEXT, literal: `quote` },
+      { type: T.RIGHT_BRACE, literal: `]` },
+      { type: T.EOL, literal: `\n` },
+      { type: T.QUOTE_BLOCK_DELIMITER, literal: `____` },
+      { type: T.EOL, literal: `\n` },
+      { type: T.TEXT, literal: `foo` },
+      { type: T.EOL, literal: `\n` },
+      { type: T.QUOTE_BLOCK_DELIMITER, literal: `____` },
+    ]);
+  });
+
+  test('double underscores', () => {
+    expect(simpleTokens(`__foo__ ___`)).toMatchObject([
+      { type: T.DOUBLE_UNDERSCORE, literal: `__` },
+      { type: T.TEXT, literal: `foo` },
+      { type: T.DOUBLE_UNDERSCORE, literal: `__` },
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.ILLEGAL, literal: `___` },
     ]);
   });
 });
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();
+}
+
+function simpleTokens(adoc: string): Pick<Token, 'type' | 'literal'>[] {
+  const toks = tokens(adoc).map((tok) => ({ type: tok.type, literal: tok.literal }));
+
+  // remove EOF
+  toks.pop();
+
+  // remove trailing EOL, if present
+  const last = toks.pop();
+  if (last && last.type !== T.EOL) {
+    toks.push(last);
+  }
+
+  return toks;
 }

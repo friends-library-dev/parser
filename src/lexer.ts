@@ -7,13 +7,17 @@ export const TOKEN = {
   TEXT: `TEXT`,
   WHITESPACE: `WHITESPACE`,
   SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
+  DOUBLE_UNDERSCORE: `DOUBLE_UNDERSCORE`,
   LEFT_DOUBLE_CURLY: `LEFT_DOUBLE_CURLY`,
   RIGHT_DOUBLE_CURLY: `RIGHT_DOUBLE_CURLY`,
   LEFT_BRACE: `LEFT_BRACE`,
   RIGHT_BRACE: `RIGHT_BRACE`,
+  QUOTE_BLOCK_DELIMITER: `QUOTE_BLOCK_DELIMITER`,
+  COMMA: `COMMA`,
   DOT: `DOT`,
   EOL: `EOL`,
   EOF: `EOF`,
+  ILLEGAL: `ILLEGAL`,
 } as const;
 
 export type TokenType = keyof typeof TOKEN;
@@ -85,14 +89,31 @@ export default class Lexer {
     switch (char) {
       case `\n`:
         return this.makeToken(TOKEN.EOL, line);
-      case '_':
-        return this.makeToken(TOKEN.SINGLE_UNDERSCORE, line);
+      case ',':
+        return this.makeToken(TOKEN.COMMA, line);
       case '.':
         return this.makeToken(TOKEN.DOT, line);
       case '[':
         return this.makeToken(TOKEN.LEFT_BRACE, line);
       case ']':
         return this.makeToken(TOKEN.RIGHT_BRACE, line);
+      case '_':
+        if (this.peekChar() !== '_') {
+          return this.makeToken(TOKEN.SINGLE_UNDERSCORE, line);
+        } else {
+          tok = this.makeToken(TOKEN.QUOTE_BLOCK_DELIMITER, line, false);
+          while (this.peekChar() === '_') {
+            tok.literal += this.requireNextChar();
+            tok.column.end++;
+          }
+          line.charIdx++;
+          if (tok.literal.length === 2) {
+            tok.type = TOKEN.DOUBLE_UNDERSCORE;
+          } else if (tok.literal.length !== 4) {
+            tok.type = TOKEN.ILLEGAL;
+          }
+          return tok;
+        }
       case ' ': {
         tok = this.makeToken(TOKEN.WHITESPACE, line, false);
         while (this.peekChar() === ' ') {
