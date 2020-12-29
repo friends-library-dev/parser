@@ -1,77 +1,182 @@
-type TokenType = 'TEXT' | 'SINGLE_UNDERSCORE' | 'EOL' | 'EOF';
+interface LexerInput {
+  adoc: string;
+  filename?: string;
+}
 
-interface Token {
+const Token = {
+  TEXT: `TEXT`,
+  WHITESPACE: `WHITESPACE`,
+  SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
+  EOL: `EOL`,
+  EOF: `EOF`,
+} as const;
+
+type TokenType = keyof typeof Token;
+
+type Token = {
   type: TokenType;
   literal: string;
-  lineNumber: number;
-  columnStart: number;
-  columnEnd: number;
+  filename?: string;
+  line: number;
+  column: {
+    start: number;
+    end: number;
+  };
+};
+
+interface Line {
+  content: string;
+  number: number;
+  charIdx: number;
   filename?: string;
 }
 
 export default class Lexer {
-  filename: string | null = null;
-  char: string | null = null;
-  position = 0;
-  nextPosition = 0;
-  lineNumber = 1;
-  column = 1;
+  public inputs: LexerInput[] = [];
+  public inputIdx = -1;
+  public line: null | Line = null;
+  public lines: Line[] = [];
+  public lastToken?: Token;
 
-  constructor(private input: string, filename: string | null = null) {
-    this.input = input;
-    this.filename = filename;
-    this.char = null;
-    this.readChar();
+  public constructor(...inputs: LexerInput[]) {
+    this.inputs = inputs;
   }
 
-  makeToken(type: TokenType, literal: string, columnStart?: number): Token {
-    return {
-      type,
-      literal,
-      lineNumber: this.lineNumber,
-      columnStart: typeof columnStart === `number` ? columnStart : this.column,
-      columnEnd: this.column,
-      ...(this.filename !== null ? { filename: this.filename } : {}),
-    };
-  }
-
-  nextToken(): Token {
-    let token: Token;
-    switch (this.char) {
-      case '_':
-        this.readChar();
-        return this.makeToken(`SINGLE_UNDERSCORE`, `_`);
-      case null:
-        return this.makeToken(`EOF`, ``);
-      case '\n':
-        return this.makeToken(`EOL`, `\n`);
-      default: {
-        let literal = '';
-        const columnStart = this.column;
-        while (isLetter(this.char)) {
-          literal += this.char;
-          this.readChar();
-        }
-        return this.makeToken(`TEXT`, literal, columnStart);
+  public tokens(): Token[] {
+    const tokens: Token[] = [];
+    while (true) {
+      const current = this.nextToken();
+      tokens.push(current);
+      if (current.type === Token.EOF) {
+        return tokens;
       }
     }
   }
 
-  private readChar() {
-    if (this.nextPosition >= this.input.length) {
-      this.char = null;
-    } else {
-      this.char = this.input[this.nextPosition] ?? null;
+  public nextToken(): Token {
+    const line = this.currentLine();
+    if (!line) {
+      return this.makeToken(Token.EOF, null);
     }
 
-    if (this.char == `\n`) {
-      this.lineNumber += 1;
-      this.column = 0;
+    const char = line.content[line.charIdx];
+    if (char === undefined) {
+      this.line = null;
+      return this.nextToken();
     }
 
-    this.position += 1;
-    this.nextPosition += 1;
-    this.column += 1;
+    if (isTextChar(char)) {
+      const textToken = this.makeToken(Token.TEXT, line);
+      while (isTextChar(this.peekChar())) {
+        const nextChar = this.requireNextChar();
+        textToken.literal += nextChar;
+        textToken.column.end += 1;
+      }
+
+      line.charIdx++;
+      return textToken;
+    }
+
+    switch (char) {
+      case `\n`: {
+        const eolToken = this.makeToken(Token.EOL, line);
+        line.charIdx++;
+        return eolToken;
+      }
+      case '_': {
+        const underscoreToken = this.makeToken(Token.SINGLE_UNDERSCORE, line);
+        line.charIdx++;
+        return underscoreToken;
+      }
+      case ' ': {
+        const wsToken = this.makeToken(Token.WHITESPACE, line);
+        while (this.peekChar() === ' ') {
+          wsToken.literal += this.requireNextChar();
+          wsToken.column.end++;
+        }
+        line.charIdx++;
+        return wsToken;
+      }
+    }
+
+    throw new Error('not implemented');
+  }
+
+  private requireNextChar(): string {
+    const line = this.line;
+    if (line === null) {
+      throw new Error(`Expected a next char`);
+    }
+    line.charIdx += 1;
+    const nextChar = line.content[line.charIdx];
+    if (nextChar === undefined) {
+      throw new Error(`Expected a next char`);
+    }
+
+    return nextChar;
+  }
+
+  private makeToken(type: TokenType, line: Line | null): Token {
+    let column = { start: 1, end: 1 };
+    if (line) {
+      column = { start: line.charIdx + 1, end: line.charIdx + 1 };
+    } else if (this.lastToken) {
+      column = { start: this.lastToken.column.end, end: this.lastToken.column.end };
+    }
+
+    const token: Token = {
+      type,
+      literal: line?.content[line.charIdx] ?? ``,
+      filename: line?.filename ?? this.lastToken?.filename,
+      line: line?.number ?? this.lastToken?.line ?? 1,
+      column,
+    };
+    this.lastToken = token;
+    return token;
+  }
+
+  private peekChar(): string | null {
+    const line = this.line;
+    if (line === null) {
+      return null;
+    }
+    return line.content[line.charIdx + 1] ?? null;
+  }
+
+  private currentLine(): Line | null {
+    if (this.line === null) {
+      return this.nextLine();
+    }
+
+    return this.line;
+  }
+
+  private nextLine(): Line | null {
+    if (this.lines.length) {
+      const line = this.lines.shift() as Line;
+      this.line = line;
+      return line;
+    }
+
+    this.inputIdx++;
+    const nextInput = this.inputs[this.inputIdx];
+    if (this.inputIdx >= this.inputs.length || !nextInput) {
+      return null;
+    }
+
+    this.lines = nextInput.adoc.split(/\n/g).map((line, lineIdx) => ({
+      charIdx: 0,
+      content: `${line}\n`,
+      number: lineIdx + 1,
+      filename: nextInput.filename,
+    }));
+
+    if (nextInput.adoc.endsWith(`\n`)) {
+      // throw away false empty line created by splitting on `\n`
+      this.lines.pop();
+    }
+
+    return this.nextLine();
   }
 }
 
@@ -87,4 +192,22 @@ function isLetter(char: string | null): boolean {
   }
 
   return char.match(/^[a-z]$/i) !== null;
+}
+
+function isTextChar(char: string | null): boolean {
+  if (null === char || char.length === 0) {
+    return false;
+  }
+
+  // number?
+  const ascii = char.charCodeAt(0);
+  if (ascii >= 48 && ascii < 72) {
+    return true;
+  }
+
+  if (['-'].includes(char)) {
+    return true;
+  }
+
+  return isLetter(char);
 }
