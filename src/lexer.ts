@@ -24,6 +24,7 @@ export const TOKEN = {
   QUOTE_BLOCK_DELIMITER: `QUOTE_BLOCK_DELIMITER`,
   FOOTNOTE_PREFIX: `FOOTNOTE_PREFIX`,
   FOOTNOTE_STANZA: `FOOTNOTE_STANZA`,
+  FOOTNOTE_PARAGRAPH_SPLIT: `FOOTNOTE_PARAGRAPH_SPLIT`,
   EQUALS: `EQUALS`,
   COMMA: `COMMA`,
   CARET: `CARET`,
@@ -107,21 +108,20 @@ export default class Lexer {
         return this.makeToken(TOKEN.CARET, line);
       case ' ':
         return this.makeGreedyToken(TOKEN.WHITESPACE, line);
-      case '-':
-        if (line.content.substring(line.charIdx, line.charIdx + 11) === `- - - - - -`) {
-          tok = this.makeToken(TOKEN.FOOTNOTE_STANZA, line);
-          tok.literal = '- - - - - -';
-          tok.column.end += 10;
-          line.charIdx += 10;
-          return tok;
-        }
-        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
       case '=':
         return this.makeGreedyToken(TOKEN.EQUALS, line);
       case '+':
         return this.makeGreedyToken(TOKEN.TRIPLE_PLUS, line, 3);
       case ':':
         return this.makeGreedyToken(TOKEN.DOUBLE_COLON, line, 2);
+      case '{':
+        if (line.charIdx === 0 && line.content === FOOTNOTE_PARA_SPLIT) {
+          tok = this.makeToken(TOKEN.FOOTNOTE_PARAGRAPH_SPLIT, line);
+          tok.column.end = 26;
+          line.charIdx = 26;
+          tok.literal = line.content.substring(0, 26);
+          return tok;
+        }
       case '*':
         tok = this.makeGreedyToken(TOKEN.ASTERISK, line);
         if (tok.literal.length === 3) {
@@ -130,6 +130,15 @@ export default class Lexer {
           tok.type = TOKEN.ILLEGAL;
         }
         return tok;
+      case '-':
+        if (line.content.substring(line.charIdx) === FOOTNOTE_STANZA) {
+          tok = this.makeToken(TOKEN.FOOTNOTE_STANZA, line);
+          tok.literal = '- - - - - -';
+          tok.column.end += 10;
+          line.charIdx += 10;
+          return tok;
+        }
+        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
       case '_':
         tok = this.makeGreedyToken(TOKEN.SINGLE_UNDERSCORE, line);
         if (tok.literal.length === 4) {
@@ -320,3 +329,6 @@ function isTextChar(char: string | null): boolean {
 
   return isLetter(char);
 }
+
+const FOOTNOTE_PARA_SPLIT = `{footnote-paragraph-split}\n`;
+const FOOTNOTE_STANZA = `- - - - - -\n`;

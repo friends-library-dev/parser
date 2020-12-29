@@ -229,7 +229,21 @@ describe(`lexer`, () => {
       { type: T.FOOTNOTE_STANZA, literal: `- - - - - -` },
     ]);
   });
+
+  test('footnote paragraph split', () => {
+    expect(simpleTokens(`foo\n{footnote-paragraph-split}\nfoo`)).toMatchObject([
+      FOO_TOKEN,
+      EOL_TOKEN,
+      { type: T.FOOTNOTE_PARAGRAPH_SPLIT, literal: `{footnote-paragraph-split}` },
+      EOL_TOKEN,
+      FOO_TOKEN,
+    ]);
+  });
 });
+
+// [.chapter-subtitle--blurb]
+// Foo!  foo? foo;
+// spanish special chars
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();
