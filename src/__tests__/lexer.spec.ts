@@ -110,6 +110,45 @@ describe(`lexer`, () => {
       FOO_TOKEN,
     ]);
   });
+
+  test('triple-plus', () => {
+    expect(simpleTokens(`+++[+++`)).toMatchObject([
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+    ]);
+  });
+
+  test(`trailing embedded double-dash`, () => {
+    const [foo, dblDash] = tokens(`foo--`);
+    expect(foo).toMatchObject({
+      type: T.TEXT,
+      literal: `foo`,
+      line: 1,
+      column: { start: 1, end: 3 },
+    });
+    expect(dblDash).toMatchObject({
+      type: T.DOUBLE_DASH,
+      literal: `--`,
+      line: 1,
+      column: { start: 4, end: 5 },
+    });
+  });
+
+  test('embedded double-dash', () => {
+    expect(simpleTokens(`foo--foo`)).toMatchObject([
+      FOO_TOKEN,
+      { type: T.DOUBLE_DASH, literal: `--` },
+      FOO_TOKEN,
+    ]);
+  });
+
+  test('own-line double-dash', () => {
+    expect(simpleTokens(`--\n\n`)).toMatchObject([
+      { type: T.DOUBLE_DASH, literal: `--` },
+      EOL_TOKEN,
+    ]);
+  });
 });
 
 function tokens(adoc: string): Token[] {

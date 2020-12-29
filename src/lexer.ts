@@ -5,7 +5,9 @@ interface LexerInput {
 
 export const TOKEN = {
   TEXT: `TEXT`,
+  TRIPLE_PLUS: `TRIPLE_PLUS`,
   WHITESPACE: `WHITESPACE`,
+  DOUBLE_DASH: `DOUBLE_DASH`,
   SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
   DOUBLE_UNDERSCORE: `DOUBLE_UNDERSCORE`,
   LEFT_DOUBLE_CURLY: `LEFT_DOUBLE_CURLY`,
@@ -75,18 +77,8 @@ export default class Lexer {
       return this.nextToken();
     }
 
-    if (isTextChar(char)) {
-      const textToken = this.makeToken(TOKEN.TEXT, line, false);
-      while (isTextChar(this.peekChar())) {
-        const nextChar = this.requireNextChar();
-        textToken.literal += nextChar;
-        textToken.column.end += 1;
-      }
-      line.charIdx++;
-      return textToken;
-    }
-
     let tok: Token;
+
     switch (char) {
       case `\n`:
         return this.makeToken(TOKEN.EOL, line);
@@ -100,9 +92,13 @@ export default class Lexer {
         return this.makeToken(TOKEN.RIGHT_BRACE, line);
       case ' ':
         return this.makeGreedyToken(TOKEN.WHITESPACE, line);
+      case '-':
+        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line);
       case '=':
         return this.makeGreedyToken(TOKEN.EQUALS, line);
-      case '_': {
+      case '+':
+        return this.makeGreedyToken(TOKEN.TRIPLE_PLUS, line, 3);
+      case '_':
         tok = this.makeGreedyToken(TOKEN.SINGLE_UNDERSCORE, line);
         if (tok.literal.length === 4) {
           tok.type = TOKEN.QUOTE_BLOCK_DELIMITER;
@@ -112,19 +108,34 @@ export default class Lexer {
           tok.type = TOKEN.ILLEGAL;
         }
         return tok;
-      }
-      case `\``: {
+      case `\``:
         if (this.peekChar() === `"`) {
           tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         }
-      }
-      case `"`: {
+      case `"`:
         if (this.peekChar() === `\``) {
           tok = this.makeToken(TOKEN.LEFT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         }
-      }
+      default:
+        if (isTextChar(char)) {
+          tok = this.makeToken(TOKEN.TEXT, line, false);
+          while (isTextChar(this.peekChar())) {
+            const nextChar = this.requireNextChar();
+            tok.literal += nextChar;
+            tok.column.end += 1;
+          }
+          line.charIdx++;
+          const dashMatch = tok.literal.match(/--/);
+          if (dashMatch) {
+            const reverseChars = tok.literal.length - (dashMatch.index ?? 0);
+            tok.column.end -= reverseChars;
+            line.charIdx -= reverseChars;
+            tok.literal = tok.literal.substring(0, tok.column.end);
+          }
+          return tok;
+        }
     }
 
     throw new Error(`character "${char}" not implemented`);
@@ -173,13 +184,16 @@ export default class Lexer {
     return token;
   }
 
-  private makeGreedyToken(type: TokenType, line: Line): Token {
+  private makeGreedyToken(type: TokenType, line: Line, requiredLength?: number): Token {
     const tok = this.makeToken(type, line, false);
     while (tok.literal[0] && this.peekChar() === tok.literal[0]) {
       tok.literal += this.requireNextChar();
       tok.column.end++;
     }
     line.charIdx++;
+    if (typeof requiredLength === `number` && tok.literal.length !== requiredLength) {
+      tok.type = TOKEN.ILLEGAL;
+    }
     return tok;
   }
 
