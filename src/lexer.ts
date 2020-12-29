@@ -3,17 +3,22 @@ interface LexerInput {
   filename?: string;
 }
 
-const Token = {
+export const TOKEN = {
   TEXT: `TEXT`,
   WHITESPACE: `WHITESPACE`,
   SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
+  LEFT_DOUBLE_CURLY: `LEFT_DOUBLE_CURLY`,
+  RIGHT_DOUBLE_CURLY: `RIGHT_DOUBLE_CURLY`,
+  LEFT_BRACE: `LEFT_BRACE`,
+  RIGHT_BRACE: `RIGHT_BRACE`,
+  DOT: `DOT`,
   EOL: `EOL`,
   EOF: `EOF`,
 } as const;
 
-type TokenType = keyof typeof Token;
+export type TokenType = keyof typeof TOKEN;
 
-type Token = {
+export type Token = {
   type: TokenType;
   literal: string;
   filename?: string;
@@ -47,7 +52,7 @@ export default class Lexer {
     while (true) {
       const current = this.nextToken();
       tokens.push(current);
-      if (current.type === Token.EOF) {
+      if (current.type === TOKEN.EOF) {
         return tokens;
       }
     }
@@ -56,7 +61,7 @@ export default class Lexer {
   public nextToken(): Token {
     const line = this.currentLine();
     if (!line) {
-      return this.makeToken(Token.EOF, null);
+      return this.makeToken(TOKEN.EOF, null);
     }
 
     const char = line.content[line.charIdx];
@@ -66,40 +71,59 @@ export default class Lexer {
     }
 
     if (isTextChar(char)) {
-      const textToken = this.makeToken(Token.TEXT, line);
+      const textToken = this.makeToken(TOKEN.TEXT, line, false);
       while (isTextChar(this.peekChar())) {
         const nextChar = this.requireNextChar();
         textToken.literal += nextChar;
         textToken.column.end += 1;
       }
-
       line.charIdx++;
       return textToken;
     }
 
+    let tok: Token;
     switch (char) {
-      case `\n`: {
-        const eolToken = this.makeToken(Token.EOL, line);
-        line.charIdx++;
-        return eolToken;
-      }
-      case '_': {
-        const underscoreToken = this.makeToken(Token.SINGLE_UNDERSCORE, line);
-        line.charIdx++;
-        return underscoreToken;
-      }
+      case `\n`:
+        return this.makeToken(TOKEN.EOL, line);
+      case '_':
+        return this.makeToken(TOKEN.SINGLE_UNDERSCORE, line);
+      case '.':
+        return this.makeToken(TOKEN.DOT, line);
+      case '[':
+        return this.makeToken(TOKEN.LEFT_BRACE, line);
+      case ']':
+        return this.makeToken(TOKEN.RIGHT_BRACE, line);
       case ' ': {
-        const wsToken = this.makeToken(Token.WHITESPACE, line);
+        tok = this.makeToken(TOKEN.WHITESPACE, line, false);
         while (this.peekChar() === ' ') {
-          wsToken.literal += this.requireNextChar();
-          wsToken.column.end++;
+          tok.literal += this.requireNextChar();
+          tok.column.end++;
         }
         line.charIdx++;
-        return wsToken;
+        return tok;
+      }
+      case `\``: {
+        if (this.peekChar() === `"`) {
+          tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
+          return this.requireAppendChar(tok, line);
+        }
+      }
+      case `"`: {
+        if (this.peekChar() === `\``) {
+          tok = this.makeToken(TOKEN.LEFT_DOUBLE_CURLY, line, false);
+          return this.requireAppendChar(tok, line);
+        }
       }
     }
 
-    throw new Error('not implemented');
+    throw new Error(`character "${char}" not implemented`);
+  }
+
+  private requireAppendChar(tok: Token, line: Line): Token {
+    tok.literal += this.requireNextChar();
+    tok.column.end++;
+    line.charIdx++;
+    return tok;
   }
 
   private requireNextChar(): string {
@@ -116,7 +140,7 @@ export default class Lexer {
     return nextChar;
   }
 
-  private makeToken(type: TokenType, line: Line | null): Token {
+  private makeToken(type: TokenType, line: Line | null, advanceChar = true): Token {
     let column = { start: 1, end: 1 };
     if (line) {
       column = { start: line.charIdx + 1, end: line.charIdx + 1 };
@@ -132,6 +156,9 @@ export default class Lexer {
       column,
     };
     this.lastToken = token;
+    if (advanceChar && line) {
+      line.charIdx++;
+    }
     return token;
   }
 
