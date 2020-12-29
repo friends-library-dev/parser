@@ -13,6 +13,7 @@ export const TOKEN = {
   LEFT_BRACE: `LEFT_BRACE`,
   RIGHT_BRACE: `RIGHT_BRACE`,
   QUOTE_BLOCK_DELIMITER: `QUOTE_BLOCK_DELIMITER`,
+  EQUALS: `EQUALS`,
   COMMA: `COMMA`,
   DOT: `DOT`,
   EOL: `EOL`,
@@ -97,6 +98,10 @@ export default class Lexer {
         return this.makeToken(TOKEN.LEFT_BRACE, line);
       case ']':
         return this.makeToken(TOKEN.RIGHT_BRACE, line);
+      case ' ':
+        return this.makeGreedyToken(TOKEN.WHITESPACE, line);
+      case '=':
+        return this.makeGreedyToken(TOKEN.EQUALS, line);
       case '_':
         if (this.peekChar() !== '_') {
           return this.makeToken(TOKEN.SINGLE_UNDERSCORE, line);
@@ -114,15 +119,6 @@ export default class Lexer {
           }
           return tok;
         }
-      case ' ': {
-        tok = this.makeToken(TOKEN.WHITESPACE, line, false);
-        while (this.peekChar() === ' ') {
-          tok.literal += this.requireNextChar();
-          tok.column.end++;
-        }
-        line.charIdx++;
-        return tok;
-      }
       case `\``: {
         if (this.peekChar() === `"`) {
           tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
@@ -181,6 +177,16 @@ export default class Lexer {
       line.charIdx++;
     }
     return token;
+  }
+
+  private makeGreedyToken(type: TokenType, line: Line): Token {
+    const tok = this.makeToken(type, line, false);
+    while (tok.literal[0] && this.peekChar() === tok.literal[0]) {
+      tok.literal += this.requireNextChar();
+      tok.column.end++;
+    }
+    line.charIdx++;
+    return tok;
   }
 
   private peekChar(): string | null {
@@ -249,11 +255,11 @@ function isTextChar(char: string | null): boolean {
 
   // number?
   const ascii = char.charCodeAt(0);
-  if (ascii >= 48 && ascii < 72) {
+  if (ascii >= 48 && ascii < 58) {
     return true;
   }
 
-  if (['-'].includes(char)) {
+  if (['-', ':'].includes(char)) {
     return true;
   }
 

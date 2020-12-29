@@ -102,6 +102,14 @@ describe(`lexer`, () => {
       { type: T.ILLEGAL, literal: `___` },
     ]);
   });
+
+  test('heading', () => {
+    expect(simpleTokens(`== foo`)).toMatchObject([
+      { type: T.EQUALS, literal: `==` },
+      SPACE_TOKEN,
+      FOO_TOKEN,
+    ]);
+  });
 });
 
 function tokens(adoc: string): Token[] {
@@ -122,3 +130,7 @@ function simpleTokens(adoc: string): Pick<Token, 'type' | 'literal'>[] {
 
   return toks;
 }
+
+const FOO_TOKEN = { type: T.TEXT, literal: `foo` };
+const EOL_TOKEN = { type: T.EOL, literal: `\n` };
+const SPACE_TOKEN = { type: T.WHITESPACE, literal: ` ` };
