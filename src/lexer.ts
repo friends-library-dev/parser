@@ -102,23 +102,17 @@ export default class Lexer {
         return this.makeGreedyToken(TOKEN.WHITESPACE, line);
       case '=':
         return this.makeGreedyToken(TOKEN.EQUALS, line);
-      case '_':
-        if (this.peekChar() !== '_') {
-          return this.makeToken(TOKEN.SINGLE_UNDERSCORE, line);
-        } else {
-          tok = this.makeToken(TOKEN.QUOTE_BLOCK_DELIMITER, line, false);
-          while (this.peekChar() === '_') {
-            tok.literal += this.requireNextChar();
-            tok.column.end++;
-          }
-          line.charIdx++;
-          if (tok.literal.length === 2) {
-            tok.type = TOKEN.DOUBLE_UNDERSCORE;
-          } else if (tok.literal.length !== 4) {
-            tok.type = TOKEN.ILLEGAL;
-          }
-          return tok;
+      case '_': {
+        tok = this.makeGreedyToken(TOKEN.SINGLE_UNDERSCORE, line);
+        if (tok.literal.length === 4) {
+          tok.type = TOKEN.QUOTE_BLOCK_DELIMITER;
+        } else if (tok.literal.length === 2) {
+          tok.type = TOKEN.DOUBLE_UNDERSCORE;
+        } else if (tok.literal.length !== 1) {
+          tok.type = TOKEN.ILLEGAL;
         }
+        return tok;
+      }
       case `\``: {
         if (this.peekChar() === `"`) {
           tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
