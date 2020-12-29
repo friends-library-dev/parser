@@ -5,18 +5,29 @@ interface LexerInput {
 
 export const TOKEN = {
   TEXT: `TEXT`,
+  ASTERISK: `ASTERISK`,
+  TRIPLE_ASTERISK: `TRIPLE_ASTERISK`,
+  ASTERISM: `ASTERISM`,
+  DOUBLE_COLON: `DOUBLE_COLON`,
+  FORWARD_SLASH: `FORWARD_SLASH`,
   TRIPLE_PLUS: `TRIPLE_PLUS`,
   WHITESPACE: `WHITESPACE`,
   DOUBLE_DASH: `DOUBLE_DASH`,
   SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
   DOUBLE_UNDERSCORE: `DOUBLE_UNDERSCORE`,
+  LEFT_SINGLE_CURLY: `LEFT_SINGLE_CURLY`,
+  RIGHT_SINGLE_CURLY: `RIGHT_SINGLE_CURLY`,
   LEFT_DOUBLE_CURLY: `LEFT_DOUBLE_CURLY`,
   RIGHT_DOUBLE_CURLY: `RIGHT_DOUBLE_CURLY`,
   LEFT_BRACE: `LEFT_BRACE`,
   RIGHT_BRACE: `RIGHT_BRACE`,
   QUOTE_BLOCK_DELIMITER: `QUOTE_BLOCK_DELIMITER`,
+  FOOTNOTE_PREFIX: `FOOTNOTE_PREFIX`,
+  FOOTNOTE_STANZA: `FOOTNOTE_STANZA`,
   EQUALS: `EQUALS`,
   COMMA: `COMMA`,
+  CARET: `CARET`,
+  BACKTICK: `BACKTICK`,
   DOT: `DOT`,
   EOL: `EOL`,
   EOF: `EOF`,
@@ -90,14 +101,35 @@ export default class Lexer {
         return this.makeToken(TOKEN.LEFT_BRACE, line);
       case ']':
         return this.makeToken(TOKEN.RIGHT_BRACE, line);
+      case '/':
+        return this.makeToken(TOKEN.FORWARD_SLASH, line);
+      case '^':
+        return this.makeToken(TOKEN.CARET, line);
       case ' ':
         return this.makeGreedyToken(TOKEN.WHITESPACE, line);
       case '-':
-        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line);
+        if (line.content.substring(line.charIdx, line.charIdx + 11) === `- - - - - -`) {
+          tok = this.makeToken(TOKEN.FOOTNOTE_STANZA, line);
+          tok.literal = '- - - - - -';
+          tok.column.end += 10;
+          line.charIdx += 10;
+          return tok;
+        }
+        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
       case '=':
         return this.makeGreedyToken(TOKEN.EQUALS, line);
       case '+':
         return this.makeGreedyToken(TOKEN.TRIPLE_PLUS, line, 3);
+      case ':':
+        return this.makeGreedyToken(TOKEN.DOUBLE_COLON, line, 2);
+      case '*':
+        tok = this.makeGreedyToken(TOKEN.ASTERISK, line);
+        if (tok.literal.length === 3) {
+          tok.type = TOKEN.TRIPLE_ASTERISK;
+        } else if (tok.literal.length !== 1) {
+          tok.type = TOKEN.ILLEGAL;
+        }
+        return tok;
       case '_':
         tok = this.makeGreedyToken(TOKEN.SINGLE_UNDERSCORE, line);
         if (tok.literal.length === 4) {
@@ -112,6 +144,18 @@ export default class Lexer {
         if (this.peekChar() === `"`) {
           tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
+        } else if (this.peekChar() == `'`) {
+          tok = this.makeToken(TOKEN.RIGHT_SINGLE_CURLY, line, false);
+          return this.requireAppendChar(tok, line);
+        } else {
+          return this.makeToken(TOKEN.BACKTICK, line);
+        }
+      case `'`:
+        if (this.peekChar() === `\``) {
+          tok = this.makeToken(TOKEN.LEFT_SINGLE_CURLY, line, false);
+          return this.requireAppendChar(tok, line);
+        } else if (this.peekChar() === `'`) {
+          return this.makeGreedyToken(TOKEN.ASTERISM, line, 3);
         }
       case `"`:
         if (this.peekChar() === `\``) {
@@ -127,12 +171,15 @@ export default class Lexer {
             tok.column.end += 1;
           }
           line.charIdx++;
-          const dashMatch = tok.literal.match(/--/);
-          if (dashMatch) {
-            const reverseChars = tok.literal.length - (dashMatch.index ?? 0);
+          const embedMatch = tok.literal.match(/(--|::)/);
+          if (embedMatch) {
+            const reverseChars = tok.literal.length - (embedMatch.index ?? 0);
             tok.column.end -= reverseChars;
             line.charIdx -= reverseChars;
-            tok.literal = tok.literal.substring(0, tok.column.end);
+            tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
+          }
+          if (tok.literal === 'footnote:') {
+            tok.type = TOKEN.FOOTNOTE_PREFIX;
           }
           return tok;
         }

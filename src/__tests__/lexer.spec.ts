@@ -149,6 +149,86 @@ describe(`lexer`, () => {
       EOL_TOKEN,
     ]);
   });
+
+  test('asterisk', () => {
+    expect(simpleTokens(`* foo\n***\n`)).toMatchObject([
+      { type: T.ASTERISK, literal: `*` },
+      SPACE_TOKEN,
+      FOO_TOKEN,
+      EOL_TOKEN,
+      { type: T.TRIPLE_ASTERISK, literal: `***` },
+    ]);
+  });
+
+  test('caret', () => {
+    expect(simpleTokens(`foo^`)).toMatchObject([
+      FOO_TOKEN,
+      { type: T.CARET, literal: `^` },
+    ]);
+  });
+
+  test('footnote prefix', () => {
+    expect(simpleTokens(`footnote:[foo]`)).toMatchObject([
+      { type: T.FOOTNOTE_PREFIX, literal: `footnote:` },
+      { type: T.LEFT_BRACE, literal: `[` },
+      FOO_TOKEN,
+      { type: T.RIGHT_BRACE, literal: `]` },
+    ]);
+  });
+
+  test('single-curleys and asterisms', () => {
+    expect(simpleTokens(`'\`foo\`'\n'''`)).toMatchObject([
+      { type: T.LEFT_SINGLE_CURLY, literal: `'\`` },
+      FOO_TOKEN,
+      { type: T.RIGHT_SINGLE_CURLY, literal: `\`'` },
+      EOL_TOKEN,
+      { type: T.ASTERISM, literal: `'''` },
+    ]);
+  });
+
+  test('forward slash', () => {
+    expect(simpleTokens(`foo / foo`)).toMatchObject([
+      FOO_TOKEN,
+      SPACE_TOKEN,
+      { type: T.FORWARD_SLASH, literal: `/` },
+      SPACE_TOKEN,
+      FOO_TOKEN,
+    ]);
+  });
+
+  test('escaped numbers', () => {
+    expect(simpleTokens(`1+++.+++ foo`)).toMatchObject([
+      { type: T.TEXT, literal: `1` },
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+      { type: T.DOT, literal: `.` },
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+      SPACE_TOKEN,
+      FOO_TOKEN,
+    ]);
+  });
+
+  test('double colon', () => {
+    expect(simpleTokens(`foo foo::`)).toMatchObject([
+      FOO_TOKEN,
+      SPACE_TOKEN,
+      FOO_TOKEN,
+      { type: T.DOUBLE_COLON, literal: `::` },
+    ]);
+  });
+
+  test('backtick', () => {
+    expect(simpleTokens(`\``)).toMatchObject([{ type: T.BACKTICK, literal: `\`` }]);
+  });
+
+  test('footnote poetry stanza marker', () => {
+    expect(simpleTokens(`     foo\n     - - - - - -`)).toMatchObject([
+      { type: T.WHITESPACE, literal: `     ` },
+      FOO_TOKEN,
+      EOL_TOKEN,
+      { type: T.WHITESPACE, literal: `     ` },
+      { type: T.FOOTNOTE_STANZA, literal: `- - - - - -` },
+    ]);
+  });
 });
 
 function tokens(adoc: string): Token[] {
