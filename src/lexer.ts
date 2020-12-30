@@ -19,8 +19,7 @@ export const TOKEN = {
   TRIPLE_PLUS: `TRIPLE_PLUS`,
   WHITESPACE: `WHITESPACE`,
   DOUBLE_DASH: `DOUBLE_DASH`,
-  SINGLE_UNDERSCORE: `SINGLE_UNDERSCORE`,
-  DOUBLE_UNDERSCORE: `DOUBLE_UNDERSCORE`,
+  UNDERSCORE: `UNDERSCORE`,
   LEFT_SINGLE_CURLY: `LEFT_SINGLE_CURLY`,
   RIGHT_SINGLE_CURLY: `RIGHT_SINGLE_CURLY`,
   LEFT_DOUBLE_CURLY: `LEFT_DOUBLE_CURLY`,
@@ -29,7 +28,6 @@ export const TOKEN = {
   RIGHT_BRACE: `RIGHT_BRACE`,
   LEFT_PARENS: `LEFT_PARENS`,
   RIGHT_PARENS: `RIGHT_PARENS`,
-  QUOTE_BLOCK_DELIMITER: `QUOTE_BLOCK_DELIMITER`,
   FOOTNOTE_PREFIX: `FOOTNOTE_PREFIX`,
   FOOTNOTE_STANZA: `FOOTNOTE_STANZA`,
   FOOTNOTE_PARAGRAPH_SPLIT: `FOOTNOTE_PARAGRAPH_SPLIT`,
@@ -121,6 +119,8 @@ export default class Lexer {
         return this.makeToken(TOKEN.RIGHT_PARENS, line);
       case '^':
         return this.makeToken(TOKEN.CARET, line);
+      case '_':
+        return this.makeGreedyToken(TOKEN.UNDERSCORE, line);
       case '|':
         return this.makeToken(TOKEN.PIPE, line);
       case ' ':
@@ -157,7 +157,13 @@ export default class Lexer {
           return this.makeToken(TOKEN.PLUS, line);
         }
       case ':':
-        return this.makeGreedyToken(TOKEN.DOUBLE_COLON, line, 2);
+        tok = this.makeGreedyToken(TOKEN.DOUBLE_COLON, line);
+        if (tok.literal.length === 1) {
+          tok.type = TOKEN.TEXT;
+        } else if (tok.literal.length !== 2) {
+          tok.type = TOKEN.ILLEGAL;
+        }
+        return tok;
       case '{':
         if (line.charIdx === 0 && line.content === `${FOOTNOTE_PARA_SPLIT}\n`) {
           tok = this.makeToken(TOKEN.FOOTNOTE_PARAGRAPH_SPLIT, line);
@@ -179,16 +185,6 @@ export default class Lexer {
           return this.setLiteral(tok, FOOTNOTE_STANZA, line);
         }
         return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
-      case '_':
-        tok = this.makeGreedyToken(TOKEN.SINGLE_UNDERSCORE, line);
-        if (tok.literal.length === 4) {
-          tok.type = TOKEN.QUOTE_BLOCK_DELIMITER;
-        } else if (tok.literal.length === 2) {
-          tok.type = TOKEN.DOUBLE_UNDERSCORE;
-        } else if (tok.literal.length !== 1) {
-          tok.type = TOKEN.ILLEGAL;
-        }
-        return tok;
       case `\``:
         if (this.peekChar() === `"`) {
           tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
@@ -233,8 +229,6 @@ export default class Lexer {
         }
         return tok;
     }
-
-    throw new Error(`character "${char}" not implemented`);
   }
 
   private requireAppendChar(tok: Token, line: Line): Token {

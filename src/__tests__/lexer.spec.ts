@@ -27,9 +27,9 @@ describe(`lexer`, () => {
 
   it(`lexes italicized word`, () => {
     const lexer = new Lexer({ adoc: `_foo_`, filename: 'test.adoc' });
-    expect(lexer.nextToken()).toMatchObject({ type: T.SINGLE_UNDERSCORE, literal: `_` });
+    expect(lexer.nextToken()).toMatchObject({ type: T.UNDERSCORE, literal: `_` });
     expect(lexer.nextToken()).toMatchObject({ type: T.TEXT, literal: `foo` });
-    expect(lexer.nextToken()).toMatchObject({ type: T.SINGLE_UNDERSCORE, literal: `_` });
+    expect(lexer.nextToken()).toMatchObject({ type: T.UNDERSCORE, literal: `_` });
   });
 
   test(`spaces are matched`, () => {
@@ -78,29 +78,29 @@ describe(`lexer`, () => {
       { type: T.TEXT, literal: `quote` },
       { type: T.RIGHT_BRACE, literal: `]` },
       { type: T.EOL, literal: `\n` },
-      { type: T.QUOTE_BLOCK_DELIMITER, literal: `____` },
+      { type: T.UNDERSCORE, literal: `____` },
       { type: T.EOL, literal: `\n` },
       { type: T.TEXT, literal: `foo` },
       { type: T.EOL, literal: `\n` },
-      { type: T.QUOTE_BLOCK_DELIMITER, literal: `____` },
+      { type: T.UNDERSCORE, literal: `____` },
     ]);
   });
 
   test('double underscores', () => {
     expect(simpleTokens(`__foo__ ___`)).toMatchObject([
-      { type: T.DOUBLE_UNDERSCORE, literal: `__` },
+      { type: T.UNDERSCORE, literal: `__` },
       { type: T.TEXT, literal: `foo` },
-      { type: T.DOUBLE_UNDERSCORE, literal: `__` },
+      { type: T.UNDERSCORE, literal: `__` },
       { type: T.WHITESPACE, literal: ` ` },
-      { type: T.ILLEGAL, literal: `___` },
+      { type: T.UNDERSCORE, literal: `___` },
     ]);
   });
 
   test('heading', () => {
     expect(simpleTokens(`== foo`)).toMatchObject([
       { type: T.EQUALS, literal: `==` },
-      SPACE_TOKEN,
-      FOO_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
@@ -130,32 +130,32 @@ describe(`lexer`, () => {
 
   test('embedded double-dash', () => {
     expect(simpleTokens(`foo--foo`)).toMatchObject([
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.DOUBLE_DASH, literal: `--` },
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
   test('own-line double-dash', () => {
     expect(simpleTokens(`--\n\n`)).toMatchObject([
       { type: T.DOUBLE_DASH, literal: `--` },
-      EOL_TOKEN,
+      { type: T.EOL, literal: `\n` },
     ]);
   });
 
   test('asterisk', () => {
     expect(simpleTokens(`* foo\n***\n`)).toMatchObject([
       { type: T.ASTERISK, literal: `*` },
-      SPACE_TOKEN,
-      FOO_TOKEN,
-      EOL_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `foo` },
+      { type: T.EOL, literal: `\n` },
       { type: T.TRIPLE_ASTERISK, literal: `***` },
     ]);
   });
 
   test('caret', () => {
     expect(simpleTokens(`foo^`)).toMatchObject([
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.CARET, literal: `^` },
     ]);
   });
@@ -164,7 +164,7 @@ describe(`lexer`, () => {
     expect(simpleTokens(`footnote:[foo]`)).toMatchObject([
       { type: T.FOOTNOTE_PREFIX, literal: `footnote:` },
       { type: T.LEFT_BRACE, literal: `[` },
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.RIGHT_BRACE, literal: `]` },
     ]);
   });
@@ -172,20 +172,20 @@ describe(`lexer`, () => {
   test('single-curleys and asterisms', () => {
     expect(simpleTokens(`'\`foo\`'\n'''`)).toMatchObject([
       { type: T.LEFT_SINGLE_CURLY, literal: `'\`` },
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.RIGHT_SINGLE_CURLY, literal: `\`'` },
-      EOL_TOKEN,
+      { type: T.EOL, literal: `\n` },
       { type: T.ASTERISM, literal: `'''` },
     ]);
   });
 
   test('forward slash', () => {
     expect(simpleTokens(`foo / foo`)).toMatchObject([
-      FOO_TOKEN,
-      SPACE_TOKEN,
+      { type: T.TEXT, literal: `foo` },
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.FORWARD_SLASH, literal: `/` },
-      SPACE_TOKEN,
-      FOO_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
@@ -195,16 +195,16 @@ describe(`lexer`, () => {
       { type: T.TRIPLE_PLUS, literal: `+++` },
       { type: T.DOT, literal: `.` },
       { type: T.TRIPLE_PLUS, literal: `+++` },
-      SPACE_TOKEN,
-      FOO_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
   test('double colon', () => {
     expect(simpleTokens(`foo foo::`)).toMatchObject([
-      FOO_TOKEN,
-      SPACE_TOKEN,
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `foo` },
       { type: T.DOUBLE_COLON, literal: `::` },
     ]);
   });
@@ -216,8 +216,8 @@ describe(`lexer`, () => {
   test('footnote poetry stanza marker', () => {
     expect(simpleTokens(`     foo\n     - - - - - -`)).toMatchObject([
       { type: T.WHITESPACE, literal: `     ` },
-      FOO_TOKEN,
-      EOL_TOKEN,
+      { type: T.TEXT, literal: `foo` },
+      { type: T.EOL, literal: `\n` },
       { type: T.WHITESPACE, literal: `     ` },
       { type: T.FOOTNOTE_STANZA, literal: `- - - - - -` },
     ]);
@@ -225,11 +225,11 @@ describe(`lexer`, () => {
 
   test('footnote paragraph split', () => {
     expect(simpleTokens(`foo\n{footnote-paragraph-split}\nfoo`)).toMatchObject([
-      FOO_TOKEN,
-      EOL_TOKEN,
+      { type: T.TEXT, literal: `foo` },
+      { type: T.EOL, literal: `\n` },
       { type: T.FOOTNOTE_PARAGRAPH_SPLIT, literal: `{footnote-paragraph-split}` },
-      EOL_TOKEN,
-      FOO_TOKEN,
+      { type: T.EOL, literal: `\n` },
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
@@ -247,9 +247,9 @@ describe(`lexer`, () => {
   test('other punctuation', () => {
     expect(simpleTokens(`foo? foo; foo!`)).toMatchObject([
       { type: T.TEXT, literal: `foo?` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.TEXT, literal: `foo;` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.TEXT, literal: `foo!` },
     ]);
   });
@@ -272,16 +272,16 @@ describe(`lexer`, () => {
     expect(simpleTokens(`|===\n|The\n|\n_Eleventh_ +`)).toMatchObject([
       { type: T.PIPE, literal: `|` },
       { type: T.EQUALS, literal: `===` },
-      EOL_TOKEN,
+      { type: T.EOL, literal: `\n` },
       { type: T.PIPE, literal: `|` },
       { type: T.TEXT, literal: `The` },
-      EOL_TOKEN,
+      { type: T.EOL, literal: `\n` },
       { type: T.PIPE, literal: `|` },
-      EOL_TOKEN,
-      { type: T.SINGLE_UNDERSCORE, literal: `_` },
+      { type: T.EOL, literal: `\n` },
+      { type: T.UNDERSCORE, literal: `_` },
       { type: T.TEXT, literal: `Eleventh` },
-      { type: T.SINGLE_UNDERSCORE, literal: `_` },
-      SPACE_TOKEN,
+      { type: T.UNDERSCORE, literal: `_` },
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.PLUS, literal: `+` },
     ]);
   });
@@ -289,7 +289,7 @@ describe(`lexer`, () => {
   test('double asterisk (bold)', () => {
     expect(simpleTokens(`**foo**`)).toMatchObject([
       { type: T.DOUBLE_ASTERISK, literal: `**` },
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.DOUBLE_ASTERISK, literal: `**` },
     ]);
   });
@@ -304,7 +304,7 @@ describe(`lexer`, () => {
   test('parens', () => {
     expect(simpleTokens(`(foo)`)).toMatchObject([
       { type: T.LEFT_PARENS, literal: `(` },
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.RIGHT_PARENS, literal: `)` },
     ]);
   });
@@ -324,8 +324,8 @@ describe(`lexer`, () => {
   test(`comment line`, () => {
     expect(simpleTokens(`// foo bar\nfoo`)).toMatchObject([
       { type: T.COMMENT, literal: `// foo bar` },
-      EOL_TOKEN,
-      FOO_TOKEN,
+      { type: T.EOL, literal: `\n` },
+      { type: T.TEXT, literal: `foo` },
     ]);
   });
 
@@ -338,16 +338,16 @@ describe(`lexer`, () => {
 
   test('entities', () => {
     expect(simpleTokens(`foo&hellip; &hellip;&#8212; &mdash; &amp; &`)).toMatchObject([
-      FOO_TOKEN,
+      { type: T.TEXT, literal: `foo` },
       { type: T.ENTITY, literal: `&hellip;` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.ENTITY, literal: `&hellip;` },
       { type: T.ENTITY, literal: `&#8212;` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.ENTITY, literal: `&mdash;` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.ENTITY, literal: `&amp;` },
-      SPACE_TOKEN,
+      { type: T.WHITESPACE, literal: ` ` },
       { type: T.AMPERSAND, literal: `&` },
     ]);
   });
@@ -355,6 +355,30 @@ describe(`lexer`, () => {
   test('non-standard chars', () => {
     expect(simpleTokens(`íéóáúñüÍÉÓÁÚÑÜ¡¿`)).toMatchObject([
       { type: T.TEXT, literal: `íéóáúñüÍÉÓÁÚÑÜ¡¿` },
+    ]);
+  });
+
+  test('colon at end of sentence', () => {
+    expect(simpleTokens(`foo viz.:\nfoo`)).toMatchObject([
+      { type: T.TEXT, literal: `foo` },
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `viz` },
+      { type: T.DOT, literal: `.` },
+      { type: T.TEXT, literal: `:` },
+      { type: T.EOL, literal: `\n` },
+      { type: T.TEXT, literal: `foo` },
+    ]);
+  });
+
+  test('group of underscores (redacted name)', () => {
+    expect(simpleTokens(`Dear +++______+++ followed`)).toMatchObject([
+      { type: T.TEXT, literal: `Dear` },
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+      { type: T.UNDERSCORE, literal: `______` },
+      { type: T.TRIPLE_PLUS, literal: `+++` },
+      { type: T.WHITESPACE, literal: ` ` },
+      { type: T.TEXT, literal: `followed` },
     ]);
   });
 });
@@ -377,7 +401,3 @@ function simpleTokens(adoc: string): Pick<Token, 'type' | 'literal'>[] {
 
   return toks;
 }
-
-const FOO_TOKEN = { type: T.TEXT, literal: `foo` };
-const EOL_TOKEN = { type: T.EOL, literal: `\n` };
-const SPACE_TOKEN = { type: T.WHITESPACE, literal: ` ` };
