@@ -328,12 +328,40 @@ describe(`lexer`, () => {
       FOO_TOKEN,
     ]);
   });
+
+  test('degree symbol', () => {
+    expect(simpleTokens(`39°`)).toMatchObject([
+      { type: T.TEXT, literal: `39` },
+      { type: T.DEGREE_SYMBOL, literal: `°` },
+    ]);
+  });
+
+  test('entities', () => {
+    expect(simpleTokens(`foo&hellip; &hellip;&#8212; &mdash; &amp; &`)).toMatchObject([
+      FOO_TOKEN,
+      { type: T.ENTITY, literal: `&hellip;` },
+      SPACE_TOKEN,
+      { type: T.ENTITY, literal: `&hellip;` },
+      { type: T.ENTITY, literal: `&#8212;` },
+      SPACE_TOKEN,
+      { type: T.ENTITY, literal: `&mdash;` },
+      SPACE_TOKEN,
+      { type: T.ENTITY, literal: `&amp;` },
+      SPACE_TOKEN,
+      { type: T.AMPERSAND, literal: `&` },
+    ]);
+  });
+
+  test('non-standard chars...', () => {
+     expect(simpleTokens(`fooó`)) .toMatchObject([
+       {type: T.TEXT, literal: `fooó`}
+     ])
+  });
 });
 
 // íéóáúñüÍÉÓÁÚÑÜ¡¿
 // spanish special chars
 // greek chars
-// %&-_\\°
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();

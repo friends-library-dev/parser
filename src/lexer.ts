@@ -33,8 +33,11 @@ export const TOKEN = {
   FOOTNOTE_PREFIX: `FOOTNOTE_PREFIX`,
   FOOTNOTE_STANZA: `FOOTNOTE_STANZA`,
   FOOTNOTE_PARAGRAPH_SPLIT: `FOOTNOTE_PARAGRAPH_SPLIT`,
+  DEGREE_SYMBOL: `DEGREE_SYMBOL`,
   POUND_SYMBOL: `POUND_SYMBOL`,
   DOLLAR_SYMBOL: `DOLLAR_SYMBOL`,
+  ENTITY: `ENTITY`,
+  AMPERSAND: `AMPERSAND`,
   EQUALS: `EQUALS`,
   COMMA: `COMMA`,
   CARET: `CARET`,
@@ -130,13 +133,21 @@ export default class Lexer {
         return this.makeToken(TOKEN.POUND_SYMBOL, line);
       case '#':
         return this.makeToken(TOKEN.HASH, line);
+      case '°':
+        return this.makeToken(TOKEN.DEGREE_SYMBOL, line);
+      case `&`:
+        const entityMatch = line.content.substring(line.charIdx).match(/^&#?[a-z0-9]+;/);
+        if (entityMatch !== null) {
+          tok = this.makeToken(TOKEN.ENTITY, line);
+          this.setLiteral(tok, entityMatch[0] || ``, line);
+          return tok;
+        } else {
+          return this.makeToken(TOKEN.AMPERSAND, line);
+        }
       case '/':
         if (line.charIdx === 0 && this.peekChar() === '/') {
           tok = this.makeToken(TOKEN.COMMENT, line);
-          tok.literal = line.content.replace(/\n/, ``);
-          tok.column.end = tok.literal.length;
-          line.charIdx = tok.literal.length;
-          return tok;
+          return this.setLiteral(tok, line.content.replace(`\n`, ``), line);
         }
         return this.makeToken(TOKEN.FORWARD_SLASH, line);
       case '+':
@@ -148,12 +159,9 @@ export default class Lexer {
       case ':':
         return this.makeGreedyToken(TOKEN.DOUBLE_COLON, line, 2);
       case '{':
-        if (line.charIdx === 0 && line.content === FOOTNOTE_PARA_SPLIT) {
+        if (line.charIdx === 0 && line.content === `${FOOTNOTE_PARA_SPLIT}\n`) {
           tok = this.makeToken(TOKEN.FOOTNOTE_PARAGRAPH_SPLIT, line);
-          tok.column.end = 26;
-          line.charIdx = 26;
-          tok.literal = line.content.substring(0, 26);
-          return tok;
+          return this.setLiteral(tok, FOOTNOTE_PARA_SPLIT, line);
         }
       case '*':
         tok = this.makeGreedyToken(TOKEN.ASTERISK, line);
@@ -166,12 +174,9 @@ export default class Lexer {
         }
         return tok;
       case '-':
-        if (line.content.substring(line.charIdx) === FOOTNOTE_STANZA) {
+        if (line.content.substring(line.charIdx) === `${FOOTNOTE_STANZA}\n`) {
           tok = this.makeToken(TOKEN.FOOTNOTE_STANZA, line);
-          tok.literal = '- - - - - -';
-          tok.column.end += 10;
-          line.charIdx += 10;
-          return tok;
+          return this.setLiteral(tok, FOOTNOTE_STANZA, line);
         }
         return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
       case '_':
@@ -290,6 +295,13 @@ export default class Lexer {
     return tok;
   }
 
+  private setLiteral(token: Token, literal: string, line: Line): Token {
+    token.literal = literal;
+    token.column.end += literal.length - 1;
+    line.charIdx += literal.length - 1;
+    return token;
+  }
+
   private peekChar(): string | null {
     const line = this.line;
     if (line === null) {
@@ -367,5 +379,5 @@ function isTextChar(char: string | null): boolean {
   return isLetter(char);
 }
 
-const FOOTNOTE_PARA_SPLIT = `{footnote-paragraph-split}\n`;
-const FOOTNOTE_STANZA = `- - - - - -\n`;
+const FOOTNOTE_PARA_SPLIT = `{footnote-paragraph-split}`;
+const FOOTNOTE_STANZA = `- - - - - -`;
