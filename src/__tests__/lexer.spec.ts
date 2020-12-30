@@ -2,13 +2,6 @@ import { test, describe, it, expect } from '@jest/globals';
 import Lexer, { TOKEN as T, Token } from '../Lexer';
 
 describe(`lexer`, () => {
-  it(`lexes a single word`, () => {
-    const lexer = new Lexer({ adoc: `foo\n` });
-    expect(lexer.nextToken()).toMatchObject({ type: T.TEXT, literal: `foo` });
-    expect(lexer.nextToken()).toMatchObject({ type: T.EOL, literal: `\n` });
-    expect(lexer.nextToken()).toMatchObject({ type: T.EOF, literal: `` });
-  });
-
   it(`attaches file, line number, and cols`, () => {
     const lexer = new Lexer({ adoc: `foo\n`, filename: `bar.adoc` });
     expect(lexer.nextToken()).toMatchObject({
@@ -239,11 +232,108 @@ describe(`lexer`, () => {
       FOO_TOKEN,
     ]);
   });
+
+  test('double-dash in class will get reassembled by parser', () => {
+    expect(simpleTokens(`[.chapter-subtitle--blurb]`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.DOT, literal: `.` },
+      { type: T.TEXT, literal: `chapter-subtitle` },
+      { type: T.DOUBLE_DASH, literal: `--` },
+      { type: T.TEXT, literal: `blurb` },
+      { type: T.RIGHT_BRACE, literal: `]` },
+    ]);
+  });
+
+  test('other punctuation', () => {
+    expect(simpleTokens(`foo? foo; foo!`)).toMatchObject([
+      { type: T.TEXT, literal: `foo?` },
+      SPACE_TOKEN,
+      { type: T.TEXT, literal: `foo;` },
+      SPACE_TOKEN,
+      { type: T.TEXT, literal: `foo!` },
+    ]);
+  });
+
+  test('class attributes', () => {
+    expect(simpleTokens(`[cols="3,4"]`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.TEXT, literal: `cols` },
+      { type: T.EQUALS, literal: `=` },
+      { type: T.STRAIGHT_DOUBLE_QUOTE, literal: `"` },
+      { type: T.TEXT, literal: `3` },
+      { type: T.COMMA, literal: `,` },
+      { type: T.TEXT, literal: `4` },
+      { type: T.STRAIGHT_DOUBLE_QUOTE, literal: `"` },
+      { type: T.RIGHT_BRACE, literal: `]` },
+    ]);
+  });
+
+  test('table bars', () => {
+    expect(simpleTokens(`|===\n|The\n|\n_Eleventh_ +`)).toMatchObject([
+      { type: T.PIPE, literal: `|` },
+      { type: T.EQUALS, literal: `===` },
+      EOL_TOKEN,
+      { type: T.PIPE, literal: `|` },
+      { type: T.TEXT, literal: `The` },
+      EOL_TOKEN,
+      { type: T.PIPE, literal: `|` },
+      EOL_TOKEN,
+      { type: T.SINGLE_UNDERSCORE, literal: `_` },
+      { type: T.TEXT, literal: `Eleventh` },
+      { type: T.SINGLE_UNDERSCORE, literal: `_` },
+      SPACE_TOKEN,
+      { type: T.PLUS, literal: `+` },
+    ]);
+  });
+
+  test('double asterisk (bold)', () => {
+    expect(simpleTokens(`**foo**`)).toMatchObject([
+      { type: T.DOUBLE_ASTERISK, literal: `**` },
+      FOO_TOKEN,
+      { type: T.DOUBLE_ASTERISK, literal: `**` },
+    ]);
+  });
+
+  test('currency', () => {
+    expect(simpleTokens(`£$`)).toMatchObject([
+      { type: T.POUND_SYMBOL, literal: `£` },
+      { type: T.DOLLAR_SYMBOL, literal: `$` },
+    ]);
+  });
+
+  test('parens', () => {
+    expect(simpleTokens(`(foo)`)).toMatchObject([
+      { type: T.LEFT_PARENS, literal: `(` },
+      FOO_TOKEN,
+      { type: T.RIGHT_PARENS, literal: `)` },
+    ]);
+  });
+
+  test('book title', () => {
+    expect(simpleTokens(`[.book-title]#Apology#`)).toMatchObject([
+      { type: T.LEFT_BRACE, literal: `[` },
+      { type: T.DOT, literal: `.` },
+      { type: T.TEXT, literal: `book-title` },
+      { type: T.RIGHT_BRACE, literal: `]` },
+      { type: T.HASH, literal: `#` },
+      { type: T.TEXT, literal: `Apology` },
+      { type: T.HASH, literal: `#` },
+    ]);
+  });
+
+  test(`comment line`, () => {
+    expect(simpleTokens(`// foo bar\nfoo`)).toMatchObject([
+      { type: T.COMMENT, literal: `// foo bar` },
+      EOL_TOKEN,
+      FOO_TOKEN,
+    ]);
+  });
 });
 
-// [.chapter-subtitle--blurb]
-// Foo!  foo? foo;
+// íéóáúñüÍÉÓÁÚÑÜ¡¿
 // spanish special chars
+// greek chars
+// %&-_\\°
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();
