@@ -352,16 +352,12 @@ describe(`lexer`, () => {
     ]);
   });
 
-  test('non-standard chars...', () => {
-     expect(simpleTokens(`fooó`)) .toMatchObject([
-       {type: T.TEXT, literal: `fooó`}
-     ])
+  test('non-standard chars', () => {
+    expect(simpleTokens(`íéóáúñüÍÉÓÁÚÑÜ¡¿`)).toMatchObject([
+      { type: T.TEXT, literal: `íéóáúñüÍÉÓÁÚÑÜ¡¿` },
+    ]);
   });
 });
-
-// íéóáúñüÍÉÓÁÚÑÜ¡¿
-// spanish special chars
-// greek chars
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();

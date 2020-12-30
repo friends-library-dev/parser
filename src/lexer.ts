@@ -214,26 +214,24 @@ export default class Lexer {
           return this.makeToken(TOKEN.STRAIGHT_DOUBLE_QUOTE, line);
         }
       default:
-        if (isTextChar(char)) {
-          tok = this.makeToken(TOKEN.TEXT, line, false);
-          while (isTextChar(this.peekChar())) {
-            const nextChar = this.requireNextChar();
-            tok.literal += nextChar;
-            tok.column.end += 1;
-          }
-          line.charIdx++;
-          const embedMatch = tok.literal.match(/(--|::)/);
-          if (embedMatch) {
-            const reverseChars = tok.literal.length - (embedMatch.index ?? 0);
-            tok.column.end -= reverseChars;
-            line.charIdx -= reverseChars;
-            tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
-          }
-          if (tok.literal === 'footnote:') {
-            tok.type = TOKEN.FOOTNOTE_PREFIX;
-          }
-          return tok;
+        tok = this.makeToken(TOKEN.TEXT, line, false);
+        while (!isTextBoundaryChar(this.peekChar())) {
+          const nextChar = this.requireNextChar();
+          tok.literal += nextChar;
+          tok.column.end += 1;
         }
+        line.charIdx++;
+        const embedMatch = tok.literal.match(/(--|::)/);
+        if (embedMatch) {
+          const reverseChars = tok.literal.length - (embedMatch.index ?? 0);
+          tok.column.end -= reverseChars;
+          line.charIdx -= reverseChars;
+          tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
+        }
+        if (tok.literal === 'footnote:') {
+          tok.type = TOKEN.FOOTNOTE_PREFIX;
+        }
+        return tok;
     }
 
     throw new Error(`character "${char}" not implemented`);
@@ -347,36 +345,32 @@ export default class Lexer {
   }
 }
 
-function isLetter(char: string | null): boolean {
-  if (null === char || char.length === 0) {
-    return false;
-  }
-
-  // fast, non-regex that will work for most letters
-  const ascii = char.charCodeAt(0);
-  if (ascii >= 65 && ascii < 91) {
+function isTextBoundaryChar(char: string | null) {
+  if (char === null) {
     return true;
   }
-
-  return char.match(/^[a-z]$/i) !== null;
-}
-
-function isTextChar(char: string | null): boolean {
-  if (null === char || char.length === 0) {
-    return false;
-  }
-
-  // number?
-  const ascii = char.charCodeAt(0);
-  if (ascii >= 48 && ascii < 58) {
-    return true;
-  }
-
-  if (['-', ':', '?', ';', '!'].includes(char)) {
-    return true;
-  }
-
-  return isLetter(char);
+  return [
+    ` `,
+    `\n`,
+    `.`,
+    `,`,
+    `]`,
+    `[`,
+    `^`,
+    `\``,
+    `'`,
+    `_`,
+    `"`,
+    `+`,
+    `$`,
+    `°`,
+    `&`,
+    `#`,
+    `(`,
+    `)`,
+    `*`,
+    `=`,
+  ].includes(char);
 }
 
 const FOOTNOTE_PARA_SPLIT = `{footnote-paragraph-split}`;
