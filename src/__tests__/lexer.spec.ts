@@ -1,5 +1,6 @@
 import { test, describe, it, expect } from '@jest/globals';
-import Lexer, { TOKEN as T, Token } from '../Lexer';
+import { TOKEN as T, Token } from '../types';
+import Lexer from '../Lexer';
 
 describe(`lexer`, () => {
   it(`attaches file, line number, and cols`, () => {

@@ -17,6 +17,8 @@
     "compile": "fldev ts:compile"
   },
   "devDependencies": {
-    "@friends-library/dev": "^4.1.16"
+    "@friends-library/dev": "^4.1.16",
+    "@types/glob": "^7.1.3",
+    "glob": "^7.1.6"
   }
 }
