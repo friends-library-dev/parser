@@ -1,4 +1,4 @@
-import { AstNode, Token, TokenType, TOKEN as t, AstChildNode } from './types';
+import { AstNode, Token, TokenType, TOKEN as t, AstChildNode, NodeType } from './types';
 import Lexer from './lexer';
 import DocumentNode from './nodes/DocumentNode';
 import ChapterNode from './nodes/ChapterNode';
@@ -166,5 +166,22 @@ export default class Parser {
       throw new Error(`Unexpected missing token`);
     }
     return token;
+  }
+
+  public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, openToken: Token): void {
+    try {
+      if (Array.isArray(tokenSpec)) {
+        this.consume(tokenSpec[0], tokenSpec[1]);
+      } else {
+        this.consume(tokenSpec);
+      }
+    } catch {
+      let err = [
+        `Parse error: unclosed ${nodeType} node, opened at `,
+        `${openToken.filename ? `${openToken.filename}:` : ``}`,
+        `${openToken.line}:${openToken.column.start}`,
+      ].join(``);
+      throw new Error(err);
+    }
   }
 }

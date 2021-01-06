@@ -74,6 +74,7 @@ export const NODE = {
   HEADING: `HEADING`,
   PARAGRAPH: `PARAGRAPH`,
   EMPHASIS: `EMPHASIS`,
+  STRONG: `STRONG`,
   TEXT: `TEXT`,
 } as const;
 

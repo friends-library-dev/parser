@@ -6,16 +6,7 @@ const emphasis: Parselet = (parser, parent) => {
   const node = new ChildNode(n.EMPHASIS, parent);
   parser.consume();
   node.children = parser.parseUntil(node, [t.UNDERSCORE, `_`]);
-  try {
-    parser.consume(t.UNDERSCORE, `_`);
-  } catch {
-    let err = [
-      `Parse error: unclosed \`${n.EMPHASIS}\` node, opened at `,
-      `${open.filename ? `${open.filename}:` : ``}`,
-      `${open.line}:${open.column.start}`,
-    ].join(``);
-    throw new Error(err);
-  }
+  parser.consumeClose([t.UNDERSCORE, `_`], n.EMPHASIS, open);
   return node;
 };
 

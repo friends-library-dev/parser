@@ -30,9 +30,25 @@ describe(`Parse.parseUntil()`, () => {
     ]);
   });
 
+  it(`can handle STRONG child nodes`, () => {
+    const parser = getParser(`Hello **world** foo\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello ` },
+      { type: n.STRONG, children: [{ type: n.TEXT, value: `world` }] },
+      { type: n.TEXT, value: ` foo` },
+    ]);
+  });
+
   it(`throws if node doesn't close properly`, () => {
     const parser = getParser(`_Hello\n`);
     expect(() => parser.parseUntil(getPara(), t.EOL)).toThrow(/unclosed/i);
+  });
+
+  it(`throws if nodes close out of order`, () => {
+    const parser = getParser(`_Hello **world_ foo**\n`);
+    expect(() => parser.parseUntil(getPara(), t.EOL)).toThrow(/unclosed STRONG/i);
   });
 });
 
