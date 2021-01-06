@@ -46,7 +46,17 @@ describe(`Parse.parseUntil()`, () => {
       { type: n.TEXT, value: `Hello ` },
       {
         type: n.STRONG,
-        children: [{ type: n.EMPHASIS, children: [{ type: n.TEXT, value: `world` }] }],
+        children: [
+          {
+            type: n.EMPHASIS,
+            children: [
+              {
+                type: n.TEXT,
+                value: `world`,
+              },
+            ],
+          },
+        ],
       },
       { type: n.TEXT, value: ` foo` },
     ]);
@@ -64,7 +74,7 @@ describe(`Parse.parseUntil()`, () => {
 
   it(`can move through newlines`, () => {
     const parser = getParser(`Hello\nworld\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.EOL, t.EOL);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `Hello world` });
   });

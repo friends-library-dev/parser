@@ -37,8 +37,6 @@ export default class Lexer {
     let tok: Token;
 
     switch (char) {
-      case `\n`:
-        return this.makeToken(TOKEN.EOL, line);
       case ',':
         return this.makeToken(TOKEN.COMMA, line);
       case '.':
@@ -69,6 +67,15 @@ export default class Lexer {
         return this.makeToken(TOKEN.HASH, line);
       case '°':
         return this.makeToken(TOKEN.DEGREE_SYMBOL, line);
+      case '\n':
+        tok = this.makeToken(TOKEN.EOL, line);
+        const nextLine = this.nextLine();
+        if (nextLine && nextLine.content === `\n`) {
+          tok.type = TOKEN.DOUBLE_EOL;
+          this.setLiteral(tok, `\n\n`, line);
+          this.nextLine();
+        }
+        return tok;
       case `&`:
         const entityMatch = line.content.substring(line.charIdx).match(/^&#?[a-z0-9]+;/);
         if (entityMatch !== null) {

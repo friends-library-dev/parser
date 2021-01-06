@@ -39,6 +39,7 @@ export const TOKEN = {
   BACKTICK: `BACKTICK`,
   DOT: `DOT`,
   EOL: `EOL`,
+  DOUBLE_EOL: `DOUBLE_EOL`,
   EOF: `EOF`,
   ILLEGAL: `ILLEGAL`,
 } as const;

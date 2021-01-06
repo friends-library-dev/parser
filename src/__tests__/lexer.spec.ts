@@ -46,6 +46,14 @@ describe(`lexer`, () => {
     expect(rightDbl).toMatchObject({ type: T.RIGHT_DOUBLE_CURLY, literal: `\`"` });
   });
 
+  test('two newlines should become DOUBLE_EOL', () => {
+    expect(simpleTokens(`foo\n\nfoo`)).toMatchObject([
+      { type: T.TEXT, literal: `foo` },
+      { type: T.DOUBLE_EOL, literal: `\n\n` },
+      { type: T.TEXT, literal: `foo` },
+    ]);
+  });
+
   test('class designation', () => {
     expect(simpleTokens(`[.foo-bar]`)).toMatchObject([
       { type: T.LEFT_BRACE, literal: `[` },
@@ -140,7 +148,7 @@ describe(`lexer`, () => {
   test('own-line double-dash', () => {
     expect(simpleTokens(`--\n\n`)).toMatchObject([
       { type: T.DOUBLE_DASH, literal: `--` },
-      { type: T.EOL, literal: `\n` },
+      { type: T.DOUBLE_EOL, literal: `\n\n` },
     ]);
   });
 
