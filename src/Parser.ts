@@ -11,6 +11,7 @@ type TokenSpec = TokenType | [type: TokenType, literal: string];
 
 export default class Parser {
   public tokens: Token[] = [];
+  private stopStack: Array<TokenSpec[]> = [];
 
   constructor(public lexer: Lexer) {}
 
@@ -28,12 +29,12 @@ export default class Parser {
     return document;
   }
 
-  // stop tokens, err tokens ?
   public parseUntil(parent: AstChildNode, ...stopTokens: TokenSpec[]): AstChildNode[] {
+    this.stopStack.unshift(stopTokens);
     const nodes: AstChildNode[] = [];
 
-    let infiniteLoopStoper = 0;
-    while (!this.peekTokens(...stopTokens)) {
+    let infiniteLoopStopper = 0;
+    while (!this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
         throw new Error(`No parselet found for token type=${this.current.type}`);
@@ -47,12 +48,22 @@ export default class Parser {
       //   ),
       // );
 
-      infiniteLoopStoper++;
-      if (infiniteLoopStoper > 150) {
+      infiniteLoopStopper++;
+      if (infiniteLoopStopper > 150) {
         throw new Error('infinite loop, lol');
       }
     }
+    this.stopStack.shift();
     return nodes;
+  }
+
+  private stopTokensFound(): boolean {
+    for (const stopTokens of this.stopStack) {
+      if (this.peekTokens(...stopTokens)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public parseChapter(document: DocumentNode): AstChildNode {

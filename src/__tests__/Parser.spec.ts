@@ -5,6 +5,9 @@ import { NODE as n, TOKEN as t } from '../types';
 import ParagraphNode from '../nodes/ParagraphNode';
 import DocumentNode from '../nodes/DocumentNode';
 
+// error if parse until doesn't find
+// stop stack
+
 describe(`Parse.parseUntil()`, () => {
   it(`can handle text nodes`, () => {
     const parser = getParser(`Hello world\n`);
@@ -26,6 +29,11 @@ describe(`Parse.parseUntil()`, () => {
       { type: n.TEXT, value: ` foo` },
     ]);
   });
+
+  it(`throws if node doesn't close properly`, () => {
+    const parser = getParser(`_Hello\n`);
+    expect(() => parser.parseUntil(getPara(), t.EOL)).toThrow(/unclosed/i);
+  });
 });
 
 function getParser(adoc: string): Parser {
@@ -36,6 +44,10 @@ function getParser(adoc: string): Parser {
 function getPara(): ParagraphNode {
   return new ParagraphNode(new DocumentNode());
 }
+
+// epigraphs
+// classname above section title
+// footnotes
 
 xdescribe(`Parser.parse()`, () => {
   it(`can parse a thing`, () => {
@@ -87,7 +99,3 @@ xdescribe(`Parser.parse()`, () => {
     ]);
   });
 });
-
-// epigraphs
-// classname above section title
-// footnotes
