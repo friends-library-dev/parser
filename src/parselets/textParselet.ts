@@ -8,9 +8,12 @@ const textParselet: Parselet = (parser, parent) => {
   );
   parser.consume();
 
-  while ([t.TEXT, t.WHITESPACE].includes(parser.current.type as any)) {
+  while (
+    [t.TEXT, t.WHITESPACE, t.EOL].includes(parser.current.type as any) &&
+    !parser.stopTokensFound()
+  ) {
     const token = parser.consume();
-    node.value += token.type === t.WHITESPACE ? ` ` : token.literal;
+    node.value += token.type === t.TEXT ? token.literal : ` `;
   }
   return node;
 };

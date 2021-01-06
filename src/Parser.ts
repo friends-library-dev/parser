@@ -57,7 +57,7 @@ export default class Parser {
     return nodes;
   }
 
-  private stopTokensFound(): boolean {
+  public stopTokensFound(): boolean {
     for (const stopTokens of this.stopStack) {
       if (this.peekTokens(...stopTokens)) {
         return true;
