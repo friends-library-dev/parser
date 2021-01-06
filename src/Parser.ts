@@ -1,4 +1,12 @@
-import { AstNode, Token, TokenType, TOKEN as t, AstChildNode, NodeType } from './types';
+import {
+  AstNode,
+  Token,
+  TokenType,
+  TOKEN as t,
+  AstChildNode,
+  NodeType,
+  TokenSpec,
+} from './types';
 import Lexer from './lexer';
 import DocumentNode from './nodes/DocumentNode';
 import ChapterNode from './nodes/ChapterNode';
@@ -6,8 +14,10 @@ import HeadingNode from './nodes/HeadingNode';
 import TextNode from './nodes/TextNode';
 import ParagraphNode from './nodes/ParagraphNode';
 import getParselet from './parselets';
+import ChapterParser from './ChapterParser';
 
-type TokenSpec = TokenType | [type: TokenType, literal: string];
+// TODO 2: Lexer EOF/EOD change
+// block parser loop should BREAK when it sees EOL..EOF
 
 export default class Parser {
   public tokens: Token[] = [];
@@ -18,13 +28,17 @@ export default class Parser {
   public parse(): AstNode {
     const document = new DocumentNode();
     this.parseDocumentEpigraphs();
-    let token = this.consume();
 
-    // console.log(this.lexer.tokens());
-    document.children.push(this.parseChapter(document));
-    // while (token.type !== TOKEN.EOF) {
-    //   document.children.push(this.parseChapter());
-    // }
+    let failsafe = 0;
+    while (this.current.type !== t.EOF) {
+      const chapterParser = new ChapterParser(this);
+      document.children.push(chapterParser.parse(document));
+
+      failsafe++;
+      if (failsafe > 150) {
+        throw new Error(`Infinite loop in Parser.parse()`);
+      }
+    }
 
     return document;
   }
@@ -34,23 +48,17 @@ export default class Parser {
     const nodes: AstChildNode[] = [];
 
     let infiniteLoopStopper = 0;
+
     while (!this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
         throw new Error(`No parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
-      // console.log(
-      //   JSON.stringify(
-      //     nodes.map((n) => n.toJSON()),
-      //     null,
-      //     2,
-      //   ),
-      // );
 
       infiniteLoopStopper++;
       if (infiniteLoopStopper > 150) {
-        throw new Error('infinite loop, lol');
+        throw new Error(`Infinite loop in Parser.parseUntil()`);
       }
     }
     this.stopStack.shift();
@@ -121,21 +129,35 @@ export default class Parser {
     // TODO
   }
 
-  public peekTokens(...types: TokenSpec[]): boolean {
-    for (let i = 0; i < types.length; i++) {
-      const type = types[i];
-      if (type === undefined) {
+  public currentIs(tokenSpec: TokenSpec): boolean {
+    return this.tokenMatchesSpec(this.current, tokenSpec);
+  }
+
+  public peekIs(tokenSpec: TokenSpec): boolean {
+    return this.tokenMatchesSpec(this.peek, tokenSpec);
+  }
+
+  public peekTokens(...specs: TokenSpec[]): boolean {
+    for (let i = 0; i < specs.length; i++) {
+      const spec = specs[i];
+      if (spec === undefined) {
         throw new Error(`Unexpected missing token in peekTokens()`);
       }
-      const tokenType: TokenType = Array.isArray(type) ? type[0] : type;
-      const tokenLiteral = Array.isArray(type) ? type[1] : null;
-      const actual = this.lookAhead(i);
-      if (
-        actual.type !== tokenType ||
-        (tokenLiteral !== null && actual.literal != tokenLiteral)
-      ) {
+      if (!this.tokenMatchesSpec(this.lookAhead(i), spec)) {
         return false;
       }
+    }
+    return true;
+  }
+
+  private tokenMatchesSpec(token: Token, spec: TokenSpec): boolean {
+    const tokenType: TokenType = Array.isArray(spec) ? spec[0] : spec;
+    const tokenLiteral = Array.isArray(spec) ? spec[1] : null;
+    if (token.type !== tokenType) {
+      return false;
+    }
+    if (tokenLiteral !== null && token.literal !== tokenLiteral) {
+      return false;
     }
     return true;
   }
@@ -183,5 +205,17 @@ export default class Parser {
       ].join(``);
       throw new Error(err);
     }
+  }
+
+  public makeWhileGuard(identifier: string): () => boolean {
+    const maxIterations = typeof process?.env?.JEST_WORKER_ID !== undefined ? 200 : 10000;
+    let numIterations = 0;
+    return () => {
+      numIterations++;
+      if (numIterations >= maxIterations) {
+        throw new Error(`Infinite loop detected in ${identifier}`);
+      }
+      return true;
+    };
   }
 }

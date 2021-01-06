@@ -1,4 +1,4 @@
-import { LexerInput, Token, TokenType, Line, TOKEN } from './types';
+import { LexerInput, Token, TokenType, Line, TOKEN as t } from './types';
 
 export default class Lexer {
   public inputs: LexerInput[] = [];
@@ -6,6 +6,7 @@ export default class Lexer {
   public line: null | Line = null;
   public lines: Line[] = [];
   public lastToken?: Token;
+  public bufferedToken?: Token;
 
   public constructor(...inputs: LexerInput[]) {
     this.inputs = inputs;
@@ -16,16 +17,23 @@ export default class Lexer {
     while (true) {
       const current = this.nextToken();
       tokens.push(current);
-      if (current.type === TOKEN.EOF) {
+      if (current.type === t.EOD) {
         return tokens;
       }
     }
   }
 
   public nextToken(): Token {
+    let tok: Token;
+    if (this.bufferedToken) {
+      tok = this.bufferedToken;
+      this.bufferedToken = undefined;
+      return tok;
+    }
+
     const line = this.currentLine();
     if (!line) {
-      return this.makeToken(TOKEN.EOF, null);
+      return this.makeToken(t.EOD, null);
     }
 
     const char = line.content[line.charIdx];
@@ -34,44 +42,42 @@ export default class Lexer {
       return this.nextToken();
     }
 
-    let tok: Token;
-
     switch (char) {
       case ',':
-        return this.makeToken(TOKEN.COMMA, line);
+        return this.makeToken(t.COMMA, line);
       case '.':
-        return this.makeToken(TOKEN.DOT, line);
+        return this.makeToken(t.DOT, line);
       case '[':
-        return this.makeToken(TOKEN.LEFT_BRACE, line);
+        return this.makeToken(t.LEFT_BRACE, line);
       case ']':
-        return this.makeToken(TOKEN.RIGHT_BRACE, line);
+        return this.makeToken(t.RIGHT_BRACE, line);
       case '(':
-        return this.makeToken(TOKEN.LEFT_PARENS, line);
+        return this.makeToken(t.LEFT_PARENS, line);
       case ')':
-        return this.makeToken(TOKEN.RIGHT_PARENS, line);
+        return this.makeToken(t.RIGHT_PARENS, line);
       case '^':
-        return this.makeToken(TOKEN.CARET, line);
+        return this.makeToken(t.CARET, line);
       case '_':
-        return this.makeGreedyToken(TOKEN.UNDERSCORE, line);
+        return this.makeGreedyToken(t.UNDERSCORE, line);
       case '|':
-        return this.makeToken(TOKEN.PIPE, line);
+        return this.makeToken(t.PIPE, line);
       case ' ':
-        return this.makeGreedyToken(TOKEN.WHITESPACE, line);
+        return this.makeGreedyToken(t.WHITESPACE, line);
       case '=':
-        return this.makeGreedyToken(TOKEN.EQUALS, line);
+        return this.makeGreedyToken(t.EQUALS, line);
       case '$':
-        return this.makeToken(TOKEN.DOLLAR_SYMBOL, line);
+        return this.makeToken(t.DOLLAR_SYMBOL, line);
       case '£':
-        return this.makeToken(TOKEN.POUND_SYMBOL, line);
+        return this.makeToken(t.POUND_SYMBOL, line);
       case '#':
-        return this.makeToken(TOKEN.HASH, line);
+        return this.makeToken(t.HASH, line);
       case '°':
-        return this.makeToken(TOKEN.DEGREE_SYMBOL, line);
+        return this.makeToken(t.DEGREE_SYMBOL, line);
       case '\n':
-        tok = this.makeToken(TOKEN.EOL, line);
+        tok = this.makeToken(t.EOL, line);
         const nextLine = this.nextLine();
         if (nextLine && nextLine.content === `\n`) {
-          tok.type = TOKEN.DOUBLE_EOL;
+          tok.type = t.DOUBLE_EOL;
           this.setLiteral(tok, `\n\n`, line);
           this.nextLine();
         }
@@ -79,79 +85,79 @@ export default class Lexer {
       case `&`:
         const entityMatch = line.content.substring(line.charIdx).match(/^&#?[a-z0-9]+;/);
         if (entityMatch !== null) {
-          tok = this.makeToken(TOKEN.ENTITY, line);
+          tok = this.makeToken(t.ENTITY, line);
           this.setLiteral(tok, entityMatch[0] || ``, line);
           return tok;
         } else {
-          return this.makeToken(TOKEN.AMPERSAND, line);
+          return this.makeToken(t.AMPERSAND, line);
         }
       case '/':
         if (line.charIdx === 0 && this.peekChar() === '/') {
-          tok = this.makeToken(TOKEN.COMMENT, line);
+          tok = this.makeToken(t.COMMENT, line);
           return this.setLiteral(tok, line.content.replace(`\n`, ``), line);
         }
-        return this.makeToken(TOKEN.FORWARD_SLASH, line);
+        return this.makeToken(t.FORWARD_SLASH, line);
       case '+':
         if (this.peekChar() === `+`) {
-          return this.makeGreedyToken(TOKEN.TRIPLE_PLUS, line, 3);
+          return this.makeGreedyToken(t.TRIPLE_PLUS, line, 3);
         } else {
-          return this.makeToken(TOKEN.PLUS, line);
+          return this.makeToken(t.PLUS, line);
         }
       case ':':
-        tok = this.makeGreedyToken(TOKEN.DOUBLE_COLON, line);
+        tok = this.makeGreedyToken(t.DOUBLE_COLON, line);
         if (tok.literal.length === 1) {
-          tok.type = TOKEN.TEXT;
+          tok.type = t.TEXT;
         } else if (tok.literal.length !== 2) {
-          tok.type = TOKEN.ILLEGAL;
+          tok.type = t.ILLEGAL;
         }
         return tok;
       case '{':
         if (line.charIdx === 0 && line.content === `${FOOTNOTE_PARA_SPLIT}\n`) {
-          tok = this.makeToken(TOKEN.FOOTNOTE_PARAGRAPH_SPLIT, line);
+          tok = this.makeToken(t.FOOTNOTE_PARAGRAPH_SPLIT, line);
           return this.setLiteral(tok, FOOTNOTE_PARA_SPLIT, line);
         }
       case '*':
-        tok = this.makeGreedyToken(TOKEN.ASTERISK, line);
+        tok = this.makeGreedyToken(t.ASTERISK, line);
         if (tok.literal.length === 3) {
-          tok.type = TOKEN.TRIPLE_ASTERISK;
+          tok.type = t.TRIPLE_ASTERISK;
         } else if (tok.literal.length === 2) {
-          tok.type = TOKEN.DOUBLE_ASTERISK;
+          tok.type = t.DOUBLE_ASTERISK;
         } else if (tok.literal.length !== 1) {
-          tok.type = TOKEN.ILLEGAL;
+          tok.type = t.ILLEGAL;
         }
         return tok;
       case '-':
         if (line.content.substring(line.charIdx) === `${FOOTNOTE_STANZA}\n`) {
-          tok = this.makeToken(TOKEN.FOOTNOTE_STANZA, line);
+          tok = this.makeToken(t.FOOTNOTE_STANZA, line);
           return this.setLiteral(tok, FOOTNOTE_STANZA, line);
         }
-        return this.makeGreedyToken(TOKEN.DOUBLE_DASH, line, 2);
+        return this.makeGreedyToken(t.DOUBLE_DASH, line, 2);
       case `\``:
         if (this.peekChar() === `"`) {
-          tok = this.makeToken(TOKEN.RIGHT_DOUBLE_CURLY, line, false);
+          tok = this.makeToken(t.RIGHT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else if (this.peekChar() == `'`) {
-          tok = this.makeToken(TOKEN.RIGHT_SINGLE_CURLY, line, false);
+          tok = this.makeToken(t.RIGHT_SINGLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else {
-          return this.makeToken(TOKEN.BACKTICK, line);
+          return this.makeToken(t.BACKTICK, line);
         }
       case `'`:
         if (this.peekChar() === `\``) {
-          tok = this.makeToken(TOKEN.LEFT_SINGLE_CURLY, line, false);
+          tok = this.makeToken(t.LEFT_SINGLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else if (this.peekChar() === `'`) {
-          return this.makeGreedyToken(TOKEN.ASTERISM, line, 3);
+          return this.makeGreedyToken(t.ASTERISM, line, 3);
         }
       case `"`:
         if (this.peekChar() === `\``) {
-          tok = this.makeToken(TOKEN.LEFT_DOUBLE_CURLY, line, false);
+          tok = this.makeToken(t.LEFT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else {
-          return this.makeToken(TOKEN.STRAIGHT_DOUBLE_QUOTE, line);
+          return this.makeToken(t.STRAIGHT_DOUBLE_QUOTE, line);
         }
       default:
-        tok = this.makeToken(TOKEN.TEXT, line, false);
+        tok = this.makeToken(t.TEXT, line, false);
         while (!isTextBoundaryChar(this.peekChar())) {
           const nextChar = this.requireNextChar();
           tok.literal += nextChar;
@@ -166,7 +172,7 @@ export default class Lexer {
           tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
         }
         if (tok.literal === 'footnote:') {
-          tok.type = TOKEN.FOOTNOTE_PREFIX;
+          tok.type = t.FOOTNOTE_PREFIX;
         }
         return tok;
     }
@@ -223,7 +229,7 @@ export default class Lexer {
     }
     line.charIdx++;
     if (typeof requiredLength === `number` && tok.literal.length !== requiredLength) {
-      tok.type = TOKEN.ILLEGAL;
+      tok.type = t.ILLEGAL;
     }
     return tok;
   }
@@ -256,6 +262,11 @@ export default class Lexer {
       const line = this.lines.shift() as Line;
       this.line = line;
       return line;
+    }
+
+    // we reached the end of a file
+    if (this.inputIdx > -1) {
+      this.bufferedToken = this.makeToken(t.EOF, null);
     }
 
     this.inputIdx++;

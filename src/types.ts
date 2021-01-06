@@ -41,6 +41,7 @@ export const TOKEN = {
   EOL: `EOL`,
   DOUBLE_EOL: `DOUBLE_EOL`,
   EOF: `EOF`,
+  EOD: `EOD`, // end of (possibly multi-file) document
   ILLEGAL: `ILLEGAL`,
 } as const;
 
@@ -56,6 +57,8 @@ export type Token = {
     end: number;
   };
 };
+
+export type TokenSpec = TokenType | [type: TokenType, literal: string];
 
 export interface Line {
   content: string;
@@ -77,6 +80,7 @@ export const NODE = {
   EMPHASIS: `EMPHASIS`,
   STRONG: `STRONG`,
   TEXT: `TEXT`,
+  BLOCK: `BLOCK`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -91,6 +95,10 @@ export interface AstNode {
 export type AstChildNode = AstNode & {
   parent: AstNode;
 };
+
+export interface SectionNode {
+  level: number;
+}
 
 export interface AstPosition {
   start: {

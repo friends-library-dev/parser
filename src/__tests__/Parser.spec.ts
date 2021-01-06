@@ -96,36 +96,37 @@ function getPara(): ParagraphNode {
   return new ParagraphNode(new DocumentNode());
 }
 
+// joining of chapter files...
 // epigraphs
 // classname above section title
 // footnotes
 
-xdescribe(`Parser.parse()`, () => {
+describe(`Parser.parse()`, () => {
   it(`can parse a thing`, () => {
-    const adoc = stripIndent(`
-      == Chapter 1
-
-      Hello world.
-    `);
-
+    const adoc = `== Chapter 1\n\nHello world\n`;
     const lexer = new Lexer({ adoc });
     const parser = new Parser(lexer);
     const document = parser.parse();
 
     expect(document.toJSON()).toMatchObject({
-      type: n.DOCUMENT,
+      type: 'DOCUMENT',
       children: [
         {
-          type: n.CHAPTER,
+          type: 'CHAPTER',
           children: [
             {
-              type: n.HEADING,
+              type: 'HEADING',
+              children: [{ type: 'TEXT', value: 'Chapter 1' }],
               level: 2,
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
             },
             {
-              type: n.PARAGRAPH,
-              children: [{ type: n.TEXT, value: `Hello world.` }],
+              type: 'BLOCK',
+              children: [
+                {
+                  type: 'PARAGRAPH',
+                  children: [{ type: 'TEXT', value: 'Hello world' }],
+                },
+              ],
             },
           ],
         },
@@ -133,7 +134,7 @@ xdescribe(`Parser.parse()`, () => {
     });
   });
 
-  it(`can parse something in a heading`, () => {
+  xit(`can parse something in a heading`, () => {
     const adoc = stripIndent(`
         == Chapter 1
   
