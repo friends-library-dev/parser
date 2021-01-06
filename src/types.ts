@@ -1,3 +1,5 @@
+import Parser from './Parser';
+
 export const TOKEN = {
   TEXT: `TEXT`,
   ASTERISK: `ASTERISK`,
@@ -71,6 +73,7 @@ export const NODE = {
   CHAPTER: `CHAPTER`,
   HEADING: `HEADING`,
   PARAGRAPH: `PARAGRAPH`,
+  EMPHASIS: `EMPHASIS`,
   TEXT: `TEXT`,
 } as const;
 
@@ -98,4 +101,8 @@ export interface AstPosition {
     column: number;
     filename?: string;
   };
+}
+
+export interface Parselet {
+  (parser: Parser, parent: AstChildNode): AstChildNode;
 }

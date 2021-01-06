@@ -1,8 +1,8 @@
-import { NodeType, NODE as n, AstChildNode } from '../types';
-import AbstractChildNode from './AbstractChildNode';
+import { AstNode, NODE as n } from '../types';
+import ChildNode from './ChildNode';
 
-export default class ParagraphNode extends AbstractChildNode {
-  public get type(): NodeType {
-    return n.PARAGRAPH;
+export default class ParagraphNode extends ChildNode {
+  public constructor(public parent: AstNode) {
+    super(n.PARAGRAPH, parent);
   }
 }

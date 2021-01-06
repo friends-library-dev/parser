@@ -1,13 +1,9 @@
-import { NodeType, NODE as n, AstChildNode } from '../types';
-import AbstractChildNode from './AbstractChildNode';
+import { NODE as n, AstChildNode } from '../types';
+import ChildNode from './ChildNode';
 
-export default class TextNode extends AbstractChildNode {
+export default class TextNode extends ChildNode {
   public constructor(public parent: AstChildNode, public value: string) {
-    super(parent);
-  }
-
-  public get type(): NodeType {
-    return n.TEXT;
+    super(n.TEXT, parent);
   }
 
   public toJSON(): Record<string, any> {

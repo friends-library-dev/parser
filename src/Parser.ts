@@ -5,11 +5,14 @@ import ChapterNode from './nodes/ChapterNode';
 import HeadingNode from './nodes/HeadingNode';
 import TextNode from './nodes/TextNode';
 import ParagraphNode from './nodes/ParagraphNode';
+import getParselet from './parselets';
+
+type TokenSpec = TokenType | [type: TokenType, literal: string];
 
 export default class Parser {
-  private tokens: Token[] = [];
+  public tokens: Token[] = [];
 
-  constructor(private lexer: Lexer) {}
+  constructor(public lexer: Lexer) {}
 
   public parse(): AstNode {
     const document = new DocumentNode();
@@ -25,26 +28,45 @@ export default class Parser {
     return document;
   }
 
-  private parseChapter(document: DocumentNode): AstChildNode {
+  // stop tokens, err tokens ?
+  public parseUntil(parent: AstChildNode, ...stopTokens: TokenSpec[]): AstChildNode[] {
+    const nodes: AstChildNode[] = [];
+
+    let infiniteLoopStoper = 0;
+    while (!this.peekTokens(...stopTokens)) {
+      const parselet = getParselet(this.current);
+      if (parselet === null) {
+        throw new Error(`No parselet found for token type=${this.current.type}`);
+      }
+      nodes.push(parselet(this, parent));
+      // console.log(
+      //   JSON.stringify(
+      //     nodes.map((n) => n.toJSON()),
+      //     null,
+      //     2,
+      //   ),
+      // );
+
+      infiniteLoopStoper++;
+      if (infiniteLoopStoper > 150) {
+        throw new Error('infinite loop, lol');
+      }
+    }
+    return nodes;
+  }
+
+  public parseChapter(document: DocumentNode): AstChildNode {
     if (!this.peekTokens([t.EQUALS, `==`], t.WHITESPACE, t.TEXT)) {
       throw new Error(`Unexpected missing chapter heading`);
     }
-    this.consume(); // `==`
-    this.consume(); // space after `==`
+    this.consume(t.EQUALS);
+    this.consume(t.WHITESPACE);
 
     const chapter = new ChapterNode(document);
     const heading = new HeadingNode(chapter, 2);
     chapter.children.push(heading);
 
-    // this should relly be a sub-parse, because headings can have nodes in them...
-    let text: string[] = [];
-    while (this.currentOneOf(t.TEXT, t.WHITESPACE)) {
-      const token = this.consume();
-      if (token.type !== t.WHITESPACE) {
-        text.push(token.literal);
-      }
-    }
-    heading.children.push(new TextNode(heading, text.join(' ')));
+    heading.children = this.parseUntil(heading, t.EOL);
 
     this.consume(t.EOL);
     this.consume(t.EOL);
@@ -67,7 +89,7 @@ export default class Parser {
     return chapter;
   }
 
-  private currentOneOf(...types: TokenType[]): boolean {
+  public currentOneOf(...types: TokenType[]): boolean {
     for (const type of types) {
       if (this.current.type === type) {
         return true;
@@ -76,21 +98,19 @@ export default class Parser {
     return false;
   }
 
-  private get current(): Token {
+  public get current(): Token {
     return this.lookAhead(0);
   }
 
-  private get peek(): Token {
+  public get peek(): Token {
     return this.lookAhead(1);
   }
 
-  private parseDocumentEpigraphs(): void {
+  public parseDocumentEpigraphs(): void {
     // TODO
   }
 
-  private peekTokens(
-    ...types: (TokenType | [type: TokenType, literal: string])[]
-  ): boolean {
+  public peekTokens(...types: TokenSpec[]): boolean {
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       if (type === undefined) {
@@ -109,17 +129,23 @@ export default class Parser {
     return true;
   }
 
-  private consume(expectedTokenType?: TokenType): Token {
+  public consume(expectedType?: TokenType, expectedLiteral?: string): Token {
     const token = this.lookAhead(0);
-    if (expectedTokenType && expectedTokenType !== token.type) {
-      throw new Error(`Expected token ${expectedTokenType} and found ${token.type}`);
+    if (expectedType && expectedType !== token.type) {
+      throw new Error(`Expected token type=${expectedType} and found ${token.type}`);
+    }
+
+    if (typeof expectedLiteral === `string` && expectedLiteral !== token.literal) {
+      throw new Error(
+        `Expected token literal="${expectedLiteral}" and found "${token.literal}"`,
+      );
     }
 
     this.tokens.shift();
     return token;
   }
 
-  private lookAhead(distance: number): Token {
+  public lookAhead(distance: number): Token {
     while (distance >= this.tokens.length) {
       this.tokens.push(this.lexer.nextToken());
     }
