@@ -22,13 +22,18 @@ export default class BlockParser {
     while (guard() && !this.p.peekTokensAnyOf(...blockStops)) {
       const innerGuard = this.p.makeWhileGuard(`BlockParser.parse(<inner>)`);
       while (innerGuard() && !this.p.peekTokensAnyOf(...paraStops)) {
-        const paragraph = new ParagraphNode(block);
+        const paragraph = new ParagraphNode(block, this.p.parseContext());
         block.children.push(paragraph);
         paragraph.children = this.p.parseUntilAnyOf(paragraph, ...paraStops);
         if (this.p.currentIs(t.DOUBLE_EOL)) {
           this.p.consume(t.DOUBLE_EOL);
         }
       }
+    }
+
+    if (isBlockQuote) {
+      this.p.consume(t.UNDERSCORE, `____`);
+      this.p.consume(t.EOL);
     }
 
     return block;

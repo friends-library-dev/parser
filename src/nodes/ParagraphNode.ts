@@ -1,8 +1,9 @@
-import { AstNode, NODE as n } from '../types';
-import ChildNode from './ChildNode';
+import { AstChildNode, NODE as n } from '../types';
+import ContextNode from './ContextNode';
+import Context from '../Context';
 
-export default class ParagraphNode extends ChildNode {
-  public constructor(public parent: AstNode) {
-    super(n.PARAGRAPH, parent);
+export default class ParagraphNode extends ContextNode {
+  public constructor(parent: AstChildNode, context: Context | null) {
+    super(n.PARAGRAPH, parent, context);
   }
 }

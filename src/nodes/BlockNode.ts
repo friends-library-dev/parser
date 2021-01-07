@@ -1,17 +1,10 @@
-import { NODE as n } from '../types';
+import { AstChildNode, NODE as n } from '../types';
 import Context from '../Context';
-import ChildNode from './ChildNode';
+import ContextNode from './ContextNode';
 import ChapterNode from './ChapterNode';
 
-export default class BlockNode extends ChildNode {
-  public constructor(public parent: ChapterNode, public context: Context | null) {
-    super(n.BLOCK, parent);
-  }
-
-  public toJSON(): Record<string, any> {
-    return {
-      context: this.context ?? null,
-      ...super.toJSON(),
-    };
+export default class BlockNode extends ContextNode {
+  public constructor(parent: AstChildNode, context: Context | null) {
+    super(n.BLOCK, parent, context);
   }
 }

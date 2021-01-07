@@ -20,6 +20,38 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a paragraph with context`, () => {
+    const block = getParsedBlock(`
+      [quote, ,]
+      ____
+      First para
+
+      [.offset]
+      With context
+
+      Last para
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'First para' }],
+        },
+        {
+          type: n.PARAGRAPH,
+          context: { classList: [`offset`] },
+          children: [{ type: n.TEXT, value: 'With context' }],
+        },
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'Last para' }],
+        },
+      ],
+    });
+  });
+
   it(`can parse a blockquote`, () => {
     const block = getParsedBlock(`
       [quote, ,]
