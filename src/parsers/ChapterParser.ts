@@ -26,7 +26,7 @@ export default class ChapterParser {
     while (guard() && this.p.currentIs(t.DOUBLE_EOL)) {
       this.p.consume(t.DOUBLE_EOL);
 
-      // @TODO parse (or skip?) optional `context`(? naming...), like `[.offset]`
+      // @TODO skip this with a this.p.firstTokenAfterOptionalContext() method
       const context = this.p.parseContext();
 
       // chapters only contain sections or blocks at the top level (i hope...)

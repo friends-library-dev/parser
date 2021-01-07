@@ -1,14 +1,39 @@
-import { TOKEN as t } from '../types';
+import { TOKEN as t, TokenSpec } from '../types';
 import Parser from '../Parser';
 import ChapterNode from '../nodes/ChapterNode';
 import BlockNode from '../nodes/BlockNode';
 import ParagraphNode from '../nodes/ParagraphNode';
+import ContextParser from './ContextParser';
 
 export default class BlockParser {
-  public constructor(private p: Parser) {}
+  private contextParser: ContextParser;
+
+  public constructor(private p: Parser) {
+    this.contextParser = new ContextParser(p);
+  }
 
   public parse(parent: ChapterNode): BlockNode {
-    const block = new BlockNode(parent);
+    const context = this.contextParser.parse();
+    const block = new BlockNode(parent, context);
+    const isBlockQuote = context?.isBlockQuote() ?? false;
+
+    if (isBlockQuote) {
+      this.p.consume(t.UNDERSCORE, `____`);
+      this.p.consume(t.EOL);
+    }
+
+    // get block terminator DOUBLE_EOL, [EOL, EOF], UNDERSCORE
+    // todo, extract
+    if (false) {
+      const blockStopTokens: TokenSpec[] = [[t.UNDERSCORE, `____`]];
+      const guard = this.p.makeWhileGuard(`BlockParser.parse()`);
+      while (guard() && !this.p.peekTokens(...blockStopTokens)) {
+        //
+      }
+    }
+
+    // while ! blockTerminator, get para terminator
+    // loop through pushing paras (paras can have context...)
 
     // temp, ignore open/example blocks, parse single para block for now...
     const stopTokens = this.isLastChunkInFile() ? [t.EOL, t.EOF] : [t.DOUBLE_EOL];

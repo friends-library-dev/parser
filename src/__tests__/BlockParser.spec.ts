@@ -1,7 +1,6 @@
 import { NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
 import { getChapter, getParser } from './helpers';
-import ChapterNode from '../nodes/ChapterNode';
 import BlockNode from '../nodes/BlockNode';
 import stripIndent from 'strip-indent';
 
@@ -19,9 +18,9 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
-  xit(`can parse a blockquote`, () => {
+  it(`can parse a blockquote`, () => {
     const block = getParsedBlock(`
-      [quote, , ]
+      [quote, ,]
       ____
       Hello world
       ____

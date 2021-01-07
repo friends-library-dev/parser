@@ -49,9 +49,16 @@ export default class Parser {
   }
 
   public parseUntil(parent: AstChildNode, ...stopTokens: TokenSpec[]): AstChildNode[] {
-    this.stopStack.unshift(stopTokens);
+    return this.parseUntilAnyOf(parent, ...[stopTokens]);
+  }
+
+  public parseUntilAnyOf(
+    parent: AstChildNode,
+    ...stopTokensGroups: TokenSpec[][]
+  ): AstChildNode[] {
+    this.stopStack = stopTokensGroups.concat(this.stopStack);
     const nodes: AstChildNode[] = [];
-    const guard = this.makeWhileGuard(`Parser.parseUntil()`);
+    const guard = this.makeWhileGuard(`Parser.parseUntilAnyOf()`);
     while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
@@ -59,7 +66,9 @@ export default class Parser {
       }
       nodes.push(parselet(this, parent));
     }
-    this.stopStack.shift();
+    for (const _ of stopTokensGroups) {
+      this.stopStack.shift();
+    }
     return nodes;
   }
 
@@ -101,6 +110,9 @@ export default class Parser {
     return this.tokenMatchesSpec(this.peek, tokenSpec);
   }
 
+  /**
+   * Do the next n-tokens match the passed specs?
+   */
   public peekTokens(...specs: TokenSpec[]): boolean {
     for (let i = 0; i < specs.length; i++) {
       const spec = specs[i];
@@ -112,6 +124,13 @@ export default class Parser {
       }
     }
     return true;
+  }
+
+  /**
+   * Do the next tokens match ANY of the possiple arrays of specs?
+   */
+  public peekTokensAnyOf(...groups: TokenSpec[][]): boolean {
+    return groups.some((tokens) => this.peekTokens(...tokens));
   }
 
   private tokenMatchesSpec(token: Token, spec: TokenSpec): boolean {

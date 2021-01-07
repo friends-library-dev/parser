@@ -7,4 +7,8 @@ export default class Context {
   public quoteAttribution?: Token[];
   public quoteSource?: Token[];
   public shortTitle?: Token[];
+
+  public isBlockQuote(): boolean {
+    return this.type === `quote` || this.type === `epigraph`;
+  }
 }
