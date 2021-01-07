@@ -11,16 +11,16 @@ export default class BlockParser {
   public parse(parent: ChapterNode | SectionNode): BlockNode {
     const context = this.p.parseContext();
     const block = new BlockNode(parent, context);
-    const isBlockQuote = context?.isBlockQuote() ?? false;
 
-    if (isBlockQuote) {
-      this.p.consume(t.UNDERSCORE, `____`);
-      this.p.consume(t.EOL);
+    if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {
+      block.blockType = `open`;
     }
 
+    this.consumeDelimeters(block, 'open');
+
     const [blockStops, paraStops] = this.stopTokens(block);
-    const guard = this.p.makeWhileGuard(`BlockParser.parse(<outer>)`);
-    while (guard() && !this.p.peekTokensAnyOf(...blockStops)) {
+    const outerGuard = this.p.makeWhileGuard(`BlockParser.parse(<outer>)`);
+    while (outerGuard() && !this.p.peekTokensAnyOf(...blockStops)) {
       const innerGuard = this.p.makeWhileGuard(`BlockParser.parse(<inner>)`);
       while (innerGuard() && !this.p.peekTokensAnyOf(...paraStops)) {
         const paragraph = new ParagraphNode(block, this.p.parseContext());
@@ -31,13 +31,25 @@ export default class BlockParser {
         }
       }
     }
+    this.consumeDelimeters(block, 'close');
+    return block;
+  }
 
-    if (isBlockQuote) {
+  private consumeDelimeters(block: BlockNode, side: 'open' | 'close'): void {
+    if (block.blockType === `quote`) {
       this.p.consume(t.UNDERSCORE, `____`);
       this.p.consume(t.EOL);
+    } else if (block.blockType === `open` && side === `open`) {
+      this.p.consume(t.DOUBLE_DASH);
+      this.p.consume(t.DOUBLE_EOL);
+    } else if (block.blockType === `open` && side === `close`) {
+      this.p.consume(t.DOUBLE_DASH);
+      if (this.p.currentIs(t.EOL)) {
+        this.p.consume(t.EOL);
+      } else {
+        this.p.consume(t.DOUBLE_EOL);
+      }
     }
-
-    return block;
   }
 
   private stopTokens(
@@ -46,9 +58,12 @@ export default class BlockParser {
     const blockStops: TokenSpec[][] = [[t.EOL, t.EOF], [t.EOF]];
     const paraStops: TokenSpec[][] = [[t.DOUBLE_EOL], [t.EOF]];
 
-    if (block.context?.isBlockQuote()) {
+    if (block.blockType === `quote`) {
       blockStops.push([[t.UNDERSCORE, `____`]]);
       paraStops.push([[t.UNDERSCORE, `____`]]);
+    } else if (block.blockType === `open`) {
+      blockStops.push([t.DOUBLE_DASH, t.EOL]);
+      paraStops.push([t.DOUBLE_DASH, t.EOL]);
     } else {
       blockStops.push([t.DOUBLE_EOL]);
       paraStops.push([t.EOL, t.EOF]);

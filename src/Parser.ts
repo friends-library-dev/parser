@@ -14,19 +14,18 @@ import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
 
-// open blocks
 // example blocks
+// example blocks INSIDE open blocks
 // poetry blocks
 // footnotes
 // chapter headings
+// tables :(
 
 export default class Parser {
   public tokens: Token[] = [];
   private stopStack: Array<TokenSpec[]> = [];
 
-  constructor(public lexer: Lexer) {
-    // console.log(lexer.tokens());
-  }
+  constructor(public lexer: Lexer) {}
 
   public parse(): AstNode {
     const document = new DocumentNode();
@@ -118,6 +117,7 @@ export default class Parser {
     if (!this.currentIs(t.LEFT_BRACKET)) {
       return this.current;
     }
+
     let lookAheadIndex = 1;
     const guard = this.makeWhileGuard(`Parser.firstTokenAfterOptionalContext()`);
     while (guard()) {
@@ -167,13 +167,11 @@ export default class Parser {
   public consume(expectedType?: TokenType, expectedLiteral?: string): Token {
     const token = this.lookAhead(0);
     if (expectedType && expectedType !== token.type) {
-      this.error(`Expected token type=${expectedType} and found ${token.type}`);
+      this.error(`Expected token type ${expectedType}, got ${token.type}`);
     }
 
     if (typeof expectedLiteral === `string` && expectedLiteral !== token.literal) {
-      this.error(
-        `Expected token literal="${expectedLiteral}" and found "${token.literal}"`,
-      );
+      this.error(`Expected token literal "${expectedLiteral}", got "${token.literal}"`);
     }
 
     this.tokens.shift();
@@ -224,6 +222,11 @@ export default class Parser {
 
   public error(msg: string): never {
     throw new Error(`Parse error: ${msg}, at ${location(this.current)}`);
+  }
+
+  public log(msg?: string): void {
+    console.log(`${msg ? `(${msg}) ` : ``}CURRENT:---`, this.current);
+    console.log(`${msg ? `(${msg}) ` : ``}PEEK:------`, this.peek);
   }
 }
 

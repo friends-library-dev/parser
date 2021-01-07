@@ -2,7 +2,6 @@ import { AstChildNode, AstNode, TOKEN as t } from '../types';
 import Parser from '../Parser';
 import SectionNode from '../nodes/SectionNode';
 import HeadingNode from '../nodes/HeadingNode';
-import Context from '../Context';
 import BlockParser from './BlockParser';
 
 export default class SectionParser {

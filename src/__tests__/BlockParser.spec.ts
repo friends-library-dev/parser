@@ -104,6 +104,45 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  it(`can parse an open-block`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document.letter]
+      --
+
+      [.salutation]
+      Dear friend
+
+      Hello friend
+
+      [.signed-section-signature]
+      George
+
+      --
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `open`,
+      context: { classList: [`embedded-content-document`, `letter`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          context: { classList: [`salutation`] },
+          children: [{ type: n.TEXT, value: `Dear friend` }],
+        },
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello friend` }],
+        },
+        {
+          type: n.PARAGRAPH,
+          context: { classList: [`signed-section-signature`] },
+          children: [{ type: n.TEXT, value: `George` }],
+        },
+      ],
+    });
+  });
 });
 
 function getParsedBlock(adoc: string): BlockNode {
