@@ -14,10 +14,12 @@ import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
 
-// funky blocks like quotes, poetry?
-// footnotes?
-// multi-para blocks
-// context things like `[.offset]`
+// sub-sections
+// open blocks
+// example blocks
+// poetry blocks
+// footnotes
+// chapter headings
 
 export default class Parser {
   public tokens: Token[] = [];

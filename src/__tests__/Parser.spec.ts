@@ -124,6 +124,43 @@ describe(`Parser.parse()`, () => {
     });
   });
 
+  it.only(`can parse a sub-section`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+      
+      === Subsection
+
+      Hello world
+    `);
+
+    document.log();
+    expect(document.toJSON()).toMatchObject({
+      type: 'DOCUMENT',
+      children: [
+        {
+          type: 'CHAPTER',
+          children: [
+            {
+              type: 'SECTION',
+              level: 3,
+              children: [
+                {
+                  type: 'BLOCK',
+                  children: [
+                    {
+                      type: 'PARAGRAPH',
+                      children: [{ type: t.TEXT, value: `HELLO WORLD` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse something in a heading`, () => {
     const document = parseAdocFile(`
       == Chapter _emphasis_

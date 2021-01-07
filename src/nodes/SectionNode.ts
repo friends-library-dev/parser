@@ -3,6 +3,13 @@ import ChildNode from './ChildNode';
 
 export default class SectionNode extends ChildNode implements SectionNodeInterface {
   public constructor(public parent: AstNode, public level: number) {
-    super(n.CHAPTER, parent);
+    super(n.SECTION, parent);
+  }
+
+  public toJSON(): Record<string, any> {
+    return {
+      level: this.level,
+      ...super.toJSON(),
+    };
   }
 }
