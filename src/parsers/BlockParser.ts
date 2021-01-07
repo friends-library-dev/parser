@@ -18,11 +18,17 @@ export default class BlockParser {
     }
 
     const [blockStops, paraStops] = this.stopTokens(block);
-    const guard = this.p.makeWhileGuard(`BlockParser.parse()`);
-    while (guard() && !this.p.peekTokensAnyOf(...[...blockStops, ...paraStops])) {
-      const paragraph = new ParagraphNode(block);
-      block.children.push(paragraph);
-      paragraph.children = this.p.parseUntilAnyOf(paragraph, ...paraStops);
+    const guard = this.p.makeWhileGuard(`BlockParser.parse(<outer>)`);
+    while (guard() && !this.p.peekTokensAnyOf(...blockStops)) {
+      const innerGuard = this.p.makeWhileGuard(`BlockParser.parse(<inner>)`);
+      while (innerGuard() && !this.p.peekTokensAnyOf(...paraStops)) {
+        const paragraph = new ParagraphNode(block);
+        block.children.push(paragraph);
+        paragraph.children = this.p.parseUntilAnyOf(paragraph, ...paraStops);
+        if (this.p.currentIs(t.DOUBLE_EOL)) {
+          this.p.consume(t.DOUBLE_EOL);
+        }
+      }
     }
 
     return block;
@@ -31,8 +37,8 @@ export default class BlockParser {
   private stopTokens(
     block: BlockNode,
   ): [blockStops: TokenSpec[][], paraStops: TokenSpec[][]] {
-    const blockStops: TokenSpec[][] = [[t.EOL, t.EOF]];
-    const paraStops: TokenSpec[][] = [[t.DOUBLE_EOL]];
+    const blockStops: TokenSpec[][] = [[t.EOL, t.EOF], [t.EOF]];
+    const paraStops: TokenSpec[][] = [[t.DOUBLE_EOL], [t.EOF]];
 
     if (block.context?.isBlockQuote()) {
       blockStops.push([[t.UNDERSCORE, `____`]]);

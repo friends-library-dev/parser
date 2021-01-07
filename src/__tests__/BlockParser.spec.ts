@@ -6,7 +6,9 @@ import stripIndent from 'strip-indent';
 
 describe(`BlockParser.parse()`, () => {
   it(`can parse a simple paragraph`, () => {
-    const block = getParsedBlock(`Hello world\n\n`);
+    const block = getParsedBlock(`
+      Hello world
+    `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
       children: [
@@ -45,10 +47,12 @@ describe(`BlockParser.parse()`, () => {
       Hello world
 
       Goodbye world
+
+      Hello
+      Papa
       ____
     `);
 
-    block.log();
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
       context: { type: `quote` },
@@ -61,13 +65,17 @@ describe(`BlockParser.parse()`, () => {
           type: n.PARAGRAPH,
           children: [{ type: n.TEXT, value: 'Goodbye world' }],
         },
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'Hello Papa' }],
+        },
       ],
     });
   });
 });
 
 function getParsedBlock(adoc: string): BlockNode {
-  const parser = getParser(stripIndent(adoc).trim() + `\n\n`);
+  const parser = getParser(stripIndent(adoc).trim() + `\n`);
   const blockParser = new BlockParser(parser);
   return blockParser.parse(getChapter());
 }

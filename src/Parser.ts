@@ -23,7 +23,9 @@ export default class Parser {
   public tokens: Token[] = [];
   private stopStack: Array<TokenSpec[]> = [];
 
-  constructor(public lexer: Lexer) {}
+  constructor(public lexer: Lexer) {
+    // console.log(lexer.tokens());
+  }
 
   public parse(): AstNode {
     const document = new DocumentNode();
