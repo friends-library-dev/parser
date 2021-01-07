@@ -133,23 +133,32 @@ describe(`Parser.parse()`, () => {
       Hello world
     `);
 
-    document.log();
     expect(document.toJSON()).toMatchObject({
-      type: 'DOCUMENT',
+      type: n.DOCUMENT,
       children: [
         {
-          type: 'CHAPTER',
+          type: n.CHAPTER,
           children: [
             {
-              type: 'SECTION',
+              type: n.HEADING,
+              level: 2,
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.SECTION,
               level: 3,
               children: [
                 {
-                  type: 'BLOCK',
+                  type: n.HEADING,
+                  children: [{ type: n.TEXT, value: `Subsection` }],
+                  level: 3,
+                },
+                {
+                  type: n.BLOCK,
                   children: [
                     {
-                      type: 'PARAGRAPH',
-                      children: [{ type: t.TEXT, value: `HELLO WORLD` }],
+                      type: n.PARAGRAPH,
+                      children: [{ type: n.TEXT, value: `Hello world` }],
                     },
                   ],
                 },

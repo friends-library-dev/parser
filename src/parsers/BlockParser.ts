@@ -3,11 +3,12 @@ import Parser from '../Parser';
 import ChapterNode from '../nodes/ChapterNode';
 import BlockNode from '../nodes/BlockNode';
 import ParagraphNode from '../nodes/ParagraphNode';
+import SectionNode from '../nodes/SectionNode';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}
 
-  public parse(parent: ChapterNode): BlockNode {
+  public parse(parent: ChapterNode | SectionNode): BlockNode {
     const context = this.p.parseContext();
     const block = new BlockNode(parent, context);
     const isBlockQuote = context?.isBlockQuote() ?? false;

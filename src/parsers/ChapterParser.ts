@@ -10,7 +10,6 @@ export default class ChapterParser {
   public constructor(private p: Parser) {}
 
   public parse(parent: DocumentNode): ChapterNode {
-    // console.log('in chapterparser.parse', this.p.current, this.p.peek);
     const chapter = new ChapterNode(parent);
 
     if (!this.p.peekTokens([t.EQUALS, `==`], t.WHITESPACE, t.TEXT)) {
@@ -20,28 +19,11 @@ export default class ChapterParser {
     this.p.consume(t.WHITESPACE);
 
     const chapterHeading = new HeadingNode(chapter, 2);
-    chapter.children.push(chapterHeading);
     chapterHeading.children = this.p.parseUntil(chapterHeading, t.DOUBLE_EOL);
-
-    const guard = this.p.makeWhileGuard(`ChapterParser.parse()`);
-    while (guard() && this.p.currentIs(t.DOUBLE_EOL)) {
-      this.p.consume(t.DOUBLE_EOL);
-      // console.log('in while', this.p.current, this.p.peek);
-
-      // @TODO skip this with a this.p.firstTokenAfterOptionalContext() method
-      // const context = this.p.parseContext();
-
-      // chapters only contain sections or blocks at the top level (i hope...)
-      if (this.p.currentIs(t.EQUALS)) {
-        const sectionParser = new SectionParser(this.p);
-        const section = sectionParser.parse(chapter, 3);
-        chapter.children.push(section);
-      } else {
-        const blockParser = new BlockParser(this.p);
-        const block = blockParser.parse(chapter);
-        chapter.children.push(block);
-      }
-    }
+    chapter.children = [
+      chapterHeading,
+      ...new SectionParser(this.p, 2).parseBody(chapter),
+    ];
 
     if (this.p.peekTokens(t.EOL, t.EOF)) {
       // no more blocks in chapter, consume trailing newline
