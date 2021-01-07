@@ -154,7 +154,7 @@ export default class Parser {
     return token;
   }
 
-  public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, openToken: Token): void {
+  public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, open: Token): void {
     try {
       if (Array.isArray(tokenSpec)) {
         this.consume(tokenSpec[0], tokenSpec[1]);
@@ -162,12 +162,9 @@ export default class Parser {
         this.consume(tokenSpec);
       }
     } catch {
-      let err = [
-        `Parse error: unclosed ${nodeType} node, opened at `,
-        `${openToken.filename ? `${openToken.filename}:` : ``}`,
-        `${openToken.line}:${openToken.column.start}`,
-      ].join(``);
-      throw new Error(err);
+      throw new Error(
+        `Parse error: unclosed ${nodeType} node, opened at ${location(open)}`,
+      );
     }
   }
 
@@ -188,6 +185,12 @@ export default class Parser {
   }
 
   public error(msg: string): never {
-    throw new Error(`Parse error: ${msg}`);
+    throw new Error(`Parse error: ${msg}, at ${location(this.current)}`);
   }
+}
+
+function location(token: Token): string {
+  let location = `${token.filename ?? `[no-file]`}:`;
+  location += `${token.line}:${token.column.start}`;
+  return location;
 }

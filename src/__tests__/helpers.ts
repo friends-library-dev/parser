@@ -1,4 +1,5 @@
 import stripIndent from 'strip-indent';
+import { Token } from '../types';
 import Lexer from '../lexer';
 import ChapterNode from '../nodes/ChapterNode';
 import DocumentNode from '../nodes/DocumentNode';
@@ -29,4 +30,11 @@ export function getChapter(): ChapterNode {
 
 export function getDoc(): DocumentNode {
   return new DocumentNode();
+}
+
+export function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {
+  return {
+    type: token.type,
+    literal: token.literal,
+  };
 }

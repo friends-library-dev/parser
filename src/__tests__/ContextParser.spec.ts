@@ -1,6 +1,7 @@
 import Context from '../Context';
 import ContextParser from '../parsers/ContextParser';
-import { getParser } from './helpers';
+import { getParser, simplifyToken } from './helpers';
+import { TOKEN as t } from '../types';
 
 describe(`ContextParser.parse()`, () => {
   test(`non context tokens returns null`, () => {
@@ -43,6 +44,52 @@ describe(`ContextParser.parse()`, () => {
     const context = getContext(`[#ch1.style--blurb]`);
     expect(context?.classList).toMatchObject([`style--blurb`]);
     expect(context?.id).toBe(`ch1`);
+  });
+
+  test(`parses empty quote`, () => {
+    const context = getContext(`[quote, ,]`);
+    expect(context?.type).toBe(`quote`);
+    expect(context?.quoteSource).toBeUndefined();
+  });
+
+  test(`parses quote with scripture source`, () => {
+    const context = getContext(`[quote.scripture, , John 1:4-5]`);
+    expect(context?.type).toBe(`quote`);
+    expect(context?.quoteSource?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `John` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `1:4-5` },
+    ]);
+  });
+
+  test(`parses complex quoted attribution`, () => {
+    const context = getContext(`[quote.scripture, , "Apology, Prop. 7, Sec. 3"]`);
+    expect(context?.type).toBe(`quote`);
+    expect(context?.quoteSource?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Apology` },
+      { type: t.COMMA, literal: `,` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `Prop` },
+      { type: t.DOT, literal: `.` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `7` },
+      { type: t.COMMA, literal: `,` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `Sec` },
+      { type: t.DOT, literal: `.` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `3` },
+    ]);
+  });
+
+  test(`parses short title`, () => {
+    const context = getContext(`[#ch1, short="Hello world"]`);
+    expect(context?.id).toBe(`ch1`);
+    expect(context?.shortTitle?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Hello` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `world` },
+    ]);
   });
 
   // *** [quote, attribution, title] ***

@@ -1,6 +1,7 @@
 import { test, describe, it, expect } from '@jest/globals';
 import { TOKEN as t, Token } from '../types';
 import Lexer from '../Lexer';
+import { simplifyToken } from './helpers';
 
 describe(`lexer`, () => {
   it(`attaches file, line number, and cols`, () => {
@@ -418,13 +419,6 @@ describe(`lexer`, () => {
 
 function tokens(adoc: string): Token[] {
   return new Lexer({ adoc }).tokens();
-}
-
-function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {
-  return {
-    type: token.type,
-    literal: token.literal,
-  };
 }
 
 function simpleTokens(adoc: string, all = false): Pick<Token, 'type' | 'literal'>[] {
