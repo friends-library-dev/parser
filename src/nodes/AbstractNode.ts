@@ -28,4 +28,8 @@ export default abstract class AbstractNode implements AstNodeInterface {
       children: this.children.map((child) => child.toJSON()),
     };
   }
+
+  public log(): void {
+    console.log(JSON.stringify(this, null, 2));
+  }
 }

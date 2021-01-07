@@ -8,16 +8,16 @@ import {
   TokenSpec,
 } from './types';
 import Lexer from './lexer';
+import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
-import ChapterNode from './nodes/ChapterNode';
-import HeadingNode from './nodes/HeadingNode';
-import TextNode from './nodes/TextNode';
-import ParagraphNode from './nodes/ParagraphNode';
 import getParselet from './parselets';
-import ChapterParser from './ChapterParser';
+import ChapterParser from './parsers/ChapterParser';
+import ContextParser from './parsers/ContextParser';
 
-// TODO 2: Lexer EOF/EOD change
-// block parser loop should BREAK when it sees EOL..EOF
+// funky blocks like quotes, poetry?
+// footnotes?
+// multi-para blocks
+// context things like `[.offset]`
 
 export default class Parser {
   public tokens: Token[] = [];
@@ -43,23 +43,21 @@ export default class Parser {
     return document;
   }
 
+  public parseContext(): Context | null {
+    const contextParser = new ContextParser(this);
+    return contextParser.parse();
+  }
+
   public parseUntil(parent: AstChildNode, ...stopTokens: TokenSpec[]): AstChildNode[] {
     this.stopStack.unshift(stopTokens);
     const nodes: AstChildNode[] = [];
-
-    let infiniteLoopStopper = 0;
-
-    while (!this.stopTokensFound()) {
+    const guard = this.makeWhileGuard(`Parser.parseUntil()`);
+    while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
         throw new Error(`No parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
-
-      infiniteLoopStopper++;
-      if (infiniteLoopStopper > 150) {
-        throw new Error(`Infinite loop in Parser.parseUntil()`);
-      }
     }
     this.stopStack.shift();
     return nodes;
@@ -72,40 +70,6 @@ export default class Parser {
       }
     }
     return false;
-  }
-
-  public parseChapter(document: DocumentNode): AstChildNode {
-    if (!this.peekTokens([t.EQUALS, `==`], t.WHITESPACE, t.TEXT)) {
-      throw new Error(`Unexpected missing chapter heading`);
-    }
-    this.consume(t.EQUALS);
-    this.consume(t.WHITESPACE);
-
-    const chapter = new ChapterNode(document);
-    const heading = new HeadingNode(chapter, 2);
-    chapter.children.push(heading);
-
-    heading.children = this.parseUntil(heading, t.EOL);
-
-    this.consume(t.EOL);
-    this.consume(t.EOL);
-
-    // make generic, ok?
-    const paragraph = new ParagraphNode(chapter);
-
-    let paraText = ``;
-    while (this.current.type !== t.EOL) {
-      const token = this.consume();
-      if (token.type === t.WHITESPACE) {
-        paraText += ` `;
-      } else {
-        paraText += token.literal;
-      }
-    }
-    paragraph.children.push(new TextNode(paragraph, paraText));
-    chapter.children.push(paragraph);
-
-    return chapter;
   }
 
   public currentOneOf(...types: TokenType[]): boolean {
@@ -165,11 +129,11 @@ export default class Parser {
   public consume(expectedType?: TokenType, expectedLiteral?: string): Token {
     const token = this.lookAhead(0);
     if (expectedType && expectedType !== token.type) {
-      throw new Error(`Expected token type=${expectedType} and found ${token.type}`);
+      this.error(`Expected token type=${expectedType} and found ${token.type}`);
     }
 
     if (typeof expectedLiteral === `string` && expectedLiteral !== token.literal) {
-      throw new Error(
+      this.error(
         `Expected token literal="${expectedLiteral}" and found "${token.literal}"`,
       );
     }
@@ -185,7 +149,7 @@ export default class Parser {
 
     const token = this.tokens[distance];
     if (!token) {
-      throw new Error(`Unexpected missing token`);
+      this.error(`Unexpected missing token`);
     }
     return token;
   }
@@ -207,15 +171,23 @@ export default class Parser {
     }
   }
 
-  public makeWhileGuard(identifier: string): () => boolean {
-    const maxIterations = typeof process?.env?.JEST_WORKER_ID !== undefined ? 200 : 10000;
+  public makeWhileGuard(identifier: string, max?: number): () => boolean {
+    let maxIterations = typeof process?.env?.JEST_WORKER_ID !== undefined ? 200 : 5000;
+    if (typeof max === `number`) {
+      maxIterations = max;
+    }
+
     let numIterations = 0;
     return () => {
       numIterations++;
       if (numIterations >= maxIterations) {
-        throw new Error(`Infinite loop detected in ${identifier}`);
+        this.error(`Infinite loop detected in ${identifier}`);
       }
       return true;
     };
+  }
+
+  public error(msg: string): never {
+    throw new Error(`Parse error: ${msg}`);
   }
 }

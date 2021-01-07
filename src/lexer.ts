@@ -48,9 +48,9 @@ export default class Lexer {
       case '.':
         return this.makeToken(t.DOT, line);
       case '[':
-        return this.makeToken(t.LEFT_BRACE, line);
+        return this.makeToken(t.LEFT_BRACKET, line);
       case ']':
-        return this.makeToken(t.RIGHT_BRACE, line);
+        return this.makeToken(t.RIGHT_BRACKET, line);
       case '(':
         return this.makeToken(t.LEFT_PARENS, line);
       case ')':

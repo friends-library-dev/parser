@@ -1,8 +1,8 @@
-import { TOKEN as t } from './types';
-import Parser from './Parser';
-import ChapterNode from './nodes/ChapterNode';
-import BlockNode from './nodes/BlockNode';
-import ParagraphNode from './nodes/ParagraphNode';
+import { TOKEN as t } from '../types';
+import Parser from '../Parser';
+import ChapterNode from '../nodes/ChapterNode';
+import BlockNode from '../nodes/BlockNode';
+import ParagraphNode from '../nodes/ParagraphNode';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}

@@ -1,9 +1,8 @@
-import { NODE as n, SectionNode as SectionNodeInterface } from '../types';
-import DocumentNode from './DocumentNode';
+import { NODE as n, AstNode, SectionNode as SectionNodeInterface } from '../types';
 import ChildNode from './ChildNode';
 
 export default class SectionNode extends ChildNode implements SectionNodeInterface {
-  public constructor(public parent: DocumentNode, public level: number) {
+  public constructor(public parent: AstNode, public level: number) {
     super(n.CHAPTER, parent);
   }
 }

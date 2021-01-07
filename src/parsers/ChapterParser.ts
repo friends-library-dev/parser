@@ -1,11 +1,10 @@
-import { TOKEN as t } from './types';
-import Parser from './Parser';
+import { TOKEN as t } from '../types';
+import Parser from '../Parser';
 import BlockParser from './BlockParser';
 import SectionParser from './SectionParser';
-import ChapterNode from './nodes/ChapterNode';
-import DocumentNode from './nodes/DocumentNode';
-import HeadingNode from './nodes/HeadingNode';
-import SectionNode from './nodes/SectionNode';
+import ChapterNode from '../nodes/ChapterNode';
+import DocumentNode from '../nodes/DocumentNode';
+import HeadingNode from '../nodes/HeadingNode';
 
 export default class ChapterParser {
   public constructor(private p: Parser) {}
@@ -28,6 +27,7 @@ export default class ChapterParser {
       this.p.consume(t.DOUBLE_EOL);
 
       // @TODO parse (or skip?) optional `context`(? naming...), like `[.offset]`
+      const context = this.p.parseContext();
 
       // chapters only contain sections or blocks at the top level (i hope...)
       if (this.p.currentIs(t.EQUALS)) {
@@ -35,7 +35,6 @@ export default class ChapterParser {
         const section = sectionParser.parse(chapter, 3);
         chapter.children.push(section);
       } else {
-        console.log('in here');
         const blockParser = new BlockParser(this.p);
         const block = blockParser.parse(chapter);
         chapter.children.push(block);

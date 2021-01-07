@@ -79,16 +79,16 @@ describe(`lexer`, () => {
 
   test('class designation', () => {
     expect(simpleTokens(`[.foo-bar]`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.DOT, literal: `.` },
       { type: t.TEXT, literal: `foo-bar` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
 
   test('complex bracket sequence', () => {
     expect(simpleTokens(`[quote.epigraph, , Ps. 37:18]\n`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.TEXT, literal: `quote` },
       { type: t.DOT, literal: `.` },
       { type: t.TEXT, literal: `epigraph` },
@@ -100,15 +100,15 @@ describe(`lexer`, () => {
       { type: t.DOT, literal: `.` },
       { type: t.WHITESPACE, literal: ` ` },
       { type: t.TEXT, literal: `37:18` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
 
   test('quote block', () => {
     expect(simpleTokens(`[quote]\n____\nfoo\n____`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.TEXT, literal: `quote` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
       { type: t.EOL, literal: `\n` },
       { type: t.UNDERSCORE, literal: `____` },
       { type: t.EOL, literal: `\n` },
@@ -139,7 +139,7 @@ describe(`lexer`, () => {
   test('triple-plus', () => {
     expect(simpleTokens(`+++[+++`)).toMatchObject([
       { type: t.TRIPLE_PLUS, literal: `+++` },
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
     ]);
   });
@@ -196,9 +196,9 @@ describe(`lexer`, () => {
   test('footnote prefix', () => {
     expect(simpleTokens(`footnote:[foo]`)).toMatchObject([
       { type: t.FOOTNOTE_PREFIX, literal: `footnote:` },
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.TEXT, literal: `foo` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
 
@@ -268,12 +268,12 @@ describe(`lexer`, () => {
 
   test('double-dash in class will get reassembled by parser', () => {
     expect(simpleTokens(`[.chapter-subtitle--blurb]`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.DOT, literal: `.` },
       { type: t.TEXT, literal: `chapter-subtitle` },
       { type: t.DOUBLE_DASH, literal: `--` },
       { type: t.TEXT, literal: `blurb` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
 
@@ -289,7 +289,7 @@ describe(`lexer`, () => {
 
   test('class attributes', () => {
     expect(simpleTokens(`[cols="3,4"]`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.TEXT, literal: `cols` },
       { type: t.EQUALS, literal: `=` },
       { type: t.STRAIGHT_DOUBLE_QUOTE, literal: `"` },
@@ -297,7 +297,7 @@ describe(`lexer`, () => {
       { type: t.COMMA, literal: `,` },
       { type: t.TEXT, literal: `4` },
       { type: t.STRAIGHT_DOUBLE_QUOTE, literal: `"` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
 
@@ -344,10 +344,10 @@ describe(`lexer`, () => {
 
   test('book title', () => {
     expect(simpleTokens(`[.book-title]#Apology#`)).toMatchObject([
-      { type: t.LEFT_BRACE, literal: `[` },
+      { type: t.LEFT_BRACKET, literal: `[` },
       { type: t.DOT, literal: `.` },
       { type: t.TEXT, literal: `book-title` },
-      { type: t.RIGHT_BRACE, literal: `]` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
       { type: t.HASH, literal: `#` },
       { type: t.TEXT, literal: `Apology` },
       { type: t.HASH, literal: `#` },

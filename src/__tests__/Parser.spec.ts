@@ -1,9 +1,13 @@
-import stripIndent from 'strip-indent';
-import Parser from '../Parser';
-import Lexer from '../lexer';
 import { NODE as n, TOKEN as t } from '../types';
-import ParagraphNode from '../nodes/ParagraphNode';
-import DocumentNode from '../nodes/DocumentNode';
+import { getPara, getParser, prepareAdocFile, parseAdocFile } from './helpers';
+
+xdescribe(`Parser.parseContext()`, () => {
+  test(`it works`, () => {
+    const parser = getParser(`[.offset]\n`);
+    const context = parser.parseContext();
+    expect(context?.classList).toMatchObject([`offset`]);
+  });
+});
 
 describe(`Parse.parseUntil()`, () => {
   it(`can handle text nodes`, () => {
@@ -87,27 +91,17 @@ describe(`Parse.parseUntil()`, () => {
   });
 });
 
-function getParser(adoc: string): Parser {
-  const lexer = new Lexer({ adoc });
-  return new Parser(lexer);
-}
-
-function getPara(): ParagraphNode {
-  return new ParagraphNode(new DocumentNode());
-}
-
-// joining of chapter files...
 // epigraphs
 // classname above section title
 // footnotes
 
 describe(`Parser.parse()`, () => {
-  it(`can parse a thing`, () => {
-    const adoc = `== Chapter 1\n\nHello world\n`;
-    const lexer = new Lexer({ adoc });
-    const parser = new Parser(lexer);
-    const document = parser.parse();
-
+  it(`can parse a hello-world chapter`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+      
+      Hello world
+    `);
     expect(document.toJSON()).toMatchObject({
       type: 'DOCUMENT',
       children: [
@@ -134,20 +128,16 @@ describe(`Parser.parse()`, () => {
     });
   });
 
-  xit(`can parse something in a heading`, () => {
-    const adoc = stripIndent(`
-        == Chapter 1
-  
-        Hello world.
-      `);
+  it(`can parse something in a heading`, () => {
+    const document = parseAdocFile(`
+      == Chapter _emphasis_
 
-    const lexer = new Lexer({ adoc });
-    const parser = new Parser(lexer);
-    const document = parser.parse();
-
+      Hello world
+    `);
     const heading = document.children[0]!.children[0]!;
     expect(heading.toJSON().children).toMatchObject([
-      { type: n.TEXT, value: `Chapter 1` },
+      { type: n.TEXT, value: `Chapter ` },
+      { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `emphasis` }] },
     ]);
   });
 });
