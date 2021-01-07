@@ -7,4 +7,11 @@ export default class BlockNode extends ChildNode {
   public constructor(public parent: ChapterNode, public context: Context | null) {
     super(n.BLOCK, parent);
   }
+
+  public toJSON(): Record<string, any> {
+    return {
+      context: this.context ?? null,
+      ...super.toJSON(),
+    };
+  }
 }

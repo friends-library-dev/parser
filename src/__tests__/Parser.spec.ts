@@ -1,7 +1,7 @@
 import { NODE as n, TOKEN as t } from '../types';
-import { getPara, getParser, prepareAdocFile, parseAdocFile } from './helpers';
+import { getPara, getParser, parseAdocFile } from './helpers';
 
-xdescribe(`Parser.parseContext()`, () => {
+describe(`Parser.parseContext()`, () => {
   test(`it works`, () => {
     const parser = getParser(`[.offset]\n`);
     const context = parser.parseContext();
@@ -90,10 +90,6 @@ describe(`Parse.parseUntil()`, () => {
     expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `Hello` });
   });
 });
-
-// epigraphs
-// classname above section title
-// footnotes
 
 describe(`Parser.parse()`, () => {
   it(`can parse a hello-world chapter`, () => {

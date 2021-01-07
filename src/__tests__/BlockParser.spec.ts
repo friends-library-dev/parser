@@ -25,13 +25,41 @@ describe(`BlockParser.parse()`, () => {
       Hello world
       ____
     `);
+
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `QUOTE`,
+      context: { type: `quote` },
       children: [
         {
           type: n.PARAGRAPH,
           children: [{ type: n.TEXT, value: 'Hello world' }],
+        },
+      ],
+    });
+  });
+
+  it(`can parse a blockquote with multiple paragraphs`, () => {
+    const block = getParsedBlock(`
+      [quote, ,]
+      ____
+      Hello world
+
+      Goodbye world
+      ____
+    `);
+
+    block.log();
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      context: { type: `quote` },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'Hello world' }],
+        },
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'Goodbye world' }],
         },
       ],
     });

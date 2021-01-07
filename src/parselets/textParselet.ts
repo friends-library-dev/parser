@@ -13,7 +13,20 @@ const textParselet: Parselet = (parser, parent) => {
     !parser.stopTokensFound()
   ) {
     const token = parser.consume();
-    node.value += token.type === t.TEXT ? token.literal : ` `;
+    switch (token.type) {
+      case t.WHITESPACE:
+        node.value += ` `;
+        break;
+      case t.EOL:
+        // final paragraph in blockquote should not have a trailing space
+        if (!parser.currentIs([t.UNDERSCORE, `____`])) {
+          node.value += ` `;
+        }
+        break;
+      default:
+        node.value += token.literal;
+        break;
+    }
   }
   return node;
 };
