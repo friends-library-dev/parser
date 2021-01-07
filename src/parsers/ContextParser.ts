@@ -9,9 +9,9 @@ export default class ContextParser {
     this.context = new Context();
   }
 
-  public parse(): Context | null {
+  public parse(): Context | undefined {
     if (!this.p.currentIs(t.LEFT_BRACKET) || this.p.current.column.start !== 1) {
-      return null;
+      return undefined;
     }
 
     this.p.consume(t.LEFT_BRACKET);

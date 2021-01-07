@@ -14,7 +14,6 @@ import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
 
-// sub-sections
 // open blocks
 // example blocks
 // poetry blocks
@@ -33,21 +32,16 @@ export default class Parser {
     const document = new DocumentNode();
     this.parseDocumentEpigraphs();
 
-    let failsafe = 0;
-    while (this.current.type !== t.EOF) {
+    const guard = this.makeWhileGuard(`Parser.parse()`);
+    while (guard() && this.current.type !== t.EOF) {
       const chapterParser = new ChapterParser(this);
       document.children.push(chapterParser.parse(document));
-
-      failsafe++;
-      if (failsafe > 150) {
-        throw new Error(`Infinite loop in Parser.parse()`);
-      }
     }
 
     return document;
   }
 
-  public parseContext(): Context | null {
+  public parseContext(): Context | undefined {
     const contextParser = new ContextParser(this);
     return contextParser.parse();
   }
@@ -112,6 +106,27 @@ export default class Parser {
 
   public peekIs(tokenSpec: TokenSpec): boolean {
     return this.tokenMatchesSpec(this.peek, tokenSpec);
+  }
+
+  public assertLineStart(): void {
+    if (this.current.column.start !== 1) {
+      this.error(`line start assertion failed`);
+    }
+  }
+
+  public firstTokenAfterOptionalContext(): Token {
+    if (!this.currentIs(t.LEFT_BRACKET)) {
+      return this.current;
+    }
+    let lookAheadIndex = 1;
+    const guard = this.makeWhileGuard(`Parser.firstTokenAfterOptionalContext()`);
+    while (guard()) {
+      const token = this.lookAhead(lookAheadIndex++);
+      if (token.column.start === 1 || token.type === t.EOF || token.type === t.EOD) {
+        return token;
+      }
+    }
+    this.error(`error finding first token after optional context`);
   }
 
   /**

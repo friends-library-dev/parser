@@ -4,9 +4,9 @@ import { getParser, simplifyToken } from './helpers';
 import { TOKEN as t } from '../types';
 
 describe(`ContextParser.parse()`, () => {
-  test(`non context tokens returns null`, () => {
+  test(`non context tokens returns undefined`, () => {
     const context = getContext(`Hello world`);
-    expect(context).toBeNull();
+    expect(context).toBeUndefined();
   });
 
   test(`basic class added to context`, () => {
@@ -120,7 +120,7 @@ describe(`ContextParser.parse()`, () => {
   });
 });
 
-function getContext(adoc: string): Context | null {
+function getContext(adoc: string): Context | undefined {
   const parser = getParser(adoc);
   const contextParser = new ContextParser(parser);
   return contextParser.parse();

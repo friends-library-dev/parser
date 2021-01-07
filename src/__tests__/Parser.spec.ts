@@ -99,22 +99,22 @@ describe(`Parser.parse()`, () => {
       Hello world
     `);
     expect(document.toJSON()).toMatchObject({
-      type: 'DOCUMENT',
+      type: n.DOCUMENT,
       children: [
         {
-          type: 'CHAPTER',
+          type: n.CHAPTER,
           children: [
             {
-              type: 'HEADING',
-              children: [{ type: 'TEXT', value: 'Chapter 1' }],
+              type: n.HEADING,
+              children: [{ type: n.TEXT, value: 'Chapter 1' }],
               level: 2,
             },
             {
-              type: 'BLOCK',
+              type: n.BLOCK,
               children: [
                 {
-                  type: 'PARAGRAPH',
-                  children: [{ type: 'TEXT', value: 'Hello world' }],
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: 'Hello world' }],
                 },
               ],
             },
@@ -124,7 +124,7 @@ describe(`Parser.parse()`, () => {
     });
   });
 
-  it.only(`can parse a sub-section`, () => {
+  it(`can parse a sub-section`, () => {
     const document = parseAdocFile(`
       == Chapter 1
       
@@ -152,6 +152,89 @@ describe(`Parser.parse()`, () => {
                   type: n.HEADING,
                   children: [{ type: n.TEXT, value: `Subsection` }],
                   level: 3,
+                },
+                {
+                  type: n.BLOCK,
+                  children: [
+                    {
+                      type: n.PARAGRAPH,
+                      children: [{ type: n.TEXT, value: `Hello world` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse contexts on chapter-level blocks`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      [.offset]
+      Hello world
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              level: 2,
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.BLOCK,
+              context: { classList: [`offset`] },
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: `Hello world` }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse contexts on sections`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      [.blurb]
+      === Subsection
+
+      Hello world
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              level: 2,
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.SECTION,
+              level: 3,
+              context: { classList: [`blurb`] },
+              children: [
+                {
+                  type: n.HEADING,
+                  level: 3,
+                  children: [{ type: n.TEXT, value: `Subsection` }],
                 },
                 {
                   type: n.BLOCK,

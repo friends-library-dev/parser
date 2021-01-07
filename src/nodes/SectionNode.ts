@@ -1,8 +1,13 @@
 import { NODE as n, AstNode, SectionNode as SectionNodeInterface } from '../types';
 import ChildNode from './ChildNode';
+import Context from '../Context';
 
 export default class SectionNode extends ChildNode implements SectionNodeInterface {
-  public constructor(public parent: AstNode, public level: number) {
+  public constructor(
+    public parent: AstNode,
+    public level: number,
+    public context?: Context,
+  ) {
     super(n.SECTION, parent);
   }
 
@@ -10,6 +15,7 @@ export default class SectionNode extends ChildNode implements SectionNodeInterfa
     return {
       level: this.level,
       ...super.toJSON(),
+      context: this.context ? this.context : null,
     };
   }
 }
