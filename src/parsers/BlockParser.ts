@@ -1,4 +1,4 @@
-import { TOKEN as t, TokenSpec } from '../types';
+import { TOKEN as t, TokenSpec, TokenType } from '../types';
 import Parser from '../Parser';
 import ChapterNode from '../nodes/ChapterNode';
 import BlockNode from '../nodes/BlockNode';
@@ -14,6 +14,8 @@ export default class BlockParser {
 
     if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {
       block.blockType = `open`;
+    } else if (this.p.peekTokens([t.EQUALS, `====`], t.DOUBLE_EOL)) {
+      block.blockType = `example`;
     }
 
     this.consumeDelimeters(block, 'open');
@@ -31,24 +33,35 @@ export default class BlockParser {
         }
       }
     }
+
     this.consumeDelimeters(block, 'close');
     return block;
   }
 
   private consumeDelimeters(block: BlockNode, side: 'open' | 'close'): void {
-    if (block.blockType === `quote`) {
-      this.p.consume(t.UNDERSCORE, `____`);
-      this.p.consume(t.EOL);
-    } else if (block.blockType === `open` && side === `open`) {
-      this.p.consume(t.DOUBLE_DASH);
-      this.p.consume(t.DOUBLE_EOL);
-    } else if (block.blockType === `open` && side === `close`) {
-      this.p.consume(t.DOUBLE_DASH);
-      if (this.p.currentIs(t.EOL)) {
+    switch (block.blockType) {
+      case `quote`:
+        this.p.consume(t.UNDERSCORE, `____`);
         this.p.consume(t.EOL);
-      } else {
-        this.p.consume(t.DOUBLE_EOL);
-      }
+        break;
+
+      // syntax for open blocks and example block is the same, except for the token
+      case `open`:
+      case `example`: // fallthrough
+        const typeDelim: [TokenType, string | undefined] =
+          block.blockType === `open` ? [t.DOUBLE_DASH, undefined] : [t.EQUALS, `====`];
+        if (side === `open`) {
+          this.p.consume(...typeDelim);
+          this.p.consume(t.DOUBLE_EOL);
+        } else {
+          this.p.consume(...typeDelim);
+          if (this.p.currentIs(t.EOL)) {
+            this.p.consume(t.EOL);
+          } else {
+            this.p.consume(t.DOUBLE_EOL);
+          }
+        }
+        break;
     }
   }
 
@@ -64,6 +77,9 @@ export default class BlockParser {
     } else if (block.blockType === `open`) {
       blockStops.push([t.DOUBLE_DASH, t.EOL]);
       paraStops.push([t.DOUBLE_DASH, t.EOL]);
+    } else if (block.blockType === `example`) {
+      blockStops.push([[t.EQUALS, `====`], t.EOL]);
+      paraStops.push([[t.EQUALS, `====`], t.EOL]);
     } else {
       blockStops.push([t.DOUBLE_EOL]);
       paraStops.push([t.EOL, t.EOF]);

@@ -143,6 +143,29 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  it(`can parse an example-block`, () => {
+    const block = getParsedBlock(`
+      [.postscript]
+      ====
+
+      Hello world
+
+      ====
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `example`,
+      context: { classList: [`postscript`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello world` }],
+        },
+      ],
+    });
+  });
 });
 
 function getParsedBlock(adoc: string): BlockNode {
