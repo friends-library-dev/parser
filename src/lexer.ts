@@ -148,6 +148,8 @@ export default class Lexer {
           return this.requireAppendChar(tok, line);
         } else if (this.peekChar() === `'`) {
           return this.makeGreedyToken(t.ASTERISM, line, 3);
+        } else {
+          return this.makeToken(t.STRAIGHT_SINGLE_QUOTE, line);
         }
       case `"`:
         if (this.peekChar() === `\``) {

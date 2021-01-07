@@ -70,6 +70,14 @@ describe(`lexer`, () => {
     expect(rightDbl).toMatchObject({ type: t.RIGHT_DOUBLE_CURLY, literal: `\`"` });
   });
 
+  test(`it can lex a straight single quote`, () => {
+    expect(simpleTokens(`Man's`)).toMatchObject([
+      { type: t.TEXT, literal: `Man` },
+      { type: t.STRAIGHT_SINGLE_QUOTE, literal: `'` },
+      { type: t.TEXT, literal: `s` },
+    ]);
+  });
+
   test('two newlines should become DOUBLE_EOL', () => {
     expect(simpleTokens(`foo\n\nfoo`)).toMatchObject([
       { type: t.TEXT, literal: `foo` },

@@ -27,7 +27,9 @@ export default class ContextParser {
     if (this.p.currentIs(t.COMMA)) {
       this.p.consume(t.COMMA);
       this.p.consume(t.WHITESPACE);
-      this.context.type === `quote` ? this.parseQuoteMeta() : this.parseShortTitle();
+      this.context.type === `quote` || this.context.type === `epigraph`
+        ? this.parseQuoteMeta()
+        : this.parseShortTitle();
     }
 
     this.p.consume(t.RIGHT_BRACKET);
@@ -36,7 +38,10 @@ export default class ContextParser {
   }
 
   private parseQuoteMeta(): void {
-    // skip (for now) unsupported `attribution`, e.g. "Barclay" in [quote, Barclay, Apology]
+    if (this.p.currentOneOf(t.TEXT, t.STRAIGHT_DOUBLE_QUOTE)) {
+      this.context.quoteAttribution = this.getAttributeTokens();
+    }
+
     this.p.consume(t.COMMA);
 
     // if we see `]` here it means it's an empty attribution, e.g. `[quote, ,]
@@ -66,8 +71,13 @@ export default class ContextParser {
       this.p.consume(t.STRAIGHT_DOUBLE_QUOTE);
     }
 
+    const stop: TokenType[] = [stopTokenType];
+    if (stopTokenType !== t.STRAIGHT_DOUBLE_QUOTE) {
+      stop.push(t.COMMA);
+    }
+
     const guard = this.p.makeWhileGuard(`ContextParser.getAttributeTokens()`, 100);
-    while (guard() && !this.p.currentIs(stopTokenType)) {
+    while (guard() && !this.p.currentOneOf(...stop)) {
       // currently not supporting escaped double-quote: e.g. `[quote, , "Hello \"world\""]
       tokens.push(this.p.current);
       this.p.consume();

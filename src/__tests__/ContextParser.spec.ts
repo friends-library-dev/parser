@@ -92,13 +92,32 @@ describe(`ContextParser.parse()`, () => {
     ]);
   });
 
-  // *** [quote, attribution, title] ***
-  // [quote.scripture, ,]
-  // [quote.scripture, , John 1:4-5]
-  // [quote, , "Apology, Prop. 7, Sec. 3"] straight quotes!
+  test(`epigraph source`, () => {
+    const context = getContext(`[quote.epigraph, , John 1:4-5]`);
+    expect(context?.quoteSource?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `John` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `1:4-5` },
+    ]);
+  });
 
-  // short title
-  // [#ch1, short="Short title"]
+  test(`can handle apostrophe in short title`, () => {
+    const context = getContext(`[#ch1, short="Man's Estate"]`);
+    expect(context?.shortTitle?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Man` },
+      { type: t.STRAIGHT_SINGLE_QUOTE, literal: `'` },
+      { type: t.TEXT, literal: `s` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `Estate` },
+    ]);
+  });
+
+  it(`can handle quote attribution`, () => {
+    const context = getContext(`[quote, Barclay, Apology]`);
+    expect(context?.quoteAttribution?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Barclay` },
+    ]);
+  });
 });
 
 function getContext(adoc: string): Context | null {

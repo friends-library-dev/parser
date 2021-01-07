@@ -1,6 +1,8 @@
 import fs from 'fs';
 import { sync as glob } from 'glob';
 import Lexer from './lexer';
+import Parser from './Parser';
+import ContextParser from './parsers/ContextParser';
 
 let numIllegals = 0;
 const file = process.argv[2];
@@ -16,18 +18,18 @@ if (!file) {
 
 function lexfile(file: string): void {
   const adoc = fs.readFileSync(file, `utf-8`);
-  const lexer = new Lexer({ adoc, filename: file });
-
-  let token: any;
-  do {
-    token = lexer.nextToken();
-    if (token.type === `ILLEGAL`) {
-      numIllegals++;
-      console.log(`"${token.literal}" - ${token.filename}:${token.line}`);
-      if (numIllegals > 50) {
-        console.log(`---stopped early---`);
-        process.exit(1);
+  const lines = adoc.split(`\n`);
+  lines.forEach((line, idx) => {
+    if (line[0] === `[` && line.match(/\]$/) && !line.includes(`cols`)) {
+      const lexer = new Lexer({ adoc: `${line}\n`, filename: file });
+      const parser = new Parser(lexer);
+      const cp = new ContextParser(parser);
+      try {
+        cp.parse();
+      } catch (e) {
+        console.log(`err at ${file}:${idx + 1}`);
+        console.log(e.message, `\n`);
       }
     }
-  } while (token.type !== `EOF`);
+  });
 }
