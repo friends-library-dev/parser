@@ -105,6 +105,47 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse an example block within an open-block`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document.letter]
+      --
+
+      Hello world
+
+      [.postscript]
+      ====
+
+      PS Goodbye
+
+      ====
+
+      --
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `open`,
+      context: { classList: [`embedded-content-document`, `letter`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello world` }],
+        },
+        {
+          type: n.BLOCK,
+          blockType: `example`,
+          context: { classList: [`postscript`] },
+          children: [
+            {
+              type: n.PARAGRAPH,
+              children: [{ type: n.TEXT, value: `PS Goodbye` }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse an open-block`, () => {
     const block = getParsedBlock(`
       [.embedded-content-document.letter]

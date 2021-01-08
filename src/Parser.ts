@@ -59,6 +59,7 @@ export default class Parser {
     while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
+        this.log(``, 5);
         throw new Error(`No parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
@@ -224,9 +225,27 @@ export default class Parser {
     throw new Error(`Parse error: ${msg}, at ${location(this.current)}`);
   }
 
-  public log(msg?: string): void {
-    console.log(`${msg ? `(${msg}) ` : ``}CURRENT:---`, this.current);
-    console.log(`${msg ? `(${msg}) ` : ``}PEEK:------`, this.peek);
+  public log(msg = ``, distance = 3): void {
+    const logged: string[] = [];
+    for (let i = 0; i < distance; i++) {
+      logged.push(this.logToken(this.lookAhead(i), `${i}`, msg));
+    }
+    console.log(logged.join(`\n`));
+  }
+
+  private logToken(token: Token, label: string, msg?: string): string {
+    let logStr = `${msg ? `(${msg}) ` : ``}${label}: `;
+    logStr += `{ type: ${token.type}, literal: ${this.printableLiteral(token.literal)}}`;
+    return logStr;
+  }
+
+  private printableLiteral(literal: string): string {
+    if (literal === `\n`) {
+      return `"\\n"`;
+    } else if (literal === `\n\n`) {
+      return `"\\n\\n"`;
+    }
+    return `"${literal}"`;
   }
 }
 
