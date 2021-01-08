@@ -33,6 +33,7 @@ export default class BlockParser {
     return block;
   }
 
+  /* @TODO, should handle asterisms, other cool stuff */
   private parseChild(block: BlockNode): void {
     const child = new ParagraphNode(block, this.p.parseContext());
     block.children.push(child);

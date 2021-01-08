@@ -1,6 +1,5 @@
 import { TOKEN as t } from '../types';
 import Parser from '../Parser';
-import BlockParser from './BlockParser';
 import SectionParser from './SectionParser';
 import ChapterNode from '../nodes/ChapterNode';
 import DocumentNode from '../nodes/DocumentNode';

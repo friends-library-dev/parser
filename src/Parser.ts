@@ -16,9 +16,7 @@ import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 
-// example blocks
-// example blocks INSIDE open blocks
-// random asterisms...
+// random asterisms... (see BlockParser.parseChild()...)
 // poetry blocks
 // footnotes
 // chapter headings
@@ -35,7 +33,7 @@ export default class Parser {
     this.parseDocumentEpigraphs();
 
     const guard = this.makeWhileGuard(`Parser.parse()`);
-    while (guard() && this.current.type !== t.EOF) {
+    while (guard() && !this.currentOneOf(t.EOF, t.EOD)) {
       const chapterParser = new ChapterParser(this);
       document.children.push(chapterParser.parse(document));
     }
