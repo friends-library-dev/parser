@@ -33,7 +33,7 @@ export default class SectionParser {
       this.p.consume(t.DOUBLE_EOL);
 
       this.p.assertLineStart();
-      const afterContext = this.p.firstTokenAfterOptionalContext();
+      const [afterContext] = this.p.firstTokensAfterOptionalContext();
 
       if (afterContext.type === t.EQUALS) {
         const sectionParser = new SectionParser(this.p, this.level + 1);

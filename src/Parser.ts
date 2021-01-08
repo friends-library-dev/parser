@@ -6,16 +6,19 @@ import {
   AstChildNode,
   NodeType,
   TokenSpec,
+  TokenTypeMatcher,
+  Lexer,
 } from './types';
-import Lexer from './lexer';
 import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
 import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
+import BufferedLexer from './BufferedLexer';
 
 // example blocks
 // example blocks INSIDE open blocks
+// random asterisms...
 // poetry blocks
 // footnotes
 // chapter headings
@@ -101,11 +104,11 @@ export default class Parser {
   }
 
   public currentIs(tokenSpec: TokenSpec): boolean {
-    return this.tokenMatchesSpec(this.current, tokenSpec);
+    return this.tokenIs(this.current, tokenSpec);
   }
 
   public peekIs(tokenSpec: TokenSpec): boolean {
-    return this.tokenMatchesSpec(this.peek, tokenSpec);
+    return this.tokenIs(this.peek, tokenSpec);
   }
 
   public assertLineStart(): void {
@@ -114,9 +117,9 @@ export default class Parser {
     }
   }
 
-  public firstTokenAfterOptionalContext(): Token {
+  public firstTokensAfterOptionalContext(): [Token, Token, Token] {
     if (!this.currentIs(t.LEFT_BRACKET)) {
-      return this.current;
+      return [this.current, this.peek, this.lookAhead(2)];
     }
 
     let lookAheadIndex = 1;
@@ -124,10 +127,39 @@ export default class Parser {
     while (guard()) {
       const token = this.lookAhead(lookAheadIndex++);
       if (token.column.start === 1 || token.type === t.EOF || token.type === t.EOD) {
-        return token;
+        return [
+          token,
+          this.lookAhead(lookAheadIndex),
+          this.lookAhead(lookAheadIndex + 1),
+        ];
       }
     }
     this.error(`error finding first token after optional context`);
+  }
+
+  public getBufferedParser(...stopTokens: TokenSpec[]): Parser {
+    const tokens: Token[] = [];
+    const guard = this.makeWhileGuard(`Parser.getBufferedParser()`);
+    while (guard() && !this.peekTokens(...stopTokens)) {
+      const token = this.consume();
+      tokens.push(token);
+      if (token.type === t.EOD && !this.peekTokens(...stopTokens)) {
+        this.error(`failed to find ending tokens for buffered parser`);
+      }
+    }
+    this.consumeMany(...stopTokens);
+
+    // ensure we end with EOL, like real files do, so consumers can be ignorant
+    // that they are dealing with a buffered lexer instead of a real one
+    const last = tokens.pop();
+    if (last) {
+      tokens.push(last);
+      if (!this.tokenIs(last, t.EOX)) {
+        tokens.push({ ...last, type: t.EOL, literal: `` });
+      }
+    }
+
+    return new Parser(new BufferedLexer(tokens));
   }
 
   /**
@@ -139,7 +171,7 @@ export default class Parser {
       if (spec === undefined) {
         throw new Error(`Unexpected missing token in peekTokens()`);
       }
-      if (!this.tokenMatchesSpec(this.lookAhead(i), spec)) {
+      if (!this.tokenIs(this.lookAhead(i), spec)) {
         return false;
       }
     }
@@ -153,30 +185,37 @@ export default class Parser {
     return groups.some((tokens) => this.peekTokens(...tokens));
   }
 
-  private tokenMatchesSpec(token: Token, spec: TokenSpec): boolean {
-    const tokenType: TokenType = Array.isArray(spec) ? spec[0] : spec;
-    const tokenLiteral = Array.isArray(spec) ? spec[1] : null;
-    if (token.type !== tokenType) {
+  public tokenIs(token: Token, spec: TokenSpec): boolean {
+    const tokenTypeMatch: TokenTypeMatcher = Array.isArray(spec) ? spec[0] : spec;
+    let tokenTypes: TokenType[] = [];
+    if (tokenTypeMatch === `EOX`) {
+      tokenTypes = [t.EOL, t.DOUBLE_EOL, t.EOF, t.EOD];
+    } else {
+      tokenTypes = [tokenTypeMatch];
+    }
+
+    if (!tokenTypes.includes(token.type)) {
       return false;
     }
+
+    const tokenLiteral = Array.isArray(spec) ? spec[1] : null;
     if (tokenLiteral !== null && token.literal !== tokenLiteral) {
       return false;
     }
     return true;
   }
 
-  public consume(expectedType?: TokenType, expectedLiteral?: string): Token {
+  public consume(spec?: TokenSpec): Token {
     const token = this.lookAhead(0);
-    if (expectedType && expectedType !== token.type) {
-      this.error(`Expected token type ${expectedType}, got ${token.type}`);
+    if (spec && !this.tokenIs(token, spec)) {
+      this.error(`unexpected token ${this.logToken(token, ``)}`);
     }
-
-    if (typeof expectedLiteral === `string` && expectedLiteral !== token.literal) {
-      this.error(`Expected token literal "${expectedLiteral}", got "${token.literal}"`);
-    }
-
     this.tokens.shift();
     return token;
+  }
+
+  public consumeMany(...specs: TokenSpec[]): Token[] {
+    return specs.map((spec) => this.consume(spec));
   }
 
   public lookAhead(distance: number): Token {
@@ -193,11 +232,7 @@ export default class Parser {
 
   public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, open: Token): void {
     try {
-      if (Array.isArray(tokenSpec)) {
-        this.consume(tokenSpec[0], tokenSpec[1]);
-      } else {
-        this.consume(tokenSpec);
-      }
+      this.consume(tokenSpec);
     } catch {
       throw new Error(
         `Parse error: unclosed ${nodeType} node, opened at ${location(open)}`,
@@ -233,9 +268,9 @@ export default class Parser {
     console.log(logged.join(`\n`));
   }
 
-  private logToken(token: Token, label: string, msg?: string): string {
-    let logStr = `${msg ? `(${msg}) ` : ``}${label}: `;
-    logStr += `{ type: ${token.type}, literal: ${this.printableLiteral(token.literal)}}`;
+  private logToken(token: Token, label?: string, msg?: string): string {
+    let logStr = `${msg ? `(${msg}) ` : ``}${label ? `${label}: ` : ``}`;
+    logStr += `{ type: ${token.type}, literal: ${this.printableLiteral(token.literal)} }`;
     return logStr;
   }
 

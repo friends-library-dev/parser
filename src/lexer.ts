@@ -1,6 +1,13 @@
-import { LexerInput, Token, TokenType, Line, TOKEN as t } from './types';
+import {
+  LexerInput,
+  Lexer as LexerInterface,
+  Token,
+  TokenType,
+  Line,
+  TOKEN as t,
+} from './types';
 
-export default class Lexer {
+export default class Lexer implements LexerInterface {
   public inputs: LexerInput[] = [];
   public inputIdx = -1;
   public line: null | Line = null;
@@ -24,6 +31,10 @@ export default class Lexer {
   }
 
   public nextToken(): Token {
+    if (this.lastToken?.type === t.EOD) {
+      return this.lastToken;
+    }
+
     let tok: Token;
     if (this.bufferedToken) {
       tok = this.bufferedToken;

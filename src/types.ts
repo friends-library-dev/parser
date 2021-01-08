@@ -44,9 +44,12 @@ export const TOKEN = {
   EOF: `EOF`,
   EOD: `EOD`, // end of (possibly multi-file) document
   ILLEGAL: `ILLEGAL`,
+  EOX: `EOX`, // special matcher token: `EOX` -- not technically a token type
 } as const;
 
-export type TokenType = keyof typeof TOKEN;
+export type TokenType = Exclude<keyof typeof TOKEN, 'EOX'>;
+export type TokenTypeMatcher = TokenType | `EOX`;
+export type TokenSpec = TokenTypeMatcher | [type: TokenTypeMatcher, literal: string];
 
 export type Token = {
   type: TokenType;
@@ -59,13 +62,16 @@ export type Token = {
   };
 };
 
-export type TokenSpec = TokenType | [type: TokenType, literal: string];
-
 export interface Line {
   content: string;
   number: number;
   charIdx: number;
   filename?: string;
+}
+
+export interface Lexer {
+  tokens(): Token[];
+  nextToken(): Token;
 }
 
 export interface LexerInput {
