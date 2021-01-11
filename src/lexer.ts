@@ -158,7 +158,7 @@ export default class Lexer implements LexerInterface {
           tok = this.makeToken(t.LEFT_SINGLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else if (this.peekChar() === `'`) {
-          return this.makeGreedyToken(t.ASTERISM, line, 3);
+          return this.makeGreedyToken(t.THEMATIC_BREAK, line, 3);
         } else {
           return this.makeToken(t.STRAIGHT_SINGLE_QUOTE, line);
         }

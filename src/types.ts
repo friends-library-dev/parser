@@ -5,7 +5,7 @@ export const TOKEN = {
   ASTERISK: `ASTERISK`,
   DOUBLE_ASTERISK: `DOUBLE_ASTERISK`,
   TRIPLE_ASTERISK: `TRIPLE_ASTERISK`,
-  ASTERISM: `ASTERISM`,
+  THEMATIC_BREAK: `THEMATIC_BREAK`,
   STRAIGHT_DOUBLE_QUOTE: `STRAIGHT_DOUBLE_QUOTE`,
   STRAIGHT_SINGLE_QUOTE: `STRAIGHT_SINGLE_QUOTE`,
   DOUBLE_COLON: `DOUBLE_COLON`,
@@ -89,6 +89,7 @@ export const NODE = {
   STRONG: `STRONG`,
   TEXT: `TEXT`,
   BLOCK: `BLOCK`,
+  THEMATIC_BREAK: `THEMATIC_BREAK`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -98,6 +99,7 @@ export interface AstNode {
   children: AstChildNode[];
   position: AstPosition;
   toJSON: () => Record<string, any>;
+  log: () => void;
 }
 
 export type AstChildNode = AstNode & {

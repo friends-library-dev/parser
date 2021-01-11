@@ -1,13 +1,20 @@
-import { AstChildNode, TOKEN as t, TokenSpec, TokenType } from '../types';
+import { AstChildNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
 import Parser from '../Parser';
 import BlockNode from '../nodes/BlockNode';
 import ParagraphNode from '../nodes/ParagraphNode';
+import Context from '../Context';
+import ContextNode from '../nodes/ContextNode';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}
 
-  public parse(parent: AstChildNode): BlockNode {
+  public parse(parent: AstChildNode): AstChildNode {
     const context = this.p.parseContext();
+    const thematicBreak = this.parseThematicBreak(parent, context);
+    if (thematicBreak) {
+      return thematicBreak;
+    }
+
     const block = new BlockNode(parent, context);
 
     this.prepareCompoundBlock(block);
@@ -33,11 +40,30 @@ export default class BlockParser {
     return block;
   }
 
-  /* @TODO, should handle asterisms, other cool stuff */
+  private parseThematicBreak(
+    parent: AstChildNode,
+    context?: Context,
+  ): AstChildNode | undefined {
+    if (this.p.peekTokens(t.THEMATIC_BREAK, t.EOL, t.EOX)) {
+      if (!context) {
+        this.p.error(`thematic break missing context`);
+      }
+      this.p.consumeMany(t.THEMATIC_BREAK, t.EOL, t.EOX);
+      return new ContextNode(n.THEMATIC_BREAK, parent, context);
+    }
+    return undefined;
+  }
+
   private parseChild(block: BlockNode): void {
-    const child = new ParagraphNode(block, this.p.parseContext());
-    block.children.push(child);
-    child.children = this.p.parseUntilAnyOf(child, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
+    const context = this.p.parseContext();
+    const thematicBreak = this.parseThematicBreak(block, context);
+    if (thematicBreak) {
+      block.children.push(thematicBreak);
+      return;
+    }
+    const para = new ParagraphNode(block, context);
+    block.children.push(para);
+    para.children = this.p.parseUntilAnyOf(para, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
   }
 
   private consumeTrailingWhitespace(): void {

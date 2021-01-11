@@ -217,7 +217,7 @@ describe(`lexer`, () => {
       { type: t.TEXT, literal: `foo` },
       { type: t.RIGHT_SINGLE_CURLY, literal: `\`'` },
       { type: t.EOL, literal: `\n` },
-      { type: t.ASTERISM, literal: `'''` },
+      { type: t.THEMATIC_BREAK, literal: `'''` },
     ]);
   });
 

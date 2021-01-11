@@ -1,4 +1,4 @@
-import { NODE as n } from '../types';
+import { AstChildNode, NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
 import { getChapter, getParser } from './helpers';
 import BlockNode from '../nodes/BlockNode';
@@ -207,9 +207,48 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  it(`can parse an asterism`, () => {
+    const asterism = getParsedBlock(`
+      [.asterism]
+      '''
+    `);
+    expect(asterism.toJSON()).toMatchObject({
+      type: n.THEMATIC_BREAK,
+      context: { classList: [`asterism`] },
+    });
+  });
+
+  it(`can parse an asterism within another block`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document]
+      --
+
+      Hello world
+
+      [.asterism]
+      '''
+
+      --
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `open`,
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello world` }],
+        },
+        {
+          type: n.THEMATIC_BREAK,
+          context: { classList: [`asterism`] },
+        },
+      ],
+    });
+  });
 });
 
-function getParsedBlock(adoc: string): BlockNode {
+function getParsedBlock(adoc: string): AstChildNode {
   const parser = getParser(stripIndent(adoc).trim() + `\n`);
   const blockParser = new BlockParser(parser);
   return blockParser.parse(getChapter());

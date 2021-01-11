@@ -21,7 +21,7 @@ export function getParser(adoc: string): Parser {
 }
 
 export function getPara(): ParagraphNode {
-  return new ParagraphNode(new DocumentNode());
+  return new ParagraphNode(getChapter());
 }
 
 export function getChapter(): ChapterNode {
