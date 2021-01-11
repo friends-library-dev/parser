@@ -90,6 +90,8 @@ export const NODE = {
   TEXT: `TEXT`,
   BLOCK: `BLOCK`,
   THEMATIC_BREAK: `THEMATIC_BREAK`,
+  VERSE_STANZA: `VERSE_STANZA`,
+  VERSE_LINE: `VERSE_LINE`,
 } as const;
 
 export type NodeType = keyof typeof NODE;

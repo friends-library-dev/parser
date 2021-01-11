@@ -5,6 +5,7 @@ import ChapterNode from '../nodes/ChapterNode';
 import DocumentNode from '../nodes/DocumentNode';
 import ParagraphNode from '../nodes/ParagraphNode';
 import Parser from '../Parser';
+import BlockNode from '../nodes/BlockNode';
 
 export function parseAdocFile(adoc: string): DocumentNode {
   const parser = getParser(prepareAdocFile(adoc));
@@ -30,6 +31,10 @@ export function getChapter(): ChapterNode {
 
 export function getDoc(): DocumentNode {
   return new DocumentNode();
+}
+
+export function getBlock(): BlockNode {
+  return new BlockNode(getChapter());
 }
 
 export function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {

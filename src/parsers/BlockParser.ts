@@ -1,5 +1,6 @@
 import { AstChildNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
 import Parser from '../Parser';
+import PoetryParser from './PoetryParser';
 import BlockNode from '../nodes/BlockNode';
 import ParagraphNode from '../nodes/ParagraphNode';
 import Context from '../Context';
@@ -26,8 +27,11 @@ export default class BlockParser {
     }
 
     const guard = this.p.makeWhileGuard(`BlockParser.parse()`);
-    while (guard() && !this.p.peekTokensAnyOf([t.EOL, t.EOF], [t.EOD])) {
-      if (this.peekStartInnerBlock()) {
+    while (guard() && !this.p.peekTokensAnyOf([t.EOL, t.EOF], [t.EOF, t.EOD], [t.EOD])) {
+      if (block.blockType === `verse`) {
+        const poetryParser = new PoetryParser(this.p);
+        block.children = poetryParser.parse(block);
+      } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
       } else {
         this.parseChild(block);
@@ -76,8 +80,11 @@ export default class BlockParser {
 
   private prepareCompoundBlock(block: BlockNode): void {
     if (block.blockType === `quote`) {
-      this.p.consumeMany(QUOTE, t.EOL);
-      this.p = this.p.getBufferedParser(t.EOL, QUOTE, t.EOX);
+      this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
+      this.p = this.p.getBufferedParser(t.EOL, QUAD_UNDERSCORE, t.EOX);
+    } else if (block.blockType == `verse`) {
+      this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
+      this.p = this.p.getBufferedParser(QUAD_UNDERSCORE, t.EOX);
     } else if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {
       block.blockType = `open`;
       this.p.consumeMany(t.DOUBLE_DASH, t.DOUBLE_EOL);
@@ -99,4 +106,4 @@ export default class BlockParser {
 }
 
 const EXAMPLE: TokenSpec = [t.EQUALS, `====`];
-const QUOTE: TokenSpec = [t.UNDERSCORE, `____`];
+const QUAD_UNDERSCORE: TokenSpec = [t.UNDERSCORE, `____`];

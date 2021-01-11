@@ -16,8 +16,8 @@ import ChapterParser from './parsers/ChapterParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 
-// random asterisms... (see BlockParser.parseChild()...)
 // poetry blocks
+// poetry inside of another block (like letter...)
 // footnotes
 // chapter headings
 // tables :(

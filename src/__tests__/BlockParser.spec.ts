@@ -1,7 +1,6 @@
 import { AstChildNode, NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
 import { getChapter, getParser } from './helpers';
-import BlockNode from '../nodes/BlockNode';
 import stripIndent from 'strip-indent';
 
 describe(`BlockParser.parse()`, () => {
@@ -242,6 +241,62 @@ describe(`BlockParser.parse()`, () => {
         {
           type: n.THEMATIC_BREAK,
           context: { classList: [`asterism`] },
+        },
+      ],
+    });
+  });
+
+  it(`can parse a verse block`, () => {
+    const block = getParsedBlock(`
+      [verse]
+      ____
+      Hello Mama
+      Hello Papa
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `verse`,
+      children: [
+        {
+          type: n.VERSE_STANZA,
+          children: [
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse a multi-stanza verse block`, () => {
+    const block = getParsedBlock(`
+      [verse]
+      ____
+      Hello Mama
+      Hello Papa
+
+      Hello Mama
+      Hello Papa
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `verse`,
+      children: [
+        {
+          type: n.VERSE_STANZA,
+          children: [
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+          ],
+        },
+        {
+          type: n.VERSE_STANZA,
+          children: [
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+          ],
         },
       ],
     });
