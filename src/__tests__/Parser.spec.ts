@@ -2,7 +2,7 @@ import { NODE as n, TOKEN as t } from '../types';
 import { getPara, getParser, parseAdocFile } from './helpers';
 
 describe(`Parser.parseContext()`, () => {
-  test(`it works`, () => {
+  test(`parsing basic context`, () => {
     const parser = getParser(`[.offset]\n`);
     const context = parser.parseContext();
     expect(context?.classList).toMatchObject([`offset`]);
@@ -263,6 +263,53 @@ describe(`Parser.parse()`, () => {
     expect(heading.toJSON().children).toMatchObject([
       { type: n.TEXT, value: `Chapter ` },
       { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `emphasis` }] },
+    ]);
+  });
+
+  it(`can parse document epigraphs`, () => {
+    const document = parseAdocFile(`
+      [quote.epigraph, , John 1:1]
+      ____
+      Epigraph 1
+      ____
+
+      [quote.epigraph, , John 1:2]
+      ____
+      Epigraph 2
+      ____
+
+      == Chapter 1
+
+      Hello world
+    `);
+
+    expect(document.epigraphs).toMatchObject([
+      {
+        type: n.BLOCK,
+        blockType: `quote`,
+        context: {
+          quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:1` }],
+        },
+        children: [
+          {
+            type: n.PARAGRAPH,
+            children: [{ type: n.TEXT, value: `Epigraph 1` }],
+          },
+        ],
+      },
+      {
+        type: n.BLOCK,
+        blockType: `quote`,
+        context: {
+          quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:2` }],
+        },
+        children: [
+          {
+            type: n.PARAGRAPH,
+            children: [{ type: n.TEXT, value: `Epigraph 2` }],
+          },
+        ],
+      },
     ]);
   });
 });

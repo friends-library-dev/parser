@@ -33,6 +33,7 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
+      blockType: `quote`,
       children: [
         {
           type: n.PARAGRAPH,
@@ -296,6 +297,48 @@ describe(`BlockParser.parse()`, () => {
           children: [
             { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
             { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse an verse block within an open-block`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document.letter]
+      --
+
+      Hello world
+
+      [verse]
+      ____
+      Hello Mama
+      Hello Papa
+      ____
+
+      --
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `open`,
+      context: { classList: [`embedded-content-document`, `letter`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello world` }],
+        },
+        {
+          type: n.BLOCK,
+          blockType: `verse`,
+          children: [
+            {
+              type: n.VERSE_STANZA,
+              children: [
+                { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
+                { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+              ],
+            },
           ],
         },
       ],

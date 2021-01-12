@@ -13,11 +13,12 @@ import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
 import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
+import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
+import BlockNode from './nodes/BlockNode';
 
-// poetry blocks
-// poetry inside of another block (like letter...)
+// epigraphs
 // footnotes
 // chapter headings
 // tables :(
@@ -30,7 +31,7 @@ export default class Parser {
 
   public parse(): AstNode {
     const document = new DocumentNode();
-    this.parseDocumentEpigraphs();
+    this.parseDocumentEpigraphs(document);
 
     const guard = this.makeWhileGuard(`Parser.parse()`);
     while (guard() && !this.currentOneOf(t.EOF, t.EOD)) {
@@ -97,8 +98,13 @@ export default class Parser {
     return this.lookAhead(1);
   }
 
-  public parseDocumentEpigraphs(): void {
-    // TODO
+  public parseDocumentEpigraphs(document: DocumentNode): void {
+    if (this.peekTokens(t.LEFT_BRACKET, [t.TEXT, `quote`], t.DOT, [t.TEXT, `epigraph`])) {
+      const blockParser = new BlockParser(this);
+      const epigraph = blockParser.parse(document);
+      document.epigraphs.push(epigraph);
+      this.parseDocumentEpigraphs(document);
+    }
   }
 
   public currentIs(tokenSpec: TokenSpec): boolean {

@@ -17,19 +17,9 @@ if (!file) {
 }
 
 function lexfile(file: string): void {
+  console.log({ file });
   const adoc = fs.readFileSync(file, `utf-8`);
-  const lines = adoc.split(`\n`);
-  lines.forEach((line, idx) => {
-    if (line[0] === `[` && line.match(/\]$/) && !line.includes(`cols`)) {
-      const lexer = new Lexer({ adoc: `${line}\n`, filename: file });
-      const parser = new Parser(lexer);
-      const cp = new ContextParser(parser);
-      try {
-        cp.parse();
-      } catch (e) {
-        console.log(`err at ${file}:${idx + 1}`);
-        console.log(e.message, `\n`);
-      }
-    }
-  });
+  const lexer = new Lexer({ adoc, filename: file });
+  const parser = new Parser(lexer);
+  parser.parse();
 }

@@ -1,4 +1,4 @@
-import { AstChildNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
+import { AstChildNode, AstNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
 import Parser from '../Parser';
 import PoetryParser from './PoetryParser';
 import BlockNode from '../nodes/BlockNode';
@@ -9,7 +9,7 @@ import ContextNode from '../nodes/ContextNode';
 export default class BlockParser {
   public constructor(private p: Parser) {}
 
-  public parse(parent: AstChildNode): AstChildNode {
+  public parse(parent: AstNode): AstChildNode {
     const context = this.p.parseContext();
     const thematicBreak = this.parseThematicBreak(parent, context);
     if (thematicBreak) {
@@ -45,7 +45,7 @@ export default class BlockParser {
   }
 
   private parseThematicBreak(
-    parent: AstChildNode,
+    parent: AstNode,
     context?: Context,
   ): AstChildNode | undefined {
     if (this.p.peekTokens(t.THEMATIC_BREAK, t.EOL, t.EOX)) {
@@ -99,6 +99,8 @@ export default class BlockParser {
   private peekStartInnerBlock(): boolean {
     const [token1, token2] = this.p.firstTokensAfterOptionalContext();
     if (this.p.tokenIs(token1, EXAMPLE) && this.p.tokenIs(token2, t.EOX)) {
+      return true;
+    } else if (this.p.tokenIs(token1, QUAD_UNDERSCORE) && this.p.tokenIs(token2, t.EOX)) {
       return true;
     }
     return false;
