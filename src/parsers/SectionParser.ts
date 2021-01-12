@@ -35,6 +35,11 @@ export default class SectionParser {
       const [afterContext] = this.p.firstTokensAfterOptionalContext();
 
       if (afterContext.type === t.EQUALS) {
+        if (afterContext.literal.length === this.level) {
+          // got to another heading of the same level
+          // close this one up so the next can start
+          return nodes;
+        }
         const sectionParser = new SectionParser(this.p, this.level + 1);
         const subSection = sectionParser.parse(section);
         nodes.push(subSection);

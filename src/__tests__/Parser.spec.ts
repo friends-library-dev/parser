@@ -250,6 +250,76 @@ describe(`Parser.parse()`, () => {
     });
   });
 
+  test(`sub-sections of same level close previous section`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      === Subsection 1
+
+      Hello world
+
+      === Subsection 2
+
+      Hello world
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              level: 2,
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.SECTION,
+              level: 3,
+              children: [
+                {
+                  type: n.HEADING,
+                  level: 3,
+                  children: [{ type: n.TEXT, value: `Subsection 1` }],
+                },
+                {
+                  type: n.BLOCK,
+                  children: [
+                    {
+                      type: n.PARAGRAPH,
+                      children: [{ type: n.TEXT, value: `Hello world` }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: n.SECTION,
+              level: 3,
+              children: [
+                {
+                  type: n.HEADING,
+                  level: 3,
+                  children: [{ type: n.TEXT, value: `Subsection 2` }],
+                },
+                {
+                  type: n.BLOCK,
+                  children: [
+                    {
+                      type: n.PARAGRAPH,
+                      children: [{ type: n.TEXT, value: `Hello world` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse something in a heading`, () => {
     const document = parseAdocFile(`
       == Chapter _emphasis_
