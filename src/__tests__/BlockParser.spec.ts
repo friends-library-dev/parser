@@ -219,6 +219,19 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse an with something after it`, () => {
+    const asterism = getParsedBlock(`
+      [.asterism]
+      '''
+
+      Hello world
+    `);
+    expect(asterism.toJSON()).toMatchObject({
+      type: n.THEMATIC_BREAK,
+      context: { classList: [`asterism`] },
+    });
+  });
+
   it(`can parse an asterism within another block`, () => {
     const block = getParsedBlock(`
       [.embedded-content-document]

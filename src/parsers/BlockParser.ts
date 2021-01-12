@@ -48,11 +48,21 @@ export default class BlockParser {
     parent: AstNode,
     context?: Context,
   ): AstChildNode | undefined {
-    if (this.p.peekTokens(t.THEMATIC_BREAK, t.EOL, t.EOX)) {
+    if (
+      this.p.peekTokensAnyOf(
+        [t.THEMATIC_BREAK, t.EOL, t.EOX],
+        [t.THEMATIC_BREAK, t.DOUBLE_EOL],
+      )
+    ) {
       if (!context) {
         this.p.error(`thematic break missing context`);
       }
-      this.p.consumeMany(t.THEMATIC_BREAK, t.EOL, t.EOX);
+      this.p.consume(t.THEMATIC_BREAK);
+      if (this.p.currentIs(t.DOUBLE_EOL)) {
+        this.p.consume(t.DOUBLE_EOL);
+      } else {
+        this.p.consumeMany(t.EOL, t.EOX);
+      }
       return new ContextNode(n.THEMATIC_BREAK, parent, context);
     }
     return undefined;
