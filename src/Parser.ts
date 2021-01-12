@@ -17,6 +17,9 @@ import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 
+// attaching tokens to nodes
+// new line numbers
+// compile time
 // epigraphs
 // footnotes
 // chapter headings
@@ -189,6 +192,14 @@ export default class Parser {
     return groups.some((tokens) => this.peekTokens(...tokens));
   }
 
+  public peekHeading(): boolean {
+    const [token1, token2] = this.firstTokensAfterOptionalContext();
+    if (this.tokenIs(token1, t.EQUALS) && this.tokenIs(token2, t.WHITESPACE)) {
+      return token1.column.start === 1;
+    }
+    return false;
+  }
+
   public tokenIs(token: Token, spec: TokenSpec): boolean {
     const tokenTypeMatch: TokenTypeMatcher = Array.isArray(spec) ? spec[0] : spec;
     let tokenTypes: TokenType[] = [];
@@ -335,7 +346,9 @@ export default class Parser {
 }
 
 function location(token: Token): string {
-  let location = `${token.filename ?? `[no-file]`}:`;
-  location += `${token.line}:${token.column.start}`;
-  return location;
+  let filename = token.filename ?? `[no-file]`;
+  if (process?.cwd) {
+    filename = filename.replace(`${process.cwd()}/`, ``);
+  }
+  return `${filename}:${token.line}:${token.column.start}`;
 }

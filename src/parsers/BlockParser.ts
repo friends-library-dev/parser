@@ -5,6 +5,7 @@ import BlockNode from '../nodes/BlockNode';
 import ParagraphNode from '../nodes/ParagraphNode';
 import Context from '../Context';
 import ContextNode from '../nodes/ContextNode';
+import HeadingNode from '../nodes/HeadingNode';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}
@@ -33,6 +34,18 @@ export default class BlockParser {
         block.children = poetryParser.parse(block);
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
+      } else if (this.p.peekHeading() && block.blockType === `open`) {
+        // @TODO extract this to some helper fn...
+        const headingContext = this.p.parseContext();
+        const heading = new HeadingNode(
+          block,
+          this.p.current.literal.length,
+          headingContext,
+        );
+        this.p.consumeMany(t.EQUALS, t.WHITESPACE);
+        heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
+        this.p.consume(t.DOUBLE_EOL);
+        block.children.push(heading);
       } else {
         this.parseChild(block);
         if (this.p.peekTokens(t.DOUBLE_EOL)) {

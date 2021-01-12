@@ -16,7 +16,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.LEFT_SINGLE_CURLY:
     case t.RIGHT_SINGLE_CURLY:
     case t.LEFT_DOUBLE_CURLY:
-    case t.LEFT_DOUBLE_CURLY:
+    case t.RIGHT_DOUBLE_CURLY:
       return symbolParselet;
     case t.UNDERSCORE:
       if (token.literal === `_`) {

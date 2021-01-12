@@ -260,6 +260,34 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a heading within an open block`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document]
+      --
+
+      === Subheading
+
+      Hello world
+
+      --
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      blockType: `open`,
+      children: [
+        {
+          type: n.HEADING,
+          level: 3,
+          children: [{ type: n.TEXT, value: `Subheading` }],
+        },
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: `Hello world` }],
+        },
+      ],
+    });
+  });
+
   it(`can parse a verse block`, () => {
     const block = getParsedBlock(`
       [verse]
