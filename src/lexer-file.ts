@@ -2,9 +2,7 @@ import fs from 'fs';
 import { sync as glob } from 'glob';
 import Lexer from './lexer';
 import Parser from './Parser';
-import ContextParser from './parsers/ContextParser';
 
-let numIllegals = 0;
 const file = process.argv[2];
 
 if (!file) {
@@ -17,7 +15,6 @@ if (!file) {
 }
 
 function lexfile(file: string): void {
-  console.log({ file });
   const adoc = fs.readFileSync(file, `utf-8`);
   const lexer = new Lexer({ adoc, filename: file });
   const parser = new Parser(lexer);

@@ -62,7 +62,6 @@ export default class Parser {
     while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current);
       if (parselet === null) {
-        this.log(``, 5);
         this.error(`no parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
@@ -294,12 +293,13 @@ export default class Parser {
       current = this.shifted[index++];
     }
 
+    const { column: col } = this.current;
     const display = [
       `Parse error: ${msg}\nat ${location(this.current)}`,
-      `\n\n\x1b[2m${String(this.current.line).padStart(5, ' ')}: `,
-      `${line}\x1b[0m\n`,
-      `${' '.padStart(this.current.column.start + 6, ' ')}`,
-      `\x1b[31m^-- ERR!\x1b[0m\n`,
+      `\n\n\x1b[35m${String(this.current.line).padStart(5, ' ')}\x1b[0m`,
+      `\x1b[2m: ${line.trim()}\x1b[0m\n`,
+      `${' '.padStart(col.start + 6, ' ')}`,
+      `\x1b[31m${`^`.padStart(col.end - col.start + 1, `^`)}-- ERR!\x1b[0m\n`,
     ].join(``);
 
     if (this.isJestTest()) {

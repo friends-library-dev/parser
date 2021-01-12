@@ -1,11 +1,12 @@
 import { NODE as n, SectionNode } from '../types';
 import DocumentNode from './DocumentNode';
-import ChildNode from './ChildNode';
+import ContextNode from './ContextNode';
+import Context from '../Context';
 
-export default class ChapterNode extends ChildNode implements SectionNode {
+export default class ChapterNode extends ContextNode implements SectionNode {
   public level = 2;
 
-  public constructor(public parent: DocumentNode) {
-    super(n.CHAPTER, parent);
+  public constructor(public parent: DocumentNode, context?: Context) {
+    super(n.CHAPTER, parent, context);
   }
 }

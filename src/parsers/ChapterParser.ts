@@ -9,10 +9,11 @@ export default class ChapterParser {
   public constructor(private p: Parser) {}
 
   public parse(parent: DocumentNode): ChapterNode {
-    const chapter = new ChapterNode(parent);
+    const context = this.p.parseContext();
+    const chapter = new ChapterNode(parent, context);
 
     if (!this.p.peekTokens([t.EQUALS, `==`], t.WHITESPACE, t.TEXT)) {
-      throw new Error(`Unexpected missing chapter heading`);
+      this.p.error(`unexpected missing chapter heading`);
     }
     this.p.consume(t.EQUALS);
     this.p.consume(t.WHITESPACE);

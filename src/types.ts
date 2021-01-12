@@ -92,6 +92,7 @@ export const NODE = {
   THEMATIC_BREAK: `THEMATIC_BREAK`,
   VERSE_STANZA: `VERSE_STANZA`,
   VERSE_LINE: `VERSE_LINE`,
+  SYMBOL: `SYMBOL`,
 } as const;
 
 export type NodeType = keyof typeof NODE;

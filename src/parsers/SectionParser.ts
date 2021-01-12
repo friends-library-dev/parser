@@ -28,10 +28,9 @@ export default class SectionParser {
 
   public parseBody(section: SectionNode): AstChildNode[] {
     const nodes: AstChildNode[] = [];
+    this.p.consume(t.DOUBLE_EOL);
     const guard = this.p.makeWhileGuard(`SectionParser.parseBody()`);
-    while (guard() && this.p.currentIs(t.DOUBLE_EOL)) {
-      this.p.consume(t.DOUBLE_EOL);
-
+    while (guard() && !this.p.currentOneOf(t.EOF, t.EOD)) {
       this.p.assertLineStart();
       const [afterContext] = this.p.firstTokensAfterOptionalContext();
 
