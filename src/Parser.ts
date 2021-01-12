@@ -16,7 +16,6 @@ import ChapterParser from './parsers/ChapterParser';
 import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
-import BlockNode from './nodes/BlockNode';
 
 // epigraphs
 // footnotes
@@ -24,8 +23,10 @@ import BlockNode from './nodes/BlockNode';
 // tables :(
 
 export default class Parser {
+  private static MAX_SHIFTED_TOKENS = 50;
   public tokens: Token[] = [];
   private stopStack: Array<TokenSpec[]> = [];
+  private shifted: Token[] = [];
 
   constructor(public lexer: Lexer) {}
 
@@ -62,7 +63,7 @@ export default class Parser {
       const parselet = getParselet(this.current);
       if (parselet === null) {
         this.log(``, 5);
-        throw new Error(`No parselet found for token type=${this.current.type}`);
+        this.error(`no parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
     }
@@ -214,8 +215,20 @@ export default class Parser {
     if (spec && !this.tokenIs(token, spec)) {
       this.error(`unexpected token ${this.logToken(token, ``)}`);
     }
-    this.tokens.shift();
+    this.shiftToken();
     return token;
+  }
+
+  private shiftToken(): void {
+    const shifted = this.tokens.shift();
+    if (!shifted) {
+      return;
+    }
+
+    if (this.shifted.length === Parser.MAX_SHIFTED_TOKENS) {
+      this.shifted = this.shifted.slice(0, -1);
+    }
+    this.shifted.unshift(shifted);
   }
 
   public consumeMany(...specs: TokenSpec[]): Token[] {
@@ -261,6 +274,25 @@ export default class Parser {
   }
 
   public error(msg: string): never {
+    let line = ``;
+    const errorLine = this.current.line;
+    let index = 0;
+    let current: Token | undefined = this.current;
+    while (current && !this.tokenIs(current, t.EOX)) {
+      line += current.literal;
+      current = this.lookAhead(++index);
+    }
+
+    index = 0;
+    current = this.shifted[index++];
+    while (current && current.line === errorLine) {
+      line = current.literal + line;
+      current = this.shifted[index++];
+    }
+
+    console.log(`\n\n\x1b[2m${line}\x1b[0m`);
+    console.log(' \x1b[31m^--\x1b[0m'.padStart(this.current.column.start + 11, ' '));
+
     throw new Error(`Parse error: ${msg}, at ${location(this.current)}`);
   }
 

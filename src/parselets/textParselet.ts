@@ -9,7 +9,7 @@ const textParselet: Parselet = (parser, parent) => {
   parser.consume();
 
   while (
-    [t.TEXT, t.WHITESPACE, t.EOL].includes(parser.current.type as any) &&
+    parser.currentOneOf(t.TEXT, t.WHITESPACE, t.EOL, t.COMMA) &&
     !parser.stopTokensFound()
   ) {
     const token = parser.consume();
