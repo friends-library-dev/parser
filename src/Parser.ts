@@ -258,7 +258,7 @@ export default class Parser {
   }
 
   public makeWhileGuard(identifier: string, max?: number): () => boolean {
-    let maxIterations = typeof process?.env?.JEST_WORKER_ID !== undefined ? 200 : 5000;
+    let maxIterations = this.isJestTest() ? 200 : 5000;
     if (typeof max === `number`) {
       maxIterations = max;
     }
@@ -271,6 +271,10 @@ export default class Parser {
       }
       return true;
     };
+  }
+
+  private isJestTest(): boolean {
+    return typeof process?.env?.JEST_WORKER_ID !== `undefined`;
   }
 
   public error(msg: string): never {
@@ -290,10 +294,20 @@ export default class Parser {
       current = this.shifted[index++];
     }
 
-    console.log(`\n\n\x1b[2m${line}\x1b[0m`);
-    console.log(' \x1b[31m^--\x1b[0m'.padStart(this.current.column.start + 11, ' '));
+    const display = [
+      `Parse error: ${msg}\nat ${location(this.current)}`,
+      `\n\n\x1b[2m${String(this.current.line).padStart(5, ' ')}: `,
+      `${line}\x1b[0m\n`,
+      `${' '.padStart(this.current.column.start + 6, ' ')}`,
+      `\x1b[31m^-- ERR!\x1b[0m\n`,
+    ].join(``);
 
-    throw new Error(`Parse error: ${msg}, at ${location(this.current)}`);
+    if (this.isJestTest()) {
+      throw new Error(display);
+    } else {
+      console.log(`\n${display}`);
+      process.exit(1);
+    }
   }
 
   public log(msg = ``, distance = 3): void {
