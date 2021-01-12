@@ -12,7 +12,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
-  it(`can handle right single curleys`, () => {
+  it(`can handle right single curlys`, () => {
     const parser = getParser(`priest\`'s\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
     expect(nodes).toHaveLength(3);
@@ -20,6 +20,17 @@ describe(`Parser.parseUntil() using parselets`, () => {
       { type: n.TEXT, value: `priest` },
       { type: n.SYMBOL, value: `\`'`, symbolType: t.RIGHT_SINGLE_CURLY },
       { type: n.TEXT, value: `s` },
+    ]);
+  });
+
+  it(`can handle symbols at end of line`, () => {
+    const parser = getParser(`world.\`"\nHello\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `world.` },
+      { type: n.SYMBOL, value: `\`"`, symbolType: t.RIGHT_DOUBLE_CURLY },
+      { type: n.TEXT, value: ` Hello` },
     ]);
   });
 

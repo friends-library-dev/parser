@@ -7,7 +7,7 @@ import symbolParselet from './symbolParselet';
 export default function getParselet(token: Token): Parselet | null {
   switch (token.type) {
     case t.TEXT:
-      return textParselet;
+    case t.EOL:
     case t.WHITESPACE:
       return textParselet;
     case t.DOUBLE_ASTERISK:

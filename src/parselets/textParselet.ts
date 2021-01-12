@@ -2,10 +2,10 @@ import TextNode from '../nodes/TextNode';
 import { Parselet, TOKEN as t } from '../types';
 
 const textParselet: Parselet = (parser, parent) => {
-  const node = new TextNode(
-    parent,
-    parser.current.type === t.WHITESPACE ? ` ` : parser.current.literal,
-  );
+  const node = new TextNode(parent, parser.current.literal);
+  if (parser.currentOneOf(t.WHITESPACE, t.EOL)) {
+    node.value = ` `;
+  }
   parser.consume();
 
   while (

@@ -15,6 +15,7 @@ if (!file) {
 }
 
 function lexfile(file: string): void {
+  // console.log(file);
   const adoc = fs.readFileSync(file, `utf-8`);
   const lexer = new Lexer({ adoc, filename: file });
   const parser = new Parser(lexer);
