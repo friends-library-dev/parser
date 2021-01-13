@@ -23,6 +23,30 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  test(`[.book-title]#<title># correctly parsed`, () => {
+    const parser = getParser(`[.book-title]#Apology#\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({
+      type: n.INLINE,
+      context: { classList: [`book-title`] },
+      children: [{ type: n.TEXT, value: `Apology` }],
+    });
+  });
+
+  test(`[.book-title]#<title># spanning multiple lines correctly parsed`, () => {
+    const parser = getParser(`[.book-title]#Barclay\nApology#\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({
+      type: n.INLINE,
+      context: { classList: [`book-title`] },
+      children: [{ type: n.TEXT, value: `Barclay Apology` }],
+    });
+  });
+
   test(`RIGHT_BRACKET in standard context consumed as text`, () => {
     const parser = getParser(`Hello world]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

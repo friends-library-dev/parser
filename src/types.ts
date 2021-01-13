@@ -97,6 +97,7 @@ export const NODE = {
   INLINE_PASSTHROUGH: `INLINE_PASSTHROUGH`,
   UNORDERED_LIST: `UNORDERED_LIST`,
   LIST_ITEM: `LIST_ITEM`,
+  INLINE: `INLINE`,
 } as const;
 
 export type NodeType = keyof typeof NODE;

@@ -1,15 +1,31 @@
-import { Parselet, TOKEN as t } from '../types';
+import { Parselet, TOKEN as t, NODE as n } from '../types';
 import Parser from '../Parser';
 import textParselet from './textParselet';
+import Node from '../nodes/AstNode';
+import Context from '../Context';
 
 const leftBracket: Parselet = (parser, parent) => {
+  if (isBookTitle(parser)) {
+    const leftBracket = parser.consume(t.LEFT_BRACKET);
+    parser.consume(t.DOT);
+    const context = new Context();
+    context.startToken = leftBracket;
+    context.classList.push(parser.consume(t.TEXT).literal);
+    context.endToken = parser.consume(t.RIGHT_BRACKET);
+    parser.consume(t.HASH);
+    const inline = new Node(n.INLINE, parent, { context });
+    inline.children = parser.parseUntil(inline, t.HASH);
+    inline.endToken = parser.consumeClose(t.HASH, n.INLINE, leftBracket);
+    return inline;
+  }
   if (isConsumableAsText(parser)) {
-    parser.consume(t.LEFT_BRACKET);
+    const leftBracket = parser.consume(t.LEFT_BRACKET);
     const textNode = textParselet(parser, parent);
+    textNode.startToken = leftBracket;
     textNode.value = `[${textNode.value}`;
     return textNode;
   }
-  parser.error(`non-text-consumable [ no implemented`);
+  parser.error(`non-text-consumable [ not implemented`);
   throw new Error(`lol`);
 };
 
