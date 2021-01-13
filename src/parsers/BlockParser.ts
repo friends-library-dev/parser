@@ -14,6 +14,11 @@ export default class BlockParser {
       return thematicBreak;
     }
 
+    const unorderedList = this.parseUnorderedList(parent, context);
+    if (unorderedList) {
+      return unorderedList;
+    }
+
     const block = this.makeBlock(parent, context);
 
     this.prepareCompoundBlock(block);
@@ -33,8 +38,7 @@ export default class BlockParser {
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
       } else if (this.p.peekHeading() && block.meta?.subType === `open`) {
-        const heading = this.p.parseHeading(block);
-        block.children.push(heading);
+        block.children.push(this.p.parseHeading(block));
       } else {
         this.parseChild(block);
         if (this.p.peekTokens(t.DOUBLE_EOL)) {
@@ -45,6 +49,32 @@ export default class BlockParser {
 
     block.endToken = this.p.lastNonEOX();
     return block;
+  }
+
+  private parseUnorderedList(parent: AstNode, context?: Context): AstNode | undefined {
+    this.p.assertLineStart();
+    if (!this.p.peekTokens(t.ASTERISK, t.WHITESPACE)) {
+      return undefined;
+    }
+    const list = new Node(n.UNORDERED_LIST, parent, {
+      context,
+      startToken: this.p.current,
+    });
+    const guard = this.p.makeWhileGuard(`BlockParser.parseUnorderedList()`);
+    while (guard() && !this.p.peekTokensAnyOf([t.DOUBLE_EOL], [t.EOX, t.EOX])) {
+      const item = new Node(n.LIST_ITEM, list);
+      item.startToken = this.p.current;
+      this.p.consumeMany(t.ASTERISK, t.WHITESPACE);
+      item.children = this.p.parseUntil(item, t.EOX);
+      item.endToken = this.p.lastNonEOX();
+      list.children.push(item);
+      if (this.p.currentIs(t.EOL)) {
+        this.p.consume();
+      }
+    }
+    list.endToken = this.p.lastNonEOX();
+    this.p.consume(t.EOX);
+    return list;
   }
 
   private parseThematicBreak(parent: AstNode, context?: Context): AstNode | undefined {

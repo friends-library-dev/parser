@@ -9,7 +9,8 @@ const leftBracket: Parselet = (parser, parent) => {
     textNode.value = `[${textNode.value}`;
     return textNode;
   }
-  throw new Error(`non-text-consumable [ no implemented`);
+  parser.error(`non-text-consumable [ no implemented`);
+  throw new Error(`lol`);
 };
 
 export default leftBracket;

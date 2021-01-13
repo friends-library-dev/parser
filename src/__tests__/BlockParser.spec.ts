@@ -1,6 +1,6 @@
 import { AstNode, NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
-import { getChapter, getParser } from './helpers';
+import { assertAllNodesHaveTokens, getChapter, getParser } from './helpers';
 import stripIndent from 'strip-indent';
 
 describe(`BlockParser.parse()`, () => {
@@ -386,22 +386,24 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
-  xit(`can parse a list block`, () => {
+  it(`can parse a list block`, () => {
     const block = getParsedBlock(`
       [.chapter-synopsis]
       * Hello Mama
       * Hello Papa
     `);
+    assertAllNodesHaveTokens(block);
     expect(block.toJSON()).toMatchObject({
-      type: n.BLOCK,
-      meta: { subType: `verse` },
+      type: n.UNORDERED_LIST,
+      context: { classList: [`chapter-synopsis`] },
       children: [
         {
-          type: n.VERSE_STANZA,
-          children: [
-            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
-            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
-          ],
+          type: n.LIST_ITEM,
+          children: [{ type: n.TEXT, value: `Hello Mama` }],
+        },
+        {
+          type: n.LIST_ITEM,
+          children: [{ type: n.TEXT, value: `Hello Papa` }],
         },
       ],
     });

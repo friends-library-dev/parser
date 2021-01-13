@@ -95,6 +95,8 @@ export const NODE = {
   VERSE_LINE: `VERSE_LINE`,
   SYMBOL: `SYMBOL`,
   INLINE_PASSTHROUGH: `INLINE_PASSTHROUGH`,
+  UNORDERED_LIST: `UNORDERED_LIST`,
+  LIST_ITEM: `LIST_ITEM`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -111,8 +113,8 @@ export interface AstNode {
     subType?: string;
     level?: number;
   };
-  toJSON: () => Record<string, unknown>;
-  print: () => void;
+  toJSON: (withTokens?: true) => Record<string, unknown>;
+  print: (withTokens?: true) => void;
 }
 
 export interface Parselet {

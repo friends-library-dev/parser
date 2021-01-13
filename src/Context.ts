@@ -35,4 +35,15 @@ export default class Context {
     }
     return this._endToken;
   }
+
+  public toJSON(): Record<string, unknown> {
+    return {
+      classList: this.classList,
+      ...(this.type ? { type: this.type } : {}),
+      ...(this.id ? { id: this.id } : {}),
+      ...(this.quoteAttribution ? { quoteAttribution: this.quoteAttribution } : {}),
+      ...(this.quoteSource ? { quoteSource: this.quoteSource } : {}),
+      ...(this.shortTitle ? { shortTitle: this.shortTitle } : {}),
+    };
+  }
 }

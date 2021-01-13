@@ -39,17 +39,20 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     return this._endToken;
   }
 
-  public toJSON(): Record<string, unknown> {
+  public toJSON(withTokens?: true): Record<string, unknown> {
     return {
       type: this.type,
-      ...(this.context ? { context: this.context } : {}),
-      value: this.value,
-      children: this.children.map((c) => c.toJSON()),
+      ...(this.context ? { context: this.context.toJSON() } : {}),
+      ...(this.value ? { value: this.value } : {}),
+      ...(this.children.length
+        ? { children: this.children.map((c) => c.toJSON(withTokens)) }
+        : {}),
       ...(Object.keys(this.meta).length ? { meta: this.meta } : {}),
+      ...(withTokens ? { startToken: this.startToken, endToken: this.endToken } : {}),
     };
   }
 
-  public print() {
-    console.log(this.toJSON());
+  public print(withTokens?: true) {
+    console.log(JSON.stringify(this.toJSON(withTokens), null, 2));
   }
 }

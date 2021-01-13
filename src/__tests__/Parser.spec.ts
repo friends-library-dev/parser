@@ -455,4 +455,55 @@ describe(`Parser.parse()`, () => {
       },
     ]);
   });
+
+  test(`chapter-synopsis`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      [.chapter-synopsis]
+      * Item 1
+      * Item 2
+
+      Hello world
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.UNORDERED_LIST,
+              context: { classList: [`chapter-synopsis`] },
+              children: [
+                {
+                  type: n.LIST_ITEM,
+                  children: [{ type: n.TEXT, value: `Item 1` }],
+                },
+                {
+                  type: n.LIST_ITEM,
+                  children: [{ type: n.TEXT, value: `Item 2` }],
+                },
+              ],
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: `Hello world` }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
 });
