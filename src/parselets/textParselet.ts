@@ -6,7 +6,8 @@ const textParselet: Parselet = (parser, parent) => {
   if (parser.currentOneOf(t.WHITESPACE, t.EOL)) {
     node.value = ` `;
   }
-  parser.consume();
+  node.startToken = parser.consume();
+  node.endToken = node.startToken;
 
   while (
     parser.currentOneOf(
@@ -22,6 +23,7 @@ const textParselet: Parselet = (parser, parent) => {
     !parser.stopTokensFound()
   ) {
     const token = parser.consume();
+    node.endToken = token;
     switch (token.type) {
       case t.WHITESPACE:
         node.value += ` `;

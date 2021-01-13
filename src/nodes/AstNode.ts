@@ -24,18 +24,23 @@ export default class AstNode extends AbstractAstNode implements AstNodeInterface
   ) {
     super();
 
-    this.context = config.context;
+    if (config.context) {
+      this.context = config.context;
+      this.startToken = config.context.startToken;
+    }
 
     if (config.value) {
       this.value = config.value;
     }
 
-    if (config.endToken) {
-      this._endToken = config.endToken;
+    // `!this._startToken` allows config.context.startToken to trump config.startToken
+    // giving a more ergonomic API for creating nodes with optional contexts
+    if (config.startToken && !this._startToken) {
+      this.startToken = config.startToken;
     }
 
-    if (config.startToken) {
-      this._startToken = config.startToken;
+    if (config.endToken) {
+      this._endToken = config.endToken;
     }
 
     if (config.subType) {

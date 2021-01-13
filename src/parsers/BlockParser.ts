@@ -21,6 +21,7 @@ export default class BlockParser {
     if (block.meta?.subType === `paragraph`) {
       this.parseChild(block);
       this.consumeTrailingWhitespace();
+      block.endToken = this.p.lastNonEOX();
       return block;
     }
 
@@ -37,9 +38,11 @@ export default class BlockParser {
         const heading = new Node(n.HEADING, block, {
           level: this.p.current.literal.length,
           context: headingContext,
+          startToken: this.p.current,
         });
         this.p.consumeMany(t.EQUALS, t.WHITESPACE);
         heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
+        heading.endToken = this.p.lastNonEOX();
         this.p.consume(t.DOUBLE_EOL);
         block.children.push(heading);
       } else {
@@ -50,6 +53,7 @@ export default class BlockParser {
       }
     }
 
+    block.endToken = this.p.lastNonEOX();
     return block;
   }
 
@@ -81,9 +85,10 @@ export default class BlockParser {
       block.children.push(thematicBreak);
       return;
     }
-    const para = new Node(n.PARAGRAPH, block, { context });
+    const para = new Node(n.PARAGRAPH, block, { context, startToken: this.p.current });
     block.children.push(para);
     para.children = this.p.parseUntilAnyOf(para, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
+    para.endToken = this.p.lastNonEOX();
   }
 
   private consumeTrailingWhitespace(): void {
@@ -123,7 +128,11 @@ export default class BlockParser {
   }
 
   private makeBlock(parent: AstNode, context?: Context): AstNode {
-    const block = new Node(n.BLOCK, parent, { context, subType: `paragraph` });
+    const block = new Node(n.BLOCK, parent, {
+      context,
+      subType: `paragraph`,
+      startToken: this.p.current,
+    });
     if (context?.type === `quote` || context?.type === `epigraph`) {
       block.meta.subType = `quote`;
     } else if (context?.type === `verse`) {

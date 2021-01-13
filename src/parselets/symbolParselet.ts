@@ -6,6 +6,8 @@ const symbol: Parselet = (parser, parent) => {
   const node = new Node(n.SYMBOL, parent, {
     subType: current.type,
     value: current.literal,
+    startToken: current,
+    endToken: current,
   });
   parser.consume();
   return node;

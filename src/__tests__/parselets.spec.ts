@@ -1,5 +1,5 @@
 import { TOKEN as t, NODE as n } from '../types';
-import { getPara, getParser } from './helpers';
+import { getPara, getParser, assertAllNodesHaveTokens } from './helpers';
 
 describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle text nodes`, () => {
@@ -26,6 +26,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   test(`RIGHT_BRACKET in standard context consumed as text`, () => {
     const parser = getParser(`Hello world]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({
       type: n.TEXT,
@@ -36,6 +37,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   test(`unambiguous content brackets consumed as text`, () => {
     const parser = getParser(`[Hello] world\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({
       type: n.TEXT,
@@ -46,6 +48,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle triple-plus passthrough`, () => {
     const parser = getParser(`+++[+++mark\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
       { type: n.INLINE_PASSTHROUGH, value: `[` },
@@ -56,6 +59,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle symbols at end of line`, () => {
     const parser = getParser(`world.\`"\nHello\n\n`);
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `world.` },
@@ -67,17 +71,23 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle emphasis child nodes`, () => {
     const parser = getParser(`Hello _world_ foo\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `Hello ` },
       { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `world` }] },
       { type: n.TEXT, value: ` foo` },
     ]);
+    expect(nodes[1]!.endToken).toMatchObject({
+      type: t.UNDERSCORE,
+      literal: `_`,
+    });
   });
 
   it(`can handle STRONG child nodes`, () => {
     const parser = getParser(`Hello **world** foo\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `Hello ` },
@@ -89,6 +99,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   test(`nested nodes`, () => {
     const parser = getParser(`Hello **_world_** foo\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `Hello ` },
@@ -123,6 +134,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`can move through newlines`, () => {
     const parser = getParser(`Hello\nworld\n\n`);
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `Hello world` });
   });
@@ -130,6 +142,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`doesn't move through newlines, if should stop`, () => {
     const parser = getParser(`Hello\nworld\n\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `Hello` });
   });

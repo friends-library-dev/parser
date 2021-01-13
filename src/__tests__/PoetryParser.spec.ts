@@ -1,8 +1,8 @@
 import stripIndent from 'strip-indent';
 import Context from '../Context';
 import PoetryParser from '../parsers/PoetryParser';
-import { AstChildNode, NODE as n } from '../types';
-import { getParser, getBlock } from './helpers';
+import { AstNode, NODE as n } from '../types';
+import { getParser, getBlock, assertAllNodesHaveTokens } from './helpers';
 
 // TODO... rename StanzaParser?
 describe('PoetryParser.parse()', () => {
@@ -11,6 +11,7 @@ describe('PoetryParser.parse()', () => {
        Hello Mama
        Hello Papa
      `);
+    poetry.forEach(assertAllNodesHaveTokens);
     expect(poetry.map((s) => s.toJSON())).toMatchObject([
       {
         type: n.VERSE_STANZA,
@@ -30,6 +31,7 @@ describe('PoetryParser.parse()', () => {
        Hello world
        Goodbye world
      `);
+    poetry.forEach(assertAllNodesHaveTokens);
     expect(poetry.map((s) => s.toJSON())).toMatchObject([
       {
         type: n.VERSE_STANZA,
@@ -49,7 +51,7 @@ describe('PoetryParser.parse()', () => {
   });
 });
 
-function getParsedPoetry(adoc: string): AstChildNode[] {
+function getParsedPoetry(adoc: string): AstNode[] {
   const parser = getParser(stripIndent(adoc).trim() + `\n`);
   const poetryParser = new PoetryParser(parser);
   const context = new Context();

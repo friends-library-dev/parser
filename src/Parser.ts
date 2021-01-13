@@ -33,6 +33,7 @@ export default class Parser {
 
   public parse(): AstNode {
     const document = new DocumentNode();
+    document.startToken = this.current;
     this.parseDocumentEpigraphs(document);
 
     const guard = this.makeWhileGuard(`Parser.parse()`);
@@ -41,6 +42,7 @@ export default class Parser {
       document.children.push(chapterParser.parse(document));
     }
 
+    document.endToken = this.current;
     return document;
   }
 
@@ -241,20 +243,53 @@ export default class Parser {
   }
 
   public lookAhead(distance: number): Token {
+    if (distance < 0) {
+      return this.expectLookBehind(distance);
+    }
+
     while (distance >= this.tokens.length) {
       this.tokens.push(this.lexer.nextToken());
     }
 
     const token = this.tokens[distance];
     if (!token) {
-      this.error(`Unexpected missing token`);
+      this.error(`unexpected missing token in Parser.lookAhead()`);
     }
     return token;
   }
 
-  public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, open: Token): void {
+  public lookBehind(distance: number): Token | undefined {
+    if (distance === 0) {
+      // 0 always refers to current token
+      return this.lookAhead(0);
+    }
+    return this.shifted[Math.abs(distance) - 1];
+  }
+
+  public expectLookBehind(distance: number): Token {
+    if (distance >= 0) {
+      return this.lookAhead(distance);
+    }
+    const token = this.lookBehind(distance);
+    if (!token) {
+      this.error(`unexpected missing token in Parser.expectLookBehind()`);
+    }
+    return token;
+  }
+
+  public lastNonEOX(): Token {
+    let index = -1;
+    let token = this.current;
+    const guard = this.makeWhileGuard(`Parser.lastNonEOX()`);
+    while (guard() && this.tokenIs(token, t.EOX)) {
+      token = this.expectLookBehind(index--);
+    }
+    return token;
+  }
+
+  public consumeClose(tokenSpec: TokenSpec, nodeType: NodeType, open: Token): Token {
     try {
-      this.consume(tokenSpec);
+      return this.consume(tokenSpec);
     } catch {
       throw new Error(
         `Parse error: unclosed ${nodeType} node, opened at ${location(open)}`,

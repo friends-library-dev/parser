@@ -9,20 +9,20 @@ export default class ChapterParser {
 
   public parse(parent: DocumentNode): AstNode {
     const context = this.p.parseContext();
-    const chapter = new Node(n.CHAPTER, parent, { context });
+    const chapter = new Node(n.CHAPTER, parent, { context, startToken: this.p.current });
 
     if (!this.p.peekTokens([t.EQUALS, `==`], t.WHITESPACE, t.TEXT)) {
       this.p.error(`unexpected missing chapter heading`);
     }
-    this.p.consume(t.EQUALS);
+
+    const headingStart = this.p.consume(t.EQUALS);
     this.p.consume(t.WHITESPACE);
 
-    const chapterHeading = new Node(n.HEADING, chapter, { level: 2 });
-    chapterHeading.children = this.p.parseUntil(chapterHeading, t.DOUBLE_EOL);
-    chapter.children = [
-      chapterHeading,
-      ...new SectionParser(this.p, 2).parseBody(chapter),
-    ];
+    const heading = new Node(n.HEADING, chapter, { level: 2, startToken: headingStart });
+    heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
+    heading.endToken = this.p.lastNonEOX();
+    chapter.children = [heading, ...new SectionParser(this.p, 2).parseBody(chapter)];
+    chapter.endToken = this.p.lastNonEOX();
 
     if (this.p.peekTokens(t.EOL, t.EOF)) {
       // no more blocks in chapter, consume trailing newline

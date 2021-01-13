@@ -14,7 +14,7 @@ export default class ContextParser {
       return undefined;
     }
 
-    this.p.consume(t.LEFT_BRACKET);
+    this.context.startToken = this.p.consume(t.LEFT_BRACKET);
     this.parseType();
     this.parseId();
 
@@ -33,7 +33,7 @@ export default class ContextParser {
     }
 
     this.p.consume(t.RIGHT_BRACKET);
-    this.p.consume(t.EOL);
+    this.context.endToken = this.p.consume(t.EOL);
     return this.context;
   }
 

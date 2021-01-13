@@ -17,6 +17,14 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     throw new Error(`AbstractAstNode.type not implemented`);
   }
 
+  public set startToken(token: Token) {
+    this._startToken = token;
+  }
+
+  public set endToken(token: Token) {
+    this._endToken = token;
+  }
+
   public get startToken(): Token {
     if (!this._startToken) {
       throw new Error(`Unexpected missing AstNode.startToken`);

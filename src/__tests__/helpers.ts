@@ -35,6 +35,18 @@ export function getBlock(): AstNode {
   return new Node(n.BLOCK, getChapter());
 }
 
+export function assertAllNodesHaveTokens(node: AstNode): void {
+  try {
+    if (node.startToken && node.endToken) {
+      // ¯\_(ツ)_/¯
+    }
+  } catch (e) {
+    node.print();
+    throw new Error(`Node missing tokens in assertAllNodesHaveTokens()`);
+  }
+  node.children.forEach((child) => assertAllNodesHaveTokens(child));
+}
+
 export function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {
   return {
     type: token.type,

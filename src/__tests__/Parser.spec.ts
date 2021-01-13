@@ -1,6 +1,6 @@
 import DocumentNode from '../nodes/DocumentNode';
-import { NODE as n } from '../types';
-import { getParser, parseAdocFile } from './helpers';
+import { NODE as n, TOKEN as t } from '../types';
+import { assertAllNodesHaveTokens, getParser, parseAdocFile } from './helpers';
 
 describe(`Parser.parseContext()`, () => {
   test(`parsing basic context`, () => {
@@ -41,6 +41,84 @@ describe(`Parser.parse()`, () => {
         },
       ],
     });
+  });
+
+  it(`attaches start and end tokens to nodes`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+      
+      Hello world
+    `);
+    expect(document.startToken).toMatchObject({
+      type: t.EQUALS,
+      literal: `==`,
+      line: 1,
+      column: { start: 1, end: 2 },
+    });
+    expect(document.endToken).toMatchObject({
+      type: t.EOD,
+      literal: ``,
+      line: 3,
+      column: { start: 12, end: 12 },
+    });
+
+    const chapter = document.children[0]!;
+    expect(chapter.startToken).toMatchObject({
+      type: t.EQUALS,
+      literal: `==`,
+      line: 1,
+      column: { start: 1, end: 2 },
+    });
+    expect(chapter.endToken).toMatchObject({
+      type: t.TEXT,
+      literal: `world`,
+      line: 3,
+      column: { start: 7, end: 11 },
+    });
+
+    const heading = chapter.children[0]!;
+    expect(heading.startToken).toMatchObject({
+      type: t.EQUALS,
+      literal: `==`,
+      line: 1,
+      column: { start: 1, end: 2 },
+    });
+    expect(heading.endToken).toMatchObject({
+      type: t.TEXT,
+      literal: `1`,
+      line: 1,
+      column: { start: 12, end: 12 },
+    });
+
+    const headingText = heading.children[0]!;
+    expect(headingText.startToken).toMatchObject({
+      type: t.TEXT,
+      literal: `Chapter`,
+      line: 1,
+      column: { start: 4, end: 10 },
+    });
+    expect(headingText.endToken).toMatchObject({
+      type: t.TEXT,
+      literal: `1`,
+      line: 1,
+      column: { start: 12, end: 12 },
+    });
+
+    const block = chapter.children[1]!;
+    expect(block.startToken).toMatchObject({
+      type: t.TEXT,
+      literal: `Hello`,
+      line: 3,
+      column: { start: 1, end: 5 },
+    });
+    expect(block.endToken).toMatchObject({
+      type: t.TEXT,
+      literal: `world`,
+      line: 3,
+      column: { start: 7, end: 11 },
+    });
+
+    assertAllNodesHaveTokens(document);
   });
 
   it(`can handle context on chapter heading`, () => {
@@ -130,7 +208,6 @@ describe(`Parser.parse()`, () => {
 
       Hello world
     `);
-
     expect(document.toJSON()).toMatchObject({
       type: n.DOCUMENT,
       children: [
@@ -263,7 +340,6 @@ describe(`Parser.parse()`, () => {
 
       Hello world
     `);
-
     expect(document.toJSON()).toMatchObject({
       type: n.DOCUMENT,
       children: [
@@ -350,7 +426,6 @@ describe(`Parser.parse()`, () => {
 
       Hello world
     `);
-
     expect((document as DocumentNode).epigraphs).toMatchObject([
       {
         type: n.BLOCK,
