@@ -20,7 +20,6 @@ import BufferedLexer from './BufferedLexer';
 // attaching tokens to nodes
 // new line numbers
 // compile time
-// epigraphs
 // footnotes
 // chapter headings
 // tables :(

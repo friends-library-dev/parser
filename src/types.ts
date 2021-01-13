@@ -1,3 +1,4 @@
+import Context from './Context';
 import Parser from './Parser';
 
 export const TOKEN = {
@@ -101,33 +102,19 @@ export type NodeType = keyof typeof NODE;
 export interface AstNode {
   type: NodeType;
   value: string;
-  children: AstChildNode[];
-  position: AstPosition;
-  toJSON: () => Record<string, any>;
-  log: () => void;
-}
-
-export type AstChildNode = AstNode & {
+  children: AstNode[];
+  context?: Context;
+  startToken: Token;
+  endToken: Token;
   parent: AstNode;
-};
-
-export interface SectionNode {
-  level: number;
-}
-
-export interface AstPosition {
-  start: {
-    line: number;
-    column: number;
-    filename?: string;
+  meta: {
+    subType?: string;
+    level?: number;
   };
-  end: {
-    line: number;
-    column: number;
-    filename?: string;
-  };
+  toJSON: () => Record<string, unknown>;
+  print: () => void;
 }
 
 export interface Parselet {
-  (parser: Parser, parent: AstChildNode): AstChildNode;
+  (parser: Parser, parent: AstNode): AstNode;
 }
