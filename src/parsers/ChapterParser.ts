@@ -15,12 +15,7 @@ export default class ChapterParser {
       this.p.error(`unexpected missing chapter heading`);
     }
 
-    const headingStart = this.p.consume(t.EQUALS);
-    this.p.consume(t.WHITESPACE);
-
-    const heading = new Node(n.HEADING, chapter, { level: 2, startToken: headingStart });
-    heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
-    heading.endToken = this.p.lastNonEOX();
+    const heading = this.p.parseHeading(chapter);
     chapter.children = [heading, ...new SectionParser(this.p, 2).parseBody(chapter)];
     chapter.endToken = this.p.lastNonEOX();
 

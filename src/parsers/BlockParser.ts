@@ -33,17 +33,7 @@ export default class BlockParser {
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
       } else if (this.p.peekHeading() && block.meta?.subType === `open`) {
-        // @TODO extract this to some helper fn...
-        const headingContext = this.p.parseContext();
-        const heading = new Node(n.HEADING, block, {
-          level: this.p.current.literal.length,
-          context: headingContext,
-          startToken: this.p.current,
-        });
-        this.p.consumeMany(t.EQUALS, t.WHITESPACE);
-        heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
-        heading.endToken = this.p.lastNonEOX();
-        this.p.consume(t.DOUBLE_EOL);
+        const heading = this.p.parseHeading(block);
         block.children.push(heading);
       } else {
         this.parseChild(block);

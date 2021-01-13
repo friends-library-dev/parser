@@ -8,18 +8,18 @@ export default class SectionParser {
 
   public parse(parent: AstNode): AstNode {
     const context = this.p.parseContext();
-    const equals = this.p.consume(t.EQUALS);
-    this.p.consume(t.WHITESPACE);
+    const section = new Node(n.SECTION, parent, {
+      level: this.level,
+      context,
+      startToken: this.p.current,
+    });
 
-    const level = equals.literal.length;
+    const level = this.p.current.literal.length;
     if (level !== this.level) {
       this.p.error(`expected heading level ${this.level}, got ${level}`);
     }
 
-    const section = new Node(n.SECTION, parent, { level, context, startToken: equals });
-    const heading = new Node(n.HEADING, section, { level, startToken: equals });
-    heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
-    heading.endToken = this.p.lastNonEOX();
+    const heading = this.p.parseHeading(section);
     section.children = [heading, ...this.parseBody(section)];
     section.endToken = this.p.lastNonEOX();
     return section;
@@ -27,7 +27,6 @@ export default class SectionParser {
 
   public parseBody(section: AstNode): AstNode[] {
     const nodes: AstNode[] = [];
-    this.p.consume(t.DOUBLE_EOL);
     const guard = this.p.makeWhileGuard(`SectionParser.parseBody()`);
     while (guard() && !this.p.currentOneOf(t.EOF, t.EOD)) {
       this.p.assertLineStart();

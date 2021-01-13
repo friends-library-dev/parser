@@ -385,6 +385,27 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  xit(`can parse a list block`, () => {
+    const block = getParsedBlock(`
+      [.chapter-synopsis]
+      * Hello Mama
+      * Hello Papa
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `verse` },
+      children: [
+        {
+          type: n.VERSE_STANZA,
+          children: [
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
+            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+          ],
+        },
+      ],
+    });
+  });
 });
 
 function getParsedBlock(adoc: string): AstNode {

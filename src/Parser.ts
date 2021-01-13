@@ -2,6 +2,7 @@ import {
   Token,
   TokenType,
   TOKEN as t,
+  NODE as n,
   AstNode,
   NodeType,
   TokenSpec,
@@ -10,14 +11,14 @@ import {
 } from './types';
 import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
+import Node from './nodes/AstNode';
 import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 
-// attaching tokens to nodes
-// new line numbers
+// new line numbers?
 // compile time
 // footnotes
 // chapter headings
@@ -49,6 +50,20 @@ export default class Parser {
   public parseContext(): Context | undefined {
     const contextParser = new ContextParser(this);
     return contextParser.parse();
+  }
+
+  public parseHeading(parent: AstNode): AstNode {
+    const headingContext = this.parseContext();
+    const heading = new Node(n.HEADING, parent, {
+      level: this.current.literal.length,
+      context: headingContext,
+      startToken: this.current,
+    });
+    this.consumeMany(t.EQUALS, t.WHITESPACE);
+    heading.children = this.parseUntil(heading, t.EOX);
+    heading.endToken = this.lastNonEOX();
+    this.consume(t.EOX);
+    return heading;
   }
 
   public parseUntil(parent: AstNode, ...stopTokens: TokenSpec[]): AstNode[] {
