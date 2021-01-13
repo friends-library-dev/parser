@@ -18,7 +18,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `priest` },
-      { type: n.SYMBOL, value: `\`'`, symbolType: t.RIGHT_SINGLE_CURLY },
+      { type: n.SYMBOL, value: `\`'`, meta: { subType: t.RIGHT_SINGLE_CURLY } },
       { type: n.TEXT, value: `s` },
     ]);
   });
@@ -59,7 +59,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `world.` },
-      { type: n.SYMBOL, value: `\`"`, symbolType: t.RIGHT_DOUBLE_CURLY },
+      { type: n.SYMBOL, value: `\`"`, meta: { subType: t.RIGHT_DOUBLE_CURLY } },
       { type: n.TEXT, value: ` Hello` },
     ]);
   });

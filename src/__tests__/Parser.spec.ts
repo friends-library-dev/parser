@@ -1,3 +1,4 @@
+import DocumentNode from '../nodes/DocumentNode';
 import { NODE as n } from '../types';
 import { getParser, parseAdocFile } from './helpers';
 
@@ -25,7 +26,7 @@ describe(`Parser.parse()`, () => {
             {
               type: n.HEADING,
               children: [{ type: n.TEXT, value: 'Chapter 1' }],
-              level: 2,
+              meta: { level: 2 },
             },
             {
               type: n.BLOCK,
@@ -59,7 +60,7 @@ describe(`Parser.parse()`, () => {
             {
               type: n.HEADING,
               children: [{ type: n.TEXT, value: 'Chapter 1' }],
-              level: 2,
+              meta: { level: 2 },
             },
             {
               type: n.BLOCK,
@@ -95,7 +96,7 @@ describe(`Parser.parse()`, () => {
             {
               type: n.HEADING,
               children: [{ type: n.TEXT, value: 'Chapter 1' }],
-              level: 2,
+              meta: { level: 2 },
             },
             {
               type: n.BLOCK,
@@ -138,17 +139,17 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              level: 2,
+              meta: { level: 2 },
               children: [{ type: n.TEXT, value: `Chapter 1` }],
             },
             {
               type: n.SECTION,
-              level: 3,
+              meta: { level: 3 },
               children: [
                 {
                   type: n.HEADING,
                   children: [{ type: n.TEXT, value: `Subsection` }],
-                  level: 3,
+                  meta: { level: 3 },
                 },
                 {
                   type: n.BLOCK,
@@ -183,7 +184,7 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              level: 2,
+              meta: { level: 2 },
               children: [{ type: n.TEXT, value: `Chapter 1` }],
             },
             {
@@ -220,17 +221,17 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              level: 2,
+              meta: { level: 2 },
               children: [{ type: n.TEXT, value: `Chapter 1` }],
             },
             {
               type: n.SECTION,
-              level: 3,
+              meta: { level: 3 },
               context: { classList: [`blurb`] },
               children: [
                 {
                   type: n.HEADING,
-                  level: 3,
+                  meta: { level: 3 },
                   children: [{ type: n.TEXT, value: `Subsection` }],
                 },
                 {
@@ -271,16 +272,16 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              level: 2,
+              meta: { level: 2 },
               children: [{ type: n.TEXT, value: `Chapter 1` }],
             },
             {
               type: n.SECTION,
-              level: 3,
+              meta: { level: 3 },
               children: [
                 {
                   type: n.HEADING,
-                  level: 3,
+                  meta: { level: 3 },
                   children: [{ type: n.TEXT, value: `Subsection 1` }],
                 },
                 {
@@ -296,11 +297,11 @@ describe(`Parser.parse()`, () => {
             },
             {
               type: n.SECTION,
-              level: 3,
+              meta: { level: 3 },
               children: [
                 {
                   type: n.HEADING,
-                  level: 3,
+                  meta: { level: 3 },
                   children: [{ type: n.TEXT, value: `Subsection 2` }],
                 },
                 {
@@ -350,10 +351,10 @@ describe(`Parser.parse()`, () => {
       Hello world
     `);
 
-    expect(document.epigraphs).toMatchObject([
+    expect((document as DocumentNode).epigraphs).toMatchObject([
       {
         type: n.BLOCK,
-        blockType: `quote`,
+        meta: { subType: `quote` },
         context: {
           quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:1` }],
         },
@@ -366,7 +367,7 @@ describe(`Parser.parse()`, () => {
       },
       {
         type: n.BLOCK,
-        blockType: `quote`,
+        meta: { subType: `quote` },
         context: {
           quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:2` }],
         },

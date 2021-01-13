@@ -1,4 +1,4 @@
-import { AstChildNode, NODE as n } from '../types';
+import { AstNode, NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
 import { getChapter, getParser } from './helpers';
 import stripIndent from 'strip-indent';
@@ -33,7 +33,7 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `quote`,
+      meta: { subType: `quote` },
       children: [
         {
           type: n.PARAGRAPH,
@@ -124,7 +124,7 @@ describe(`BlockParser.parse()`, () => {
 
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `open`,
+      meta: { subType: `open` },
       context: { classList: [`embedded-content-document`, `letter`] },
       children: [
         {
@@ -133,7 +133,7 @@ describe(`BlockParser.parse()`, () => {
         },
         {
           type: n.BLOCK,
-          blockType: `example`,
+          meta: { subType: `example` },
           context: { classList: [`postscript`] },
           children: [
             {
@@ -164,7 +164,7 @@ describe(`BlockParser.parse()`, () => {
 
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `open`,
+      meta: { subType: `open` },
       context: { classList: [`embedded-content-document`, `letter`] },
       children: [
         {
@@ -197,7 +197,7 @@ describe(`BlockParser.parse()`, () => {
 
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `example`,
+      meta: { subType: `example` },
       context: { classList: [`postscript`] },
       children: [
         {
@@ -246,7 +246,7 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `open`,
+      meta: { subType: `open` },
       children: [
         {
           type: n.PARAGRAPH,
@@ -273,11 +273,11 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `open`,
+      meta: { subType: `open` },
       children: [
         {
           type: n.HEADING,
-          level: 3,
+          meta: { level: 3 },
           children: [{ type: n.TEXT, value: `Subheading` }],
         },
         {
@@ -298,7 +298,7 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `verse`,
+      meta: { subType: `verse` },
       children: [
         {
           type: n.VERSE_STANZA,
@@ -324,7 +324,7 @@ describe(`BlockParser.parse()`, () => {
     `);
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `verse`,
+      meta: { subType: `verse` },
       children: [
         {
           type: n.VERSE_STANZA,
@@ -362,7 +362,7 @@ describe(`BlockParser.parse()`, () => {
 
     expect(block.toJSON()).toMatchObject({
       type: n.BLOCK,
-      blockType: `open`,
+      meta: { subType: `open` },
       context: { classList: [`embedded-content-document`, `letter`] },
       children: [
         {
@@ -371,7 +371,7 @@ describe(`BlockParser.parse()`, () => {
         },
         {
           type: n.BLOCK,
-          blockType: `verse`,
+          meta: { subType: `verse` },
           children: [
             {
               type: n.VERSE_STANZA,
@@ -387,7 +387,7 @@ describe(`BlockParser.parse()`, () => {
   });
 });
 
-function getParsedBlock(adoc: string): AstChildNode {
+function getParsedBlock(adoc: string): AstNode {
   const parser = getParser(stripIndent(adoc).trim() + `\n`);
   const blockParser = new BlockParser(parser);
   return blockParser.parse(getChapter());

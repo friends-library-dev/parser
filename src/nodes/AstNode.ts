@@ -1,6 +1,6 @@
-import Context from './Context';
+import Context from '../Context';
 import AbstractAstNode from './AbstractAstNode';
-import { AstNode as AstNodeInterface, NodeType, Token } from './types';
+import { AstNode as AstNodeInterface, NodeType, Token } from '../types';
 
 interface Config {
   value?: string;
@@ -12,14 +12,14 @@ interface Config {
 }
 
 export default class AstNode extends AbstractAstNode implements AstNodeInterface {
-  public children: AstNode[] = [];
+  public children: AstNodeInterface[] = [];
   public value = ``;
   public meta: AstNodeInterface['meta'] = {};
   public context: Context | undefined;
 
   public constructor(
     private _type: NodeType,
-    private _parent: AstNode,
+    private _parent: AstNodeInterface,
     config: Config = {},
   ) {
     super();

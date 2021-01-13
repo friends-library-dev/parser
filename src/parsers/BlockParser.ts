@@ -1,27 +1,24 @@
-import { AstChildNode, AstNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
+import { AstNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
 import Parser from '../Parser';
 import PoetryParser from './PoetryParser';
-import BlockNode from '../nodes/BlockNode';
-import ParagraphNode from '../nodes/ParagraphNode';
 import Context from '../Context';
-import ContextNode from '../nodes/ContextNode';
-import HeadingNode from '../nodes/HeadingNode';
+import Node from '../nodes/AstNode';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}
 
-  public parse(parent: AstNode): AstChildNode {
+  public parse(parent: AstNode): AstNode {
     const context = this.p.parseContext();
     const thematicBreak = this.parseThematicBreak(parent, context);
     if (thematicBreak) {
       return thematicBreak;
     }
 
-    const block = new BlockNode(parent, context);
+    const block = this.makeBlock(parent, context);
 
     this.prepareCompoundBlock(block);
 
-    if (block.blockType === `paragraph`) {
+    if (block.meta?.subType === `paragraph`) {
       this.parseChild(block);
       this.consumeTrailingWhitespace();
       return block;
@@ -29,19 +26,18 @@ export default class BlockParser {
 
     const guard = this.p.makeWhileGuard(`BlockParser.parse()`);
     while (guard() && !this.p.peekTokensAnyOf([t.EOL, t.EOF], [t.EOF, t.EOD], [t.EOD])) {
-      if (block.blockType === `verse`) {
+      if (block.meta?.subType === `verse`) {
         const poetryParser = new PoetryParser(this.p);
         block.children = poetryParser.parse(block);
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
-      } else if (this.p.peekHeading() && block.blockType === `open`) {
+      } else if (this.p.peekHeading() && block.meta?.subType === `open`) {
         // @TODO extract this to some helper fn...
         const headingContext = this.p.parseContext();
-        const heading = new HeadingNode(
-          block,
-          this.p.current.literal.length,
-          headingContext,
-        );
+        const heading = new Node(n.HEADING, block, {
+          level: this.p.current.literal.length,
+          context: headingContext,
+        });
         this.p.consumeMany(t.EQUALS, t.WHITESPACE);
         heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
         this.p.consume(t.DOUBLE_EOL);
@@ -57,10 +53,7 @@ export default class BlockParser {
     return block;
   }
 
-  private parseThematicBreak(
-    parent: AstNode,
-    context?: Context,
-  ): AstChildNode | undefined {
+  private parseThematicBreak(parent: AstNode, context?: Context): AstNode | undefined {
     if (
       this.p.peekTokensAnyOf(
         [t.THEMATIC_BREAK, t.EOL, t.EOX],
@@ -76,19 +69,19 @@ export default class BlockParser {
       } else {
         this.p.consumeMany(t.EOL, t.EOX);
       }
-      return new ContextNode(n.THEMATIC_BREAK, parent, context);
+      return new Node(n.THEMATIC_BREAK, parent, { context });
     }
     return undefined;
   }
 
-  private parseChild(block: BlockNode): void {
+  private parseChild(block: AstNode): void {
     const context = this.p.parseContext();
     const thematicBreak = this.parseThematicBreak(block, context);
     if (thematicBreak) {
       block.children.push(thematicBreak);
       return;
     }
-    const para = new ParagraphNode(block, context);
+    const para = new Node(n.PARAGRAPH, block, { context });
     block.children.push(para);
     para.children = this.p.parseUntilAnyOf(para, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
   }
@@ -101,19 +94,19 @@ export default class BlockParser {
     }
   }
 
-  private prepareCompoundBlock(block: BlockNode): void {
-    if (block.blockType === `quote`) {
+  private prepareCompoundBlock(block: AstNode): void {
+    if (block.meta?.subType === `quote`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
       this.p = this.p.getBufferedParser(t.EOL, QUAD_UNDERSCORE, t.EOX);
-    } else if (block.blockType == `verse`) {
+    } else if (block.meta?.subType == `verse`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
       this.p = this.p.getBufferedParser(QUAD_UNDERSCORE, t.EOX);
     } else if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {
-      block.blockType = `open`;
+      block.meta.subType = `open`;
       this.p.consumeMany(t.DOUBLE_DASH, t.DOUBLE_EOL);
       this.p = this.p.getBufferedParser(t.DOUBLE_EOL, t.DOUBLE_DASH, t.EOX);
     } else if (this.p.peekTokensAnyOf([EXAMPLE, t.DOUBLE_EOL])) {
-      block.blockType = `example`;
+      block.meta.subType = `example`;
       this.p.consumeMany(EXAMPLE, t.DOUBLE_EOL);
       this.p = this.p.getBufferedParser(t.DOUBLE_EOL, EXAMPLE, t.EOX);
     }
@@ -127,6 +120,16 @@ export default class BlockParser {
       return true;
     }
     return false;
+  }
+
+  private makeBlock(parent: AstNode, context?: Context): AstNode {
+    const block = new Node(n.BLOCK, parent, { context, subType: `paragraph` });
+    if (context?.type === `quote` || context?.type === `epigraph`) {
+      block.meta.subType = `quote`;
+    } else if (context?.type === `verse`) {
+      block.meta.subType = `verse`;
+    }
+    return block;
   }
 }
 

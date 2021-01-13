@@ -1,6 +1,5 @@
-import ChildNode from '../nodes/ChildNode';
+import { Parselet, TOKEN as t } from '../types';
 import Parser from '../Parser';
-import { Parselet, TOKEN as t, NODE as n } from '../types';
 import textParselet from './textParselet';
 
 const leftBracket: Parselet = (parser, parent) => {

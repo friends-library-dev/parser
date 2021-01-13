@@ -1,8 +1,8 @@
-import ChildNode from '../nodes/ChildNode';
+import Node from '../nodes/AstNode';
 import { Parselet, TOKEN as t, NODE as n } from '../types';
 
 const inlinePassThrough: Parselet = (parser, parent) => {
-  const node = new ChildNode(n.INLINE_PASSTHROUGH, parent);
+  const node = new Node(n.INLINE_PASSTHROUGH, parent);
   parser.consume(t.TRIPLE_PLUS);
   const guard = parser.makeWhileGuard(`inlinePassthroughParselet()`);
   while (guard() && !parser.currentOneOf(t.EOL, t.TRIPLE_PLUS)) {

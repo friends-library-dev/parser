@@ -1,14 +1,13 @@
-import { AstChildNode, AstNode, TOKEN as t } from '../types';
+import { AstNode, NODE as n, TOKEN as t } from '../types';
 import Parser from '../Parser';
-import SectionNode from '../nodes/SectionNode';
-import HeadingNode from '../nodes/HeadingNode';
 import BlockParser from './BlockParser';
+import Node from '../nodes/AstNode';
 
 export default class SectionParser {
   public constructor(private p: Parser, public level: number) {}
 
-  public parse(parent: AstNode): SectionNode {
-    const sectionContext = this.p.parseContext();
+  public parse(parent: AstNode): AstNode {
+    const context = this.p.parseContext();
     const equals = this.p.current;
     this.p.consume(t.EQUALS);
     this.p.consume(t.WHITESPACE);
@@ -18,16 +17,16 @@ export default class SectionParser {
       this.p.error(`expected heading level ${this.level}, got ${level}`);
     }
 
-    const section = new SectionNode(parent, level, sectionContext);
-    const heading = new HeadingNode(section, level);
+    const section = new Node(n.SECTION, parent, { level, context });
+    const heading = new Node(n.HEADING, section, { level });
     heading.children = this.p.parseUntil(heading, t.DOUBLE_EOL);
     section.children = [heading, ...this.parseBody(section)];
 
     return section;
   }
 
-  public parseBody(section: SectionNode): AstChildNode[] {
-    const nodes: AstChildNode[] = [];
+  public parseBody(section: AstNode): AstNode[] {
+    const nodes: AstNode[] = [];
     this.p.consume(t.DOUBLE_EOL);
     const guard = this.p.makeWhileGuard(`SectionParser.parseBody()`);
     while (guard() && !this.p.currentOneOf(t.EOF, t.EOD)) {

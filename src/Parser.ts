@@ -1,9 +1,8 @@
 import {
-  AstNode,
   Token,
   TokenType,
   TOKEN as t,
-  AstChildNode,
+  AstNode,
   NodeType,
   TokenSpec,
   TokenTypeMatcher,
@@ -50,16 +49,13 @@ export default class Parser {
     return contextParser.parse();
   }
 
-  public parseUntil(parent: AstChildNode, ...stopTokens: TokenSpec[]): AstChildNode[] {
+  public parseUntil(parent: AstNode, ...stopTokens: TokenSpec[]): AstNode[] {
     return this.parseUntilAnyOf(parent, ...[stopTokens]);
   }
 
-  public parseUntilAnyOf(
-    parent: AstChildNode,
-    ...stopTokensGroups: TokenSpec[][]
-  ): AstChildNode[] {
+  public parseUntilAnyOf(parent: AstNode, ...stopTokensGroups: TokenSpec[][]): AstNode[] {
     this.stopStack = stopTokensGroups.concat(this.stopStack);
-    const nodes: AstChildNode[] = [];
+    const nodes: AstNode[] = [];
     const guard = this.makeWhileGuard(`Parser.parseUntilAnyOf()`);
     while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current);

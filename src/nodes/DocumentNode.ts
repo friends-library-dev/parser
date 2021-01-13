@@ -1,4 +1,4 @@
-import { AstNode, NodeType, NODE as n } from './types';
+import { AstNode, NodeType, NODE as n } from '../types';
 import AbstractAstNode from './AbstractAstNode';
 
 export default class DocumentNode extends AbstractAstNode implements AstNode {

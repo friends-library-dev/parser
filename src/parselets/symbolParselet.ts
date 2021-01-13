@@ -1,9 +1,12 @@
-import SymbolNode from '../nodes/SymbolNode';
-import { Parselet, TOKEN as t, NODE as n } from '../types';
+import Node from '../nodes/AstNode';
+import { Parselet, NODE as n } from '../types';
 
 const symbol: Parselet = (parser, parent) => {
   const current = parser.current;
-  const node = new SymbolNode(parent, current.type as any, current.literal);
+  const node = new Node(n.SYMBOL, parent, {
+    subType: current.type,
+    value: current.literal,
+  });
   parser.consume();
   return node;
 };

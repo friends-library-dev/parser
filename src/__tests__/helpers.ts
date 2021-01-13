@@ -1,13 +1,11 @@
 import stripIndent from 'strip-indent';
-import { Token } from '../types';
+import { Token, AstNode, NODE as n } from '../types';
 import Lexer from '../lexer';
-import ChapterNode from '../nodes/ChapterNode';
+import Node from '../nodes/AstNode';
 import DocumentNode from '../nodes/DocumentNode';
-import ParagraphNode from '../nodes/ParagraphNode';
 import Parser from '../Parser';
-import BlockNode from '../nodes/BlockNode';
 
-export function parseAdocFile(adoc: string): DocumentNode {
+export function parseAdocFile(adoc: string): AstNode {
   const parser = getParser(prepareAdocFile(adoc));
   return parser.parse();
 }
@@ -21,20 +19,20 @@ export function getParser(adoc: string): Parser {
   return new Parser(lexer);
 }
 
-export function getPara(): ParagraphNode {
-  return new ParagraphNode(getChapter());
+export function getPara(): AstNode {
+  return new Node(n.PARAGRAPH, getChapter());
 }
 
-export function getChapter(): ChapterNode {
-  return new ChapterNode(getDoc());
+export function getChapter(): AstNode {
+  return new Node(n.CHAPTER, getDoc());
 }
 
 export function getDoc(): DocumentNode {
   return new DocumentNode();
 }
 
-export function getBlock(): BlockNode {
-  return new BlockNode(getChapter());
+export function getBlock(): AstNode {
+  return new Node(n.BLOCK, getChapter());
 }
 
 export function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {

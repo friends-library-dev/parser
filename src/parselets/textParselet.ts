@@ -1,8 +1,8 @@
-import TextNode from '../nodes/TextNode';
-import { Parselet, TOKEN as t } from '../types';
+import Node from '../nodes/AstNode';
+import { Parselet, TOKEN as t, NODE as n } from '../types';
 
 const textParselet: Parselet = (parser, parent) => {
-  const node = new TextNode(parent, parser.current.literal);
+  const node = new Node(n.TEXT, parent, { value: parser.current.literal });
   if (parser.currentOneOf(t.WHITESPACE, t.EOL)) {
     node.value = ` `;
   }
