@@ -93,6 +93,7 @@ export const NODE = {
   VERSE_STANZA: `VERSE_STANZA`,
   VERSE_LINE: `VERSE_LINE`,
   SYMBOL: `SYMBOL`,
+  INLINE_PASSTHROUGH: `INLINE_PASSTHROUGH`,
 } as const;
 
 export type NodeType = keyof typeof NODE;

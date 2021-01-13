@@ -12,7 +12,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
-  it(`can handle right single curlys`, () => {
+  it(`can handle right single curlies`, () => {
     const parser = getParser(`priest\`'s\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
     expect(nodes).toHaveLength(3);
@@ -20,6 +20,26 @@ describe(`Parser.parseUntil() using parselets`, () => {
       { type: n.TEXT, value: `priest` },
       { type: n.SYMBOL, value: `\`'`, symbolType: t.RIGHT_SINGLE_CURLY },
       { type: n.TEXT, value: `s` },
+    ]);
+  });
+
+  test(`RIGHT_BRACKET in standard context consumed as text`, () => {
+    const parser = getParser(`Hello world]\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({
+      type: n.TEXT,
+      value: `Hello world]`,
+    });
+  });
+
+  it(`can handle triple-plus passthrough`, () => {
+    const parser = getParser(`+++[+++mark\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      { type: n.INLINE_PASSTHROUGH, value: `[` },
+      { type: n.TEXT, value: `mark` },
     ]);
   });
 

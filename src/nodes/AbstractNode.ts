@@ -6,6 +6,7 @@ import {
 } from '../types';
 
 export default abstract class AbstractNode implements AstNodeInterface {
+  public value = ``;
   public children: AstChildNode[] = [];
   public position: AstPosition = {
     start: {
@@ -25,6 +26,7 @@ export default abstract class AbstractNode implements AstNodeInterface {
   public toJSON(): Record<string, any> {
     return {
       type: this.type,
+      value: this.value,
       children: this.children.map((child) => child.toJSON()),
     };
   }
