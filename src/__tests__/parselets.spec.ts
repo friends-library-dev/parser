@@ -33,6 +33,16 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  test(`unambiguous content brackets consumed as text`, () => {
+    const parser = getParser(`[Hello] world\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({
+      type: n.TEXT,
+      value: `[Hello] world`,
+    });
+  });
+
   it(`can handle triple-plus passthrough`, () => {
     const parser = getParser(`+++[+++mark\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

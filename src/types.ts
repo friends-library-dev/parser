@@ -100,6 +100,7 @@ export type NodeType = keyof typeof NODE;
 
 export interface AstNode {
   type: NodeType;
+  value: string;
   children: AstChildNode[];
   position: AstPosition;
   toJSON: () => Record<string, any>;

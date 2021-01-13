@@ -28,7 +28,7 @@ const textParselet: Parselet = (parser, parent) => {
         break;
       case t.EOL:
         // final paragraph in blockquote should not have a trailing space
-        if (!parser.currentIs([t.UNDERSCORE, `____`])) {
+        if (!parser.tokenIs(token, [t.UNDERSCORE, `____`])) {
           node.value += ` `;
         }
         break;
