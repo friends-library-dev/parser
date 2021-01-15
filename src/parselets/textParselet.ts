@@ -3,6 +3,10 @@ import Parser from '../Parser';
 import { Parselet, TOKEN as t, NODE as n, Token } from '../types';
 
 const textParselet: Parselet = (parser, parent) => {
+  if (parser.currentIs(t.DOT) && parser.current.column.start === 1) {
+    parser.error(`line starting with dot not implemented`);
+  }
+
   const node = new Node(n.TEXT, parent, { value: parser.current.literal });
   if (parser.currentOneOf(t.WHITESPACE, t.EOL)) {
     node.value = ` `;

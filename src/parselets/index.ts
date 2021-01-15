@@ -12,6 +12,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.COMMA:
     case t.TEXT:
     case t.EOL:
+    case t.DOT:
     case t.WHITESPACE:
       return textParselet;
     case t.DOUBLE_ASTERISK:
@@ -24,6 +25,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.RIGHT_SINGLE_CURLY:
     case t.LEFT_DOUBLE_CURLY:
     case t.RIGHT_DOUBLE_CURLY:
+    case t.DEGREE_SYMBOL:
       return symbolParselet;
     case t.LEFT_BRACKET:
       return leftBracketParselet;

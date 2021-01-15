@@ -36,6 +36,36 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle degree symbol`, () => {
+    const parser = getParser(`62° above zero\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `62` },
+      { type: n.SYMBOL, value: `°`, meta: { subType: t.DEGREE_SYMBOL } },
+      { type: n.TEXT, value: ` above zero` },
+    ]);
+  });
+
+  it(`can handle dot after symbol`, () => {
+    const parser = getParser(`Dined at Josiah Evans\`'. After\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Dined at Josiah Evans` },
+      { type: n.SYMBOL, value: `\`'`, meta: { subType: t.RIGHT_SINGLE_CURLY } },
+      { type: n.TEXT, value: `. After` },
+    ]);
+  });
+
+  test(`line starting with dot not implmented, thus error`, () => {
+    expect(() => getParser(`.Hello`).parseUntil(getPara(), t.EOL)).toThrow(
+      /not implemented/,
+    );
+  });
+
   it(`can handle sameline footnotes`, () => {
     const parser = getParser(`Hello worldfootnote:[Hello]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
