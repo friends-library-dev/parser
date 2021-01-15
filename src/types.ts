@@ -100,6 +100,7 @@ export const NODE = {
   INLINE: `INLINE`,
   FOOTNOTE: `FOOTNOTE`,
   REDACTED: `REDACTED`,
+  OLD_STYLE_LINE: `OLD_STYLE_LINE`,
 } as const;
 
 export type NodeType = keyof typeof NODE;

@@ -17,10 +17,10 @@ import ChapterParser from './parsers/ChapterParser';
 import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
+import HeadingParser from './parsers/HeadingParser';
 
 // new line numbers?
 // compile time
-// footnotes
 // chapter headings
 // tables :(
 
@@ -53,17 +53,8 @@ export default class Parser {
   }
 
   public parseHeading(parent: AstNode): AstNode {
-    const headingContext = this.parseContext();
-    const heading = new Node(n.HEADING, parent, {
-      level: this.current.literal.length,
-      context: headingContext,
-      startToken: this.current,
-    });
-    this.consumeMany(t.EQUALS, t.WHITESPACE);
-    heading.children = this.parseUntil(heading, t.EOX);
-    heading.endToken = this.lastSignificantToken();
-    this.consume(t.EOX);
-    return heading;
+    const headingParser = new HeadingParser(this);
+    return headingParser.parse(parent);
   }
 
   public parseUntil(parent: AstNode, ...stopTokens: TokenSpec[]): AstNode[] {
@@ -328,7 +319,7 @@ export default class Parser {
   }
 
   public makeWhileGuard(identifier: string, max?: number): () => boolean {
-    let maxIterations = this.isJestTest() ? 200 : 5000;
+    let maxIterations = this.isJestTest() ? 200 : 25000;
     if (typeof max === `number`) {
       maxIterations = max;
     }
