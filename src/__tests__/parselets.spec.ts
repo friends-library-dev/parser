@@ -12,6 +12,65 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  it(`can handle sameline footnotes`, () => {
+    const parser = getParser(`Hello worldfootnote:[Hello]\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello world`,
+      },
+      {
+        type: n.FOOTNOTE,
+        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
+      },
+    ]);
+  });
+
+  it(`can handle caret-started footnotes`, () => {
+    const parser = getParser(`Hello world.^\nfootnote:[Hello]\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello world.`,
+      },
+      {
+        type: n.FOOTNOTE,
+        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
+      },
+    ]);
+  });
+
+  it(`can handle multi-paragraph footnotes`, () => {
+    const parser = getParser(
+      `Hello world.^\nfootnote:[Hello.\n{footnote-paragraph-split}\nGoodbye.]\n\n`,
+    );
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello world.`,
+      },
+      {
+        type: n.FOOTNOTE,
+        children: [
+          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello.` }] },
+          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Goodbye.` }] },
+        ],
+      },
+    ]);
+  });
+
+  test(`empty footnote is illegal`, () => {
+    expect(() =>
+      getParser(`Hello world.footnote:[]\n`).parseUntil(getPara(), t.EOL),
+    ).toThrow(/empty footnote/);
+  });
+
   it(`can handle right single curlies`, () => {
     const parser = getParser(`priest\`'s\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

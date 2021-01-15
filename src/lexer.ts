@@ -186,6 +186,14 @@ export default class Lexer implements LexerInterface {
         }
         if (tok.literal === 'footnote:') {
           tok.type = t.FOOTNOTE_PREFIX;
+        } else if (
+          // first test just for perf
+          tok.literal[tok.literal.length - 1] === `:` &&
+          tok.literal.match(/footnote:$/)
+        ) {
+          tok.literal = tok.literal.replace(/footnote:$/, ``);
+          tok.column.end -= `footnote:`.length;
+          line.charIdx -= `footnote:`.length;
         }
         return tok;
     }

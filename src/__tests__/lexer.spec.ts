@@ -202,6 +202,18 @@ describe(`lexer`, () => {
     ]);
   });
 
+  test('non-separate footnote prefix', () => {
+    expect(simpleTokens(`hello worldfootnote:[foo]`)).toMatchObject([
+      { type: t.TEXT, literal: `hello` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `world` },
+      { type: t.FOOTNOTE_PREFIX, literal: `footnote:` },
+      { type: t.LEFT_BRACKET, literal: `[` },
+      { type: t.TEXT, literal: `foo` },
+      { type: t.RIGHT_BRACKET, literal: `]` },
+    ]);
+  });
+
   test('footnote prefix', () => {
     expect(simpleTokens(`footnote:[foo]`)).toMatchObject([
       { type: t.FOOTNOTE_PREFIX, literal: `footnote:` },

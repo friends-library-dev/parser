@@ -5,6 +5,7 @@ import strongParselet from './strongParselet';
 import symbolParselet from './symbolParselet';
 import leftBracketParselet from './leftBracketParselet';
 import inlinePassthroughParselet from './inlinePassthroughParselet';
+import footnoteParselet from './footnoteParselet';
 
 export default function getParselet(token: Token): Parselet | null {
   switch (token.type) {
@@ -14,6 +15,9 @@ export default function getParselet(token: Token): Parselet | null {
       return textParselet;
     case t.DOUBLE_ASTERISK:
       return strongParselet;
+    case t.CARET:
+    case t.FOOTNOTE_PREFIX:
+      return footnoteParselet;
     case t.DOUBLE_DASH:
     case t.LEFT_SINGLE_CURLY:
     case t.RIGHT_SINGLE_CURLY:

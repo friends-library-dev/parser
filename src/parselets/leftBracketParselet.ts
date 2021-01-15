@@ -18,28 +18,21 @@ const leftBracket: Parselet = (parser, parent) => {
     inline.endToken = parser.consumeClose(t.HASH, n.INLINE, leftBracket);
     return inline;
   }
-  if (isConsumableAsText(parser)) {
+
+  // if it's not a book title or a context line, we can safely treat like plain text
+  if (!isContextLine(parser)) {
     const leftBracket = parser.consume(t.LEFT_BRACKET);
     const textNode = textParselet(parser, parent);
     textNode.startToken = leftBracket;
     textNode.value = `[${textNode.value}`;
     return textNode;
   }
-  parser.error(`non-text-consumable [ not implemented`);
-  throw new Error(`lol`);
+
+  parser.error(`unexpected left bracket`);
+  throw new Error(`unexpected left bracket`);
 };
 
 export default leftBracket;
-
-function isConsumableAsText(parser: Parser): boolean {
-  if (isContextLine(parser)) {
-    return false;
-  }
-  if (isBookTitle(parser)) {
-    return false;
-  }
-  return true;
-}
 
 function isBookTitle(parser: Parser): boolean {
   return parser.peekTokens(

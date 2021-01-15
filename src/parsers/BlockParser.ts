@@ -122,18 +122,27 @@ export default class BlockParser {
   private prepareCompoundBlock(block: AstNode): void {
     if (block.meta?.subType === `quote`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
-      this.p = this.p.getBufferedParser(t.EOL, QUAD_UNDERSCORE, t.EOX);
+      this.p = this.p.getBufferedParser(
+        (p) => p.peekTokens(t.EOL, QUAD_UNDERSCORE, t.EOX),
+        3,
+      );
     } else if (block.meta?.subType == `verse`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
-      this.p = this.p.getBufferedParser(QUAD_UNDERSCORE, t.EOX);
+      this.p = this.p.getBufferedParser((p) => p.peekTokens(QUAD_UNDERSCORE, t.EOX), 2);
     } else if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {
       block.meta.subType = `open`;
       this.p.consumeMany(t.DOUBLE_DASH, t.DOUBLE_EOL);
-      this.p = this.p.getBufferedParser(t.DOUBLE_EOL, t.DOUBLE_DASH, t.EOX);
+      this.p = this.p.getBufferedParser(
+        (p) => p.peekTokens(t.DOUBLE_EOL, t.DOUBLE_DASH, t.EOX),
+        3,
+      );
     } else if (this.p.peekTokensAnyOf([EXAMPLE, t.DOUBLE_EOL])) {
       block.meta.subType = `example`;
       this.p.consumeMany(EXAMPLE, t.DOUBLE_EOL);
-      this.p = this.p.getBufferedParser(t.DOUBLE_EOL, EXAMPLE, t.EOX);
+      this.p = this.p.getBufferedParser(
+        (p) => p.peekTokens(t.DOUBLE_EOL, EXAMPLE, t.EOX),
+        3,
+      );
     }
   }
 

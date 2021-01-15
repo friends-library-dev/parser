@@ -156,17 +156,23 @@ export default class Parser {
     this.error(`error finding first token after optional context`);
   }
 
-  public getBufferedParser(...stopTokens: TokenSpec[]): Parser {
+  public getBufferedParser(
+    shouldStop: (parser: Parser) => boolean,
+    numConsumeAfter: number,
+  ): Parser {
     const tokens: Token[] = [];
     const guard = this.makeWhileGuard(`Parser.getBufferedParser()`);
-    while (guard() && !this.peekTokens(...stopTokens)) {
+    while (guard() && !shouldStop(this)) {
       const token = this.consume();
       tokens.push(token);
-      if (token.type === t.EOD && !this.peekTokens(...stopTokens)) {
+      if (token.type === t.EOD && !shouldStop(this)) {
         this.error(`failed to find ending tokens for buffered parser`);
       }
     }
-    this.consumeMany(...stopTokens);
+
+    for (let i = 0; i < numConsumeAfter; i++) {
+      this.consume();
+    }
 
     // ensure we end with EOL, like real files do, so consumers can be ignorant
     // that they are dealing with a buffered lexer instead of a real one
@@ -255,6 +261,12 @@ export default class Parser {
 
   public consumeMany(...specs: TokenSpec[]): Token[] {
     return specs.map((spec) => this.consume(spec));
+  }
+
+  public consumeIf(spec: TokenSpec): Token | undefined {
+    if (this.currentIs(spec)) {
+      return this.consume();
+    }
   }
 
   public lookAhead(distance: number): Token {

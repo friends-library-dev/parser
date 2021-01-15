@@ -1,5 +1,6 @@
 import Node from '../nodes/AstNode';
-import { Parselet, TOKEN as t, NODE as n } from '../types';
+import Parser from '../Parser';
+import { Parselet, TOKEN as t, NODE as n, Token } from '../types';
 
 const textParselet: Parselet = (parser, parent) => {
   const node = new Node(n.TEXT, parent, { value: parser.current.literal });
@@ -29,8 +30,7 @@ const textParselet: Parselet = (parser, parent) => {
         node.value += ` `;
         break;
       case t.EOL:
-        // final paragraph in blockquote should not have a trailing space
-        if (!parser.tokenIs(token, [t.UNDERSCORE, `____`])) {
+        if (shouldConvertEolToSpace(parser, token)) {
           node.value += ` `;
         }
         break;
@@ -43,3 +43,16 @@ const textParselet: Parselet = (parser, parent) => {
 };
 
 export default textParselet;
+
+function shouldConvertEolToSpace(parser: Parser, token: Token): boolean {
+  // final paragraph in blockquote should not have a trailing space
+  if (parser.tokenIs(token, [t.UNDERSCORE, `____`])) {
+    return false;
+  }
+
+  if (parser.currentIs(t.FOOTNOTE_PARAGRAPH_SPLIT)) {
+    return false;
+  }
+
+  return true;
+}

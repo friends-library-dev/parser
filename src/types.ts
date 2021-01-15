@@ -98,6 +98,7 @@ export const NODE = {
   UNORDERED_LIST: `UNORDERED_LIST`,
   LIST_ITEM: `LIST_ITEM`,
   INLINE: `INLINE`,
+  FOOTNOTE: `FOOTNOTE`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
