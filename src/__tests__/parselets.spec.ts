@@ -102,6 +102,67 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle footnotes not ending at EOL`, () => {
+    const parser = getParser(`Hello world^\nfootnote:[Hello]? For\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      {
+        type: n.FOOTNOTE,
+        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
+      },
+      { type: n.TEXT, value: `? For` },
+    ]);
+  });
+
+  it(`can handle footnotes with book title`, () => {
+    const parser = getParser(`Hello world^\nfootnote:[[.book-title]#Apology# Hello]\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      {
+        type: n.FOOTNOTE,
+        children: [
+          {
+            type: n.PARAGRAPH,
+            children: [
+              {
+                type: n.INLINE,
+                context: { classList: [`book-title`] },
+                children: [{ type: n.TEXT, value: `Apology` }],
+              },
+              { type: n.TEXT, value: ` Hello` },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it(`can handle footnotes with escaped right brackets`, () => {
+    const parser = getParser(`Hello world^\nfootnote:[[Hello+++]+++]? For\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      {
+        type: n.FOOTNOTE,
+        children: [
+          {
+            type: n.PARAGRAPH,
+            children: [
+              { type: n.TEXT, value: `[Hello` },
+              { type: n.INLINE_PASSTHROUGH, value: `]` },
+            ],
+          },
+        ],
+      },
+      { type: n.TEXT, value: `? For` },
+    ]);
+  });
+
   it(`can handle caret-started footnotes`, () => {
     const parser = getParser(`Hello world.^\nfootnote:[Hello]\n\n`);
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);

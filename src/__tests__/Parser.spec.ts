@@ -506,4 +506,64 @@ describe(`Parser.parse()`, () => {
       ],
     });
   });
+
+  test(`numbered-groups not nested`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      Hello world
+
+      [.numbered-group]
+      ====
+
+      [.numbered]
+      First
+
+      [.numbered]
+      Second
+
+      ====
+    `);
+
+    assertAllNodesHaveTokens(document);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: `Hello world` }],
+                },
+              ],
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  context: { classList: [`numbered`] },
+                  children: [{ type: n.TEXT, value: `First` }],
+                },
+                {
+                  type: n.PARAGRAPH,
+                  context: { classList: [`numbered`] },
+                  children: [{ type: n.TEXT, value: `Second` }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

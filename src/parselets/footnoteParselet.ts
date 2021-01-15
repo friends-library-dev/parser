@@ -12,7 +12,27 @@ const footnoteParselet: Parselet = (parser, parent) => {
     parser.error(`unexpected empty footnote`);
   }
 
-  const bufp = parser.getBufferedParser((p) => p.peekTokens(t.RIGHT_BRACKET, t.EOX), 1);
+  const bufp = parser.getBufferedParser((p) => {
+    if (p.currentIs(t.DOUBLE_EOL)) {
+      return true;
+    }
+
+    if (!p.currentIs(t.RIGHT_BRACKET)) {
+      return false;
+    }
+
+    // escaped bracket +++]+++ is not a footnote end
+    if (p.peekIs(t.TRIPLE_PLUS)) {
+      return false;
+    }
+
+    // [.book-title]#Apology# within footnote is not end
+    if (p.lookBehind(-1)?.literal === `book-title`) {
+      return false;
+    }
+
+    return true;
+  }, 1);
 
   const stops: TokenSpec[][] = [[t.FOOTNOTE_PARAGRAPH_SPLIT], [t.EOL, t.EOF]];
   const guard = bufp.makeWhileGuard(`footnoteParselet()`);
@@ -27,6 +47,10 @@ const footnoteParselet: Parselet = (parser, parent) => {
   }
 
   footnote.endToken = parser.expectLookBehind(-1); // right bracket `]`
+  if (!parser.tokenIs(footnote.endToken, t.RIGHT_BRACKET)) {
+    parser.error(`unexpected footnote ending token`);
+  }
+
   return footnote;
 };
 

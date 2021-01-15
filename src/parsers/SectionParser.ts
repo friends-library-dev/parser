@@ -30,10 +30,10 @@ export default class SectionParser {
     const guard = this.p.makeWhileGuard(`SectionParser.parseBody()`);
     while (guard() && !this.p.currentOneOf(t.EOF, t.EOD)) {
       this.p.assertLineStart();
-      const [afterContext] = this.p.firstTokensAfterOptionalContext();
+      const [after1, after2] = this.p.firstTokensAfterOptionalContext();
 
-      if (afterContext.type === t.EQUALS) {
-        if (afterContext.literal.length === this.level) {
+      if (after1.type === t.EQUALS && after2.type === t.WHITESPACE) {
+        if (after1.literal.length === this.level) {
           // got to another heading of the same level
           // close this one up so the next can start
           return nodes;
