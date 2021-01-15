@@ -42,6 +42,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
         children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
       },
     ]);
+    expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
   });
 
   it(`can handle multi-paragraph footnotes`, () => {
@@ -49,6 +50,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
       `Hello world.^\nfootnote:[Hello.\n{footnote-paragraph-split}\nGoodbye.]\n\n`,
     );
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
       {

@@ -21,7 +21,7 @@ export default class SectionParser {
 
     const heading = this.p.parseHeading(section);
     section.children = [heading, ...this.parseBody(section)];
-    section.endToken = this.p.lastNonEOX();
+    section.endToken = this.p.lastSignificantToken();
     return section;
   }
 

@@ -13,7 +13,7 @@ export default class PoetryParser {
       stanza.children = this.parseLines(stanza);
       parent.children.push(stanza);
       stanzas.push(stanza);
-      stanza.endToken = this.p.lastNonEOX();
+      stanza.endToken = this.p.lastSignificantToken();
       if (this.p.currentIs(t.DOUBLE_EOL)) {
         this.p.consume(t.DOUBLE_EOL);
       }
@@ -31,7 +31,7 @@ export default class PoetryParser {
       const line = new Node(n.VERSE_LINE, stanza, { startToken: this.p.current });
       line.children = this.parseLine(line);
       lines.push(line);
-      line.endToken = this.p.lastNonEOX();
+      line.endToken = this.p.lastSignificantToken();
     }
     return lines;
   }
@@ -44,7 +44,7 @@ export default class PoetryParser {
       textNode.value += this.p.current.literal;
       this.p.consume();
     }
-    textNode.endToken = this.p.lastNonEOX();
+    textNode.endToken = this.p.lastSignificantToken();
     if (this.p.currentIs(t.EOL)) {
       this.p.consume(t.EOL);
     }

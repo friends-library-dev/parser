@@ -217,6 +217,7 @@ describe(`BlockParser.parse()`, () => {
       type: n.THEMATIC_BREAK,
       context: { classList: [`asterism`] },
     });
+    assertAllNodesHaveTokens(asterism);
   });
 
   it(`can parse an with something after it`, () => {

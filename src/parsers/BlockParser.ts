@@ -26,7 +26,7 @@ export default class BlockParser {
     if (block.meta?.subType === `paragraph`) {
       this.parseChild(block);
       this.consumeTrailingWhitespace();
-      block.endToken = this.p.lastNonEOX();
+      block.endToken = this.p.lastSignificantToken();
       return block;
     }
 
@@ -47,7 +47,7 @@ export default class BlockParser {
       }
     }
 
-    block.endToken = this.p.lastNonEOX();
+    block.endToken = this.p.lastSignificantToken();
     return block;
   }
 
@@ -66,13 +66,13 @@ export default class BlockParser {
       item.startToken = this.p.current;
       this.p.consumeMany(t.ASTERISK, t.WHITESPACE);
       item.children = this.p.parseUntil(item, t.EOX);
-      item.endToken = this.p.lastNonEOX();
+      item.endToken = this.p.lastSignificantToken();
       list.children.push(item);
       if (this.p.currentIs(t.EOL)) {
         this.p.consume();
       }
     }
-    list.endToken = this.p.lastNonEOX();
+    list.endToken = this.p.lastSignificantToken();
     this.p.consume(t.EOX);
     return list;
   }
@@ -93,7 +93,10 @@ export default class BlockParser {
       } else {
         this.p.consumeMany(t.EOL, t.EOX);
       }
-      return new Node(n.THEMATIC_BREAK, parent, { context });
+      return new Node(n.THEMATIC_BREAK, parent, {
+        context,
+        endToken: this.p.lastSignificantToken(),
+      });
     }
     return undefined;
   }
@@ -108,7 +111,7 @@ export default class BlockParser {
     const para = new Node(n.PARAGRAPH, block, { context, startToken: this.p.current });
     block.children.push(para);
     para.children = this.p.parseUntilAnyOf(para, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
-    para.endToken = this.p.lastNonEOX();
+    para.endToken = this.p.lastSignificantToken();
   }
 
   private consumeTrailingWhitespace(): void {

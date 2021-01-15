@@ -17,7 +17,7 @@ export default class ChapterParser {
 
     const heading = this.p.parseHeading(chapter);
     chapter.children = [heading, ...new SectionParser(this.p, 2).parseBody(chapter)];
-    chapter.endToken = this.p.lastNonEOX();
+    chapter.endToken = this.p.lastSignificantToken();
 
     if (this.p.peekTokens(t.EOL, t.EOF)) {
       // no more blocks in chapter, consume trailing newline

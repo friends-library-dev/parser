@@ -61,7 +61,7 @@ export default class Parser {
     });
     this.consumeMany(t.EQUALS, t.WHITESPACE);
     heading.children = this.parseUntil(heading, t.EOX);
-    heading.endToken = this.lastNonEOX();
+    heading.endToken = this.lastSignificantToken();
     this.consume(t.EOX);
     return heading;
   }
@@ -304,11 +304,14 @@ export default class Parser {
     return token;
   }
 
-  public lastNonEOX(): Token {
+  public lastSignificantToken(): Token {
     let index = -1;
     let token = this.current;
-    const guard = this.makeWhileGuard(`Parser.lastNonEOX()`);
-    while (guard() && this.tokenIs(token, t.EOX)) {
+    const guard = this.makeWhileGuard(`Parser.lastSignificantToken()`);
+    while (
+      guard() &&
+      (this.tokenIs(token, t.EOX) || this.tokenIs(token, t.FOOTNOTE_PARAGRAPH_SPLIT))
+    ) {
       token = this.expectLookBehind(index--);
     }
     return token;
