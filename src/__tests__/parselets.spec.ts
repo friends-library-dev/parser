@@ -48,6 +48,18 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle pound symbol`, () => {
+    const parser = getParser(`fined £40\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `fined ` },
+      { type: n.SYMBOL, value: `£`, meta: { subType: t.POUND_SYMBOL } },
+      { type: n.TEXT, value: `40` },
+    ]);
+  });
+
   it(`can handle degree symbol`, () => {
     const parser = getParser(`62° above zero\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

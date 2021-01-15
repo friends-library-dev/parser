@@ -29,6 +29,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.LEFT_DOUBLE_CURLY:
     case t.RIGHT_DOUBLE_CURLY:
     case t.DEGREE_SYMBOL:
+    case t.POUND_SYMBOL:
       return symbolParselet;
     case t.LEFT_BRACKET:
       return leftBracketParselet;
