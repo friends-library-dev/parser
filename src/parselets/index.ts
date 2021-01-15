@@ -15,6 +15,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.DOT:
     case t.WHITESPACE:
     case t.LEFT_PARENS:
+    case t.RIGHT_BRACKET:
     case t.RIGHT_PARENS:
       return textParselet;
     case t.DOUBLE_ASTERISK:

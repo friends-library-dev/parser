@@ -24,6 +24,18 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle right bracket after symbol`, () => {
+    const parser = getParser(`Hello world\`"]\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      { type: n.SYMBOL, value: `\`"`, meta: { subType: t.RIGHT_DOUBLE_CURLY } },
+      { type: n.TEXT, value: `]` },
+    ]);
+  });
+
   it(`can handle comma after symbol`, () => {
     const parser = getParser(`David Binns\`', at Harrisville\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
