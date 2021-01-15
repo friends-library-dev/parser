@@ -48,6 +48,26 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle line starting with parens`, () => {
+    const parser = getParser(`(hello)\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `(hello)` });
+  });
+
+  it(`can handle parens after emphasis`, () => {
+    const parser = getParser(`Hello (there _world_)\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello (there ` },
+      { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `world` }] },
+      { type: n.TEXT, value: `)` },
+    ]);
+  });
+
   it(`can handle dot after symbol`, () => {
     const parser = getParser(`Dined at Josiah Evans\`'. After\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
