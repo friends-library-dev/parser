@@ -28,8 +28,7 @@ const leftBracket: Parselet = (parser, parent) => {
     return textNode;
   }
 
-  parser.error(`unexpected left bracket`);
-  throw new Error(`unexpected left bracket`);
+  throw parser.error(`unexpected left bracket`);
 };
 
 export default leftBracket;

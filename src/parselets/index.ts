@@ -1,6 +1,6 @@
 import { Parselet, Token, TOKEN as t } from '../types';
 import textParselet from './textParselet';
-import emphasisParselet from './emphasisParselet';
+import underscoreParselet from './underscoreParselet';
 import strongParselet from './strongParselet';
 import symbolParselet from './symbolParselet';
 import leftBracketParselet from './leftBracketParselet';
@@ -9,6 +9,7 @@ import footnoteParselet from './footnoteParselet';
 
 export default function getParselet(token: Token): Parselet | null {
   switch (token.type) {
+    case t.COMMA:
     case t.TEXT:
     case t.EOL:
     case t.WHITESPACE:
@@ -29,9 +30,7 @@ export default function getParselet(token: Token): Parselet | null {
     case t.TRIPLE_PLUS:
       return inlinePassthroughParselet;
     case t.UNDERSCORE:
-      if (token.literal === `_`) {
-        return emphasisParselet;
-      }
+      return underscoreParselet;
   }
   return null;
 }

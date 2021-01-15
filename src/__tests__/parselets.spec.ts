@@ -12,6 +12,30 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  it(`can handle redacted words`, () => {
+    const parser = getParser(`Hello _______ world\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello ` },
+      { type: n.REDACTED, value: `_______` },
+      { type: n.TEXT, value: ` world` },
+    ]);
+  });
+
+  it(`can handle comma after symbol`, () => {
+    const parser = getParser(`David Binns\`', at Harrisville\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `David Binns` },
+      { type: n.SYMBOL, value: `\`'`, meta: { subType: t.RIGHT_SINGLE_CURLY } },
+      { type: n.TEXT, value: `, at Harrisville` },
+    ]);
+  });
+
   it(`can handle sameline footnotes`, () => {
     const parser = getParser(`Hello worldfootnote:[Hello]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

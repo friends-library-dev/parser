@@ -99,6 +99,7 @@ export const NODE = {
   LIST_ITEM: `LIST_ITEM`,
   INLINE: `INLINE`,
   FOOTNOTE: `FOOTNOTE`,
+  REDACTED: `REDACTED`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
