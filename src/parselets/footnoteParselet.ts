@@ -3,9 +3,15 @@ import { Parselet, TOKEN as t, NODE as n, TokenSpec } from '../types';
 
 const footnoteParselet: Parselet = (parser, parent) => {
   const footnote = new Node(n.FOOTNOTE, parent, { startToken: parser.current });
+
   if (parser.currentIs(t.CARET)) {
     parser.consumeMany(t.CARET, t.EOL);
   }
+
+  if (parser.currentIs(t.COMMENT)) {
+    parser.consumeMany(t.COMMENT, t.EOL);
+  }
+
   parser.consumeMany(t.FOOTNOTE_PREFIX, t.LEFT_BRACKET);
 
   if (parser.currentIs(t.RIGHT_BRACKET)) {

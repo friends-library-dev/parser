@@ -180,6 +180,23 @@ describe(`Parser.parseUntil() using parselets`, () => {
     expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
   });
 
+  it(`can handle caret-started footnotes with interposing comment`, () => {
+    const parser = getParser(`Hello world.^\n// lint-disable\nfootnote:[Hello]\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello world.`,
+      },
+      {
+        type: n.FOOTNOTE,
+        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
+      },
+    ]);
+    expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
+  });
+
   it(`can handle multi-paragraph footnotes`, () => {
     const parser = getParser(
       `Hello world.^\nfootnote:[Hello.\n{footnote-paragraph-split}\nGoodbye.]\n\n`,

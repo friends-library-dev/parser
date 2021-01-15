@@ -232,7 +232,7 @@ export default class Parser {
   public consume(spec?: TokenSpec): Token {
     const token = this.lookAhead(0);
     if (spec && !this.tokenIs(token, spec)) {
-      this.error(`unexpected token ${this.logToken(token, ``)}`);
+      this.error(`unexpected token ${this.logToken(token, ``)}\nexpected ${spec}`);
     }
     this.shiftToken();
     return token;
