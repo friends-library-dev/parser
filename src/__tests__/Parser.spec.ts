@@ -43,6 +43,41 @@ describe(`Parser.parse()`, () => {
     });
   });
 
+  it(`can parse a chapter with heading starting with a symbol`, () => {
+    const document = parseAdocFile(`
+      == '\`Tis a Chapter Title
+      
+      Hello world
+    `);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              children: [
+                { type: n.SYMBOL, value: `'\``, meta: { subType: 'LEFT_SINGLE_CURLY' } },
+                { type: n.TEXT, value: 'Tis a Chapter Title' },
+              ],
+              meta: { level: 2 },
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse a comment line`, () => {
     const document = parseAdocFile(`
       == Chapter 1
