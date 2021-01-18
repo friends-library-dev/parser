@@ -202,6 +202,14 @@ describe(`lexer`, () => {
     ]);
   });
 
+  test(`comment lines are skipped like they didn't exist`, () => {
+    expect(simpleTokens(`foo\n// lint-disable\nbar`)).toMatchObject([
+      { type: t.TEXT, literal: `foo` },
+      { type: t.EOL, literal: `\n` },
+      { type: t.TEXT, literal: `bar` },
+    ]);
+  });
+
   test('non-separate footnote prefix', () => {
     expect(simpleTokens(`hello worldfootnote:[foo]`)).toMatchObject([
       { type: t.TEXT, literal: `hello` },
@@ -372,14 +380,6 @@ describe(`lexer`, () => {
       { type: t.HASH, literal: `#` },
       { type: t.TEXT, literal: `Apology` },
       { type: t.HASH, literal: `#` },
-    ]);
-  });
-
-  test(`comment line`, () => {
-    expect(simpleTokens(`// foo bar\nfoo`)).toMatchObject([
-      { type: t.COMMENT, literal: `// foo bar` },
-      { type: t.EOL, literal: `\n` },
-      { type: t.TEXT, literal: `foo` },
     ]);
   });
 

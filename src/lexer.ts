@@ -104,8 +104,8 @@ export default class Lexer implements LexerInterface {
         }
       case '/':
         if (line.charIdx === 0 && this.peekChar() === '/') {
-          tok = this.makeToken(t.COMMENT, line);
-          return this.setLiteral(tok, line.content.replace(`\n`, ``), line);
+          line.charIdx += line.content.length;
+          return this.nextToken();
         }
         return this.makeToken(t.FORWARD_SLASH, line);
       case '+':

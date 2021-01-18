@@ -33,8 +33,12 @@ export default class SectionParser {
       const [after1, after2] = this.p.firstTokensAfterOptionalContext();
 
       if (after1.type === t.EQUALS && after2.type === t.WHITESPACE) {
-        if (after1.literal.length === this.level) {
-          // got to another heading of the same level
+        const sectionLevel = after1.literal.length;
+        if (Math.abs(this.level - sectionLevel) > 1) {
+          this.p.error(`unexpected heading level`);
+        }
+        if (sectionLevel <= this.level) {
+          // got to another heading of the same level (or one less)
           // close this one up so the next can start
           return nodes;
         }

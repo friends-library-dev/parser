@@ -8,10 +8,6 @@ const footnoteParselet: Parselet = (parser, parent) => {
     parser.consumeMany(t.CARET, t.EOL);
   }
 
-  if (parser.currentIs(t.COMMENT)) {
-    parser.consumeMany(t.COMMENT, t.EOL);
-  }
-
   parser.consumeMany(t.FOOTNOTE_PREFIX, t.LEFT_BRACKET);
 
   if (parser.currentIs(t.RIGHT_BRACKET)) {

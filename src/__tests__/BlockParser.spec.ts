@@ -19,6 +19,23 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`skips over comment lines`, () => {
+    const block = getParsedBlock(`
+      Hello world
+      // lint-disable
+      goodbye world
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [{ type: n.TEXT, value: 'Hello world goodbye world' }],
+        },
+      ],
+    });
+  });
+
   it(`can parse a paragraph with context`, () => {
     const block = getParsedBlock(`
       [quote, ,]

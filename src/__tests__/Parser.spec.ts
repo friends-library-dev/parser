@@ -43,6 +43,39 @@ describe(`Parser.parse()`, () => {
     });
   });
 
+  it(`can parse a comment line`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+      
+      // here is a comment
+      Hello world
+    `);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              children: [{ type: n.TEXT, value: 'Chapter 1' }],
+              meta: { level: 2 },
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`attaches start and end tokens to nodes`, () => {
     const document = parseAdocFile(`
       == Chapter 1
@@ -227,6 +260,77 @@ describe(`Parser.parse()`, () => {
                   type: n.HEADING,
                   children: [{ type: n.TEXT, value: `Subsection` }],
                   meta: { level: 3 },
+                },
+                {
+                  type: n.BLOCK,
+                  children: [
+                    {
+                      type: n.PARAGRAPH,
+                      children: [{ type: n.TEXT, value: `Hello world` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse a sections decreasing by one`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+      
+      === Level 3
+
+      ==== Level 4
+
+      === Back to level 3
+
+      Hello world
+    `);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.SECTION,
+              meta: { level: 3 },
+              children: [
+                {
+                  type: n.HEADING,
+                  children: [{ type: n.TEXT, value: `Level 3` }],
+                  meta: { level: 3 },
+                },
+                {
+                  type: n.SECTION,
+                  meta: { level: 4 },
+                  children: [
+                    {
+                      type: n.HEADING,
+                      meta: { level: 4 },
+                      children: [{ type: n.TEXT, value: `Level 4` }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: n.SECTION,
+              meta: { level: 3 },
+              children: [
+                {
+                  type: n.HEADING,
+                  meta: { level: 3 },
+                  children: [{ type: n.TEXT, value: `Back to level 3` }],
                 },
                 {
                   type: n.BLOCK,
