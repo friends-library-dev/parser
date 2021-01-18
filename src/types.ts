@@ -100,9 +100,16 @@ export const NODE = {
   FOOTNOTE: `FOOTNOTE`,
   REDACTED: `REDACTED`,
   OLD_STYLE_LINE: `OLD_STYLE_LINE`,
+  ENTITY: `ENTITY`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
+
+export const ENTITY = {
+  EMDASH: `EMDASH`,
+} as const;
+
+export type EntityType = keyof typeof ENTITY;
 
 export interface AstNode {
   type: NodeType;

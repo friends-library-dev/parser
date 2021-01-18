@@ -6,6 +6,7 @@ import symbolParselet from './symbolParselet';
 import leftBracketParselet from './leftBracketParselet';
 import inlinePassthroughParselet from './inlinePassthroughParselet';
 import footnoteParselet from './footnoteParselet';
+import entityParselet from './entityParselet';
 
 export default function getParselet(token: Token): Parselet | null {
   switch (token.type) {
@@ -37,6 +38,8 @@ export default function getParselet(token: Token): Parselet | null {
       return inlinePassthroughParselet;
     case t.UNDERSCORE:
       return underscoreParselet;
+    case t.ENTITY:
+      return entityParselet;
   }
   return null;
 }

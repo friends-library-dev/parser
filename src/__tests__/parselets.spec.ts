@@ -24,6 +24,18 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle emdash entity`, () => {
+    const parser = getParser(`Epistles 1 &#8212; 31\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Epistles 1 ` },
+      { type: n.ENTITY, value: `&#8212;`, meta: { subType: `EMDASH` } },
+      { type: n.TEXT, value: ` 31` },
+    ]);
+  });
+
   it(`can handle right bracket after symbol`, () => {
     const parser = getParser(`Hello world\`"]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
