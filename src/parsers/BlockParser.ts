@@ -15,9 +15,8 @@ export default class BlockParser {
       return thematicBreak;
     }
 
-    const unorderedList = this.parseUnorderedList(parent, context);
-    if (unorderedList) {
-      return unorderedList;
+    if (this.peekStartUnorderedList()) {
+      return this.parseUnorderedList(parent, context);
     }
 
     const descriptionList = this.parseDescriptionList(parent);
@@ -43,6 +42,8 @@ export default class BlockParser {
         block.children = poetryParser.parse(block);
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
+      } else if (this.peekStartUnorderedList()) {
+        block.children.push(this.parseUnorderedList(block, this.p.parseContext()));
       } else if (this.p.peekHeading()) {
         block.children.push(this.p.parseHeading(block));
       } else {
@@ -65,11 +66,15 @@ export default class BlockParser {
     return undefined;
   }
 
-  private parseUnorderedList(parent: AstNode, context?: Context): AstNode | undefined {
-    this.p.assertLineStart();
-    if (!this.p.peekTokens(t.ASTERISK, t.WHITESPACE)) {
-      return undefined;
+  private peekStartUnorderedList(): boolean {
+    if (this.p.current.column.start !== 1) {
+      return false;
     }
+    const [after1, after2] = this.p.firstTokensAfterOptionalContext();
+    return after1.type === t.ASTERISK && after2.type === t.WHITESPACE;
+  }
+
+  private parseUnorderedList(parent: AstNode, context?: Context): AstNode {
     const list = new Node(n.UNORDERED_LIST, parent, {
       context,
       startToken: this.p.current,

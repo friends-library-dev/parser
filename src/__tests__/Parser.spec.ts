@@ -766,4 +766,62 @@ describe(`Parser.parse()`, () => {
       ],
     });
   });
+
+  test(`syllogism inside embedded-doc`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      [.embedded-content-document]
+      --
+
+      Hello world
+
+      [.syllogism]
+      * Herp
+      * Derp
+      
+      --
+    `);
+
+    assertAllNodesHaveTokens(document);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.BLOCK,
+              context: { classList: [`embedded-content-document`] },
+              meta: { subType: `open` },
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: `Hello world` }],
+                },
+                {
+                  type: n.UNORDERED_LIST,
+                  children: [
+                    {
+                      type: n.LIST_ITEM,
+                      children: [{ type: n.TEXT, value: `Herp` }],
+                    },
+                    {
+                      type: n.LIST_ITEM,
+                      children: [{ type: n.TEXT, value: `Derp` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
 });
