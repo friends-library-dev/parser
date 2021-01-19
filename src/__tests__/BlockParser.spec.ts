@@ -36,6 +36,47 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse description lists`, () => {
+    const block = getParsedBlock(`
+      Hello:: world
+
+      Beep::
+      Goodbye world
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.DESCRIPTION_LIST,
+      children: [
+        {
+          type: n.DESCRIPTION_LIST_ITEM,
+          children: [
+            {
+              type: n.DESCRIPTION_LIST_ITEM_TERM,
+              children: [{ type: n.TEXT, value: `Hello` }],
+            },
+            {
+              type: n.DESCRIPTION_LIST_ITEM_CONTENT,
+              children: [{ type: n.TEXT, value: `world` }],
+            },
+          ],
+        },
+        {
+          type: n.DESCRIPTION_LIST_ITEM,
+          children: [
+            {
+              type: n.DESCRIPTION_LIST_ITEM_TERM,
+              children: [{ type: n.TEXT, value: `Beep` }],
+            },
+            {
+              type: n.DESCRIPTION_LIST_ITEM_CONTENT,
+              children: [{ type: n.TEXT, value: `Goodbye world` }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse a paragraph with context`, () => {
     const block = getParsedBlock(`
       [quote, ,]

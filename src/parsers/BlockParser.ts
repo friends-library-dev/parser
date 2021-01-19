@@ -3,6 +3,7 @@ import Parser from '../Parser';
 import PoetryParser from './PoetryParser';
 import Context from '../Context';
 import Node from '../nodes/AstNode';
+import DescriptionListParser from './DescriptionListParser';
 
 export default class BlockParser {
   public constructor(private p: Parser) {}
@@ -17,6 +18,11 @@ export default class BlockParser {
     const unorderedList = this.parseUnorderedList(parent, context);
     if (unorderedList) {
       return unorderedList;
+    }
+
+    const descriptionList = this.parseDescriptionList(parent);
+    if (descriptionList) {
+      return descriptionList;
     }
 
     const block = this.makeBlock(parent, context);
@@ -49,6 +55,14 @@ export default class BlockParser {
 
     block.endToken = this.p.lastSignificantToken();
     return block;
+  }
+
+  private parseDescriptionList(parent: AstNode): AstNode | undefined {
+    const descriptionListParser = new DescriptionListParser(this.p);
+    if (descriptionListParser.peekStart()) {
+      return descriptionListParser.parse(parent);
+    }
+    return undefined;
   }
 
   private parseUnorderedList(parent: AstNode, context?: Context): AstNode | undefined {
