@@ -256,4 +256,57 @@ footnote:[Herp derp
       },
     ]);
   });
+
+  test(`footnote poetry between paragraph splits`, () => {
+    const parser = getParser(
+      stripIndent(`
+Hello world.^
+footnote:[Herp derp
+{footnote-paragraph-split}
+\`    Beep
+     Boop
+     - - - - - -
+     Herp
+     Derp \`
+{footnote-paragraph-split}I
+Hello Mama.]
+    `).trim() + `\n\n`,
+    );
+
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello world.`,
+      },
+      {
+        type: n.FOOTNOTE,
+        children: [
+          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Herp derp` }] },
+          {
+            type: n.BLOCK,
+            meta: { subType: `verse` },
+            children: [
+              {
+                type: n.VERSE_STANZA,
+                children: [
+                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Beep` }] },
+                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Boop` }] },
+                ],
+              },
+              {
+                type: n.VERSE_STANZA,
+                children: [
+                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Herp` }] },
+                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Derp` }] },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
 });

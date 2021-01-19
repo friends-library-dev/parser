@@ -368,6 +368,7 @@ export default class Parser {
       throw new Error(display);
     } else {
       console.log(`\n${display}`);
+      // console.trace();
       process.exit(1);
     }
   }
