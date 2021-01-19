@@ -46,6 +46,17 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle ellipses entity`, () => {
+    const parser = getParser(`Hello world&hellip;\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      { type: n.ENTITY, value: `&hellip;`, meta: { subType: `ELLIPSES` } },
+    ]);
+  });
+
   it(`can handle right bracket after symbol`, () => {
     const parser = getParser(`Hello world\`"]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
