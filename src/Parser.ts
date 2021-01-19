@@ -319,7 +319,7 @@ export default class Parser {
   }
 
   public makeWhileGuard(identifier: string, max?: number): () => boolean {
-    let maxIterations = this.isJestTest() ? 200 : 25000;
+    let maxIterations = this.isJestTest() ? 200 : 50000;
     if (typeof max === `number`) {
       maxIterations = max;
     }
