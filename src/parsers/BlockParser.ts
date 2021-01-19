@@ -43,7 +43,7 @@ export default class BlockParser {
         block.children = poetryParser.parse(block);
       } else if (this.peekStartInnerBlock()) {
         block.children.push(this.parse(block));
-      } else if (this.p.peekHeading() && block.meta?.subType === `open`) {
+      } else if (this.p.peekHeading()) {
         block.children.push(this.p.parseHeading(block));
       } else {
         this.parseChild(block);

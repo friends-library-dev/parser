@@ -705,4 +705,65 @@ describe(`Parser.parse()`, () => {
       ],
     });
   });
+
+  test(`third-level heading inside of numbered group inside of embedded-content-doc`, () => {
+    const document = parseAdocFile(`
+      == Chapter 1
+
+      [.embedded-content-document]
+      --
+
+      [.numbered-group]
+      ====
+
+      === Subheading
+
+      [.numbered]
+      First
+
+      ====
+
+      --
+    `);
+
+    assertAllNodesHaveTokens(document);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
+            },
+            {
+              type: n.BLOCK,
+              meta: { subType: `open` },
+              context: { classList: [`embedded-content-document`] },
+              children: [
+                {
+                  type: n.BLOCK,
+                  meta: { subType: `example` },
+                  context: { classList: [`numbered-group`] },
+                  children: [
+                    {
+                      type: n.HEADING,
+                      children: [{ type: n.TEXT, value: `Subheading` }],
+                    },
+                    {
+                      type: n.PARAGRAPH,
+                      context: { classList: [`numbered`] },
+                      children: [{ type: n.TEXT, value: `First` }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
 });
