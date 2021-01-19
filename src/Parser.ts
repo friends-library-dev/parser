@@ -171,7 +171,7 @@ export default class Parser {
     if (last) {
       tokens.push(last);
       if (!this.tokenIs(last, t.EOX)) {
-        tokens.push({ ...last, type: t.EOL, literal: `` });
+        tokens.push({ ...last, type: t.EOL, literal: `\n` });
       }
     }
 
@@ -359,12 +359,12 @@ export default class Parser {
     const display = [
       `Parse error: ${msg}\nat ${location(this.current)}`,
       `\n\n\x1b[35m${String(this.current.line).padStart(5, ' ')}\x1b[0m`,
-      `\x1b[2m: ${line.trim()}\x1b[0m\n`,
+      `\x1b[2m: ${line.trimEnd()}\x1b[0m\n`,
       `${' '.padStart(col.start + 6, ' ')}`,
       `\x1b[31m${`^`.padStart(col.end - col.start + 1, `^`)}-- ERR!\x1b[0m\n`,
     ].join(``);
 
-    if (this.isJestTest()) {
+    if (this.isJestTest() || typeof window !== 'undefined') {
       throw new Error(display);
     } else {
       console.log(`\n${display}`);

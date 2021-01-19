@@ -1,4 +1,5 @@
 import Node from '../nodes/AstNode';
+import FootnotePoetryParser from '../parsers/FootnotePoetryParser';
 import { Parselet, TOKEN as t, NODE as n, TokenSpec } from '../types';
 
 const footnoteParselet: Parselet = (parser, parent) => {
@@ -36,7 +37,14 @@ const footnoteParselet: Parselet = (parser, parent) => {
     return true;
   }, 1);
 
-  const stops: TokenSpec[][] = [[t.FOOTNOTE_PARAGRAPH_SPLIT], [t.EOL, t.EOF]];
+  const poetryStart: TokenSpec[] = [t.EOL, t.BACKTICK, [t.WHITESPACE, `    `]];
+  const stops: TokenSpec[][] = [
+    [t.FOOTNOTE_PARAGRAPH_SPLIT],
+    [t.EOL, t.EOF],
+    [t.EOF, t.EOD],
+    poetryStart,
+  ];
+
   const guard = bufp.makeWhileGuard(`footnoteParselet()`);
   while (guard() && !bufp.peekTokensAnyOf(...stops)) {
     const para = new Node(n.PARAGRAPH, footnote, { startToken: bufp.current });
@@ -45,6 +53,11 @@ const footnoteParselet: Parselet = (parser, parent) => {
     footnote.children.push(para);
     if (bufp.currentIs(t.FOOTNOTE_PARAGRAPH_SPLIT)) {
       bufp.consumeMany(t.FOOTNOTE_PARAGRAPH_SPLIT, t.EOL);
+    }
+    if (bufp.peekTokens(...poetryStart)) {
+      const fnPoetryParser = new FootnotePoetryParser(bufp);
+      bufp.consume(t.EOL);
+      footnote.children.push(fnPoetryParser.parse(footnote));
     }
   }
 

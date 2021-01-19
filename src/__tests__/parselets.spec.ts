@@ -12,6 +12,16 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  it(`can handle text nodes with ampersands`, () => {
+    const parser = getParser(`Hello & world\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toMatchObject({
+      type: n.TEXT,
+      value: `Hello & world`,
+    });
+  });
+
   it(`can handle redacted words`, () => {
     const parser = getParser(`Hello _______ world\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
@@ -120,145 +130,6 @@ describe(`Parser.parseUntil() using parselets`, () => {
     expect(() => getParser(`.Hello`).parseUntil(getPara(), t.EOL)).toThrow(
       /not implemented/,
     );
-  });
-
-  it(`can handle sameline footnotes`, () => {
-    const parser = getParser(`Hello worldfootnote:[Hello]\n`);
-    const nodes = parser.parseUntil(getPara(), t.EOL);
-    expect(nodes).toHaveLength(2);
-    expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
-    ]);
-  });
-
-  it(`can handle footnotes not ending at EOL`, () => {
-    const parser = getParser(`Hello world^\nfootnote:[Hello]? For\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    expect(nodes).toHaveLength(3);
-    expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
-      { type: n.TEXT, value: `? For` },
-    ]);
-  });
-
-  it(`can handle footnotes with book title`, () => {
-    const parser = getParser(`Hello world^\nfootnote:[[.book-title]#Apology# Hello]\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    expect(nodes).toHaveLength(2);
-    expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
-      {
-        type: n.FOOTNOTE,
-        children: [
-          {
-            type: n.PARAGRAPH,
-            children: [
-              {
-                type: n.INLINE,
-                context: { classList: [`book-title`] },
-                children: [{ type: n.TEXT, value: `Apology` }],
-              },
-              { type: n.TEXT, value: ` Hello` },
-            ],
-          },
-        ],
-      },
-    ]);
-  });
-
-  it(`can handle footnotes with escaped right brackets`, () => {
-    const parser = getParser(`Hello world^\nfootnote:[[Hello+++]+++]? For\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    expect(nodes).toHaveLength(3);
-    expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
-      {
-        type: n.FOOTNOTE,
-        children: [
-          {
-            type: n.PARAGRAPH,
-            children: [
-              { type: n.TEXT, value: `[Hello` },
-              { type: n.INLINE_PASSTHROUGH, value: `]` },
-            ],
-          },
-        ],
-      },
-      { type: n.TEXT, value: `? For` },
-    ]);
-  });
-
-  it(`can handle caret-started footnotes`, () => {
-    const parser = getParser(`Hello world.^\nfootnote:[Hello]\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    expect(nodes).toHaveLength(2);
-    expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
-    ]);
-    expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
-  });
-
-  it(`can handle caret-started footnotes with interposing comment`, () => {
-    const parser = getParser(`Hello world.^\n// lint-disable\nfootnote:[Hello]\n\n`);
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    expect(nodes).toHaveLength(2);
-    expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
-    ]);
-    expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
-  });
-
-  it(`can handle multi-paragraph footnotes`, () => {
-    const parser = getParser(
-      `Hello world.^\nfootnote:[Hello.\n{footnote-paragraph-split}\nGoodbye.]\n\n`,
-    );
-    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
-    nodes.forEach(assertAllNodesHaveTokens);
-    expect(nodes).toHaveLength(2);
-    expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello.` }] },
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Goodbye.` }] },
-        ],
-      },
-    ]);
-  });
-
-  test(`empty footnote is illegal`, () => {
-    expect(() =>
-      getParser(`Hello world.footnote:[]\n`).parseUntil(getPara(), t.EOL),
-    ).toThrow(/empty footnote/);
   });
 
   it(`can handle right single curlies`, () => {
