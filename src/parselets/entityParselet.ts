@@ -22,6 +22,8 @@ function entityType(tokenLiteral: string, parser: Parser): EntityType {
       return ENTITY.EMDASH;
     case `&hellip;`:
       return ENTITY.ELLIPSES;
+    case `&amp;`:
+      return ENTITY.AMPERSAND;
     default:
       throw parser.error(`unknown entity type: ${tokenLiteral}`);
   }

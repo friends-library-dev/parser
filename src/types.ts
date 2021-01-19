@@ -112,6 +112,7 @@ export type NodeType = keyof typeof NODE;
 export const ENTITY = {
   EMDASH: `EMDASH`,
   ELLIPSES: `ELLIPSES`,
+  AMPERSAND: `AMPERSAND`,
 } as const;
 
 export type EntityType = keyof typeof ENTITY;

@@ -57,6 +57,17 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle ampersand entity`, () => {
+    const parser = getParser(`Hello world&amp;\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      { type: n.ENTITY, value: `&amp;`, meta: { subType: `AMPERSAND` } },
+    ]);
+  });
+
   it(`can handle right bracket after symbol`, () => {
     const parser = getParser(`Hello world\`"]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
