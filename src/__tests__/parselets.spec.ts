@@ -116,6 +116,18 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle dollar symbol`, () => {
+    const parser = getParser(`fined $40\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `fined ` },
+      { type: n.SYMBOL, value: `$`, meta: { subType: t.DOLLAR_SYMBOL } },
+      { type: n.TEXT, value: `40` },
+    ]);
+  });
+
   it(`can handle degree symbol`, () => {
     const parser = getParser(`62° above zero\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
@@ -323,5 +335,27 @@ describe(`Parser.parseUntil() using parselets`, () => {
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(1);
     expect(nodes[0]).toMatchObject({ type: n.TEXT, value: `Hello` });
+  });
+
+  it(`can handle underline inline`, () => {
+    const parser = getParser(`Hello [.underline]#world#\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello `,
+      },
+      {
+        type: n.INLINE,
+        context: { classList: [`underline`] },
+        children: [
+          {
+            type: n.TEXT,
+            value: `world`,
+          },
+        ],
+      },
+    ]);
   });
 });

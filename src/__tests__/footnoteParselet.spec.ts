@@ -58,6 +58,33 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle footnotes with underline`, () => {
+    const parser = getParser(
+      `Hello world^\nfootnote:[[.underline]#Underlined# Hello]\n\n`,
+    );
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world` },
+      {
+        type: n.FOOTNOTE,
+        children: [
+          {
+            type: n.PARAGRAPH,
+            children: [
+              {
+                type: n.INLINE,
+                context: { classList: [`underline`] },
+                children: [{ type: n.TEXT, value: `Underlined` }],
+              },
+              { type: n.TEXT, value: ` Hello` },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+
   it(`can handle footnotes with escaped right brackets`, () => {
     const parser = getParser(`Hello world^\nfootnote:[[Hello+++]+++]? For\n\n`);
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);

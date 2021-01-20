@@ -5,7 +5,7 @@ import Node from '../nodes/AstNode';
 import Context from '../Context';
 
 const leftBracket: Parselet = (parser, parent) => {
-  if (isBookTitle(parser)) {
+  if (isInlineStart(parser)) {
     const leftBracket = parser.consume(t.LEFT_BRACKET);
     parser.consume(t.DOT);
     const context = new Context();
@@ -33,13 +33,10 @@ const leftBracket: Parselet = (parser, parent) => {
 
 export default leftBracket;
 
-function isBookTitle(parser: Parser): boolean {
-  return parser.peekTokens(
-    t.LEFT_BRACKET,
-    t.DOT,
-    [t.TEXT, `book-title`],
-    t.RIGHT_BRACKET,
-    t.HASH,
+function isInlineStart(parser: Parser): boolean {
+  return (
+    parser.peekTokens(t.LEFT_BRACKET, t.DOT, t.TEXT, t.RIGHT_BRACKET, t.HASH) &&
+    [`book-title`, `underline`].includes(parser.lookAhead(2).literal)
   );
 }
 

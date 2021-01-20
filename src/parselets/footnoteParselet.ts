@@ -30,7 +30,7 @@ const footnoteParselet: Parselet = (parser, parent) => {
     }
 
     // [.book-title]#Apology# within footnote is not end
-    if (p.lookBehind(-1)?.literal === `book-title`) {
+    if ([`book-title`, `underline`].includes(p.lookBehind(-1)?.literal || ``)) {
       return false;
     }
 
