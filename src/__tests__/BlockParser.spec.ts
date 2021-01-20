@@ -130,6 +130,35 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a blockquote with a footnote`, () => {
+    const block = getParsedBlock(`
+      [quote, ,]
+      ____
+      Hello world^
+      footnote:[herp derp]
+      ____
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      context: { type: `quote` },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [
+            { type: n.TEXT, value: 'Hello world' },
+            {
+              type: n.FOOTNOTE,
+              children: [
+                { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `herp derp` }] },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse a blockquote with multiple paragraphs`, () => {
     const block = getParsedBlock(`
       [quote, ,]
@@ -463,6 +492,37 @@ describe(`BlockParser.parse()`, () => {
         {
           type: n.LIST_ITEM,
           children: [{ type: n.TEXT, value: `Hello Papa` }],
+        },
+      ],
+    });
+  });
+
+  test(`list item can have footnote`, () => {
+    const block = getParsedBlock(`
+      [.chapter-synopsis]
+      * Hello Mama.footnote:[Beep Boop]
+      * Hello Papa.
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.UNORDERED_LIST,
+      context: { classList: [`chapter-synopsis`] },
+      children: [
+        {
+          type: n.LIST_ITEM,
+          children: [
+            { type: n.TEXT, value: `Hello Mama.` },
+            {
+              type: n.FOOTNOTE,
+              children: [
+                { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Beep Boop` }] },
+              ],
+            },
+          ],
+        },
+        {
+          type: n.LIST_ITEM,
+          children: [{ type: n.TEXT, value: `Hello Papa.` }],
         },
       ],
     });
