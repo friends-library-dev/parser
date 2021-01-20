@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { sync as glob } from 'glob';
-import Lexer from './lexer';
+import Lexer from './Lexer';
 import Parser from './Parser';
 import { assertAllNodesHaveTokens } from './__tests__/helpers';
 
