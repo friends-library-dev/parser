@@ -51,14 +51,14 @@ const footnoteParselet: Parselet = (parser, parent) => {
     para.children = bufp.parseUntilAnyOf(para, ...stops);
     para.endToken = bufp.lastSignificantToken();
     footnote.children.push(para);
-    if (bufp.currentIs(t.FOOTNOTE_PARAGRAPH_SPLIT)) {
-      bufp.consumeMany(t.FOOTNOTE_PARAGRAPH_SPLIT, t.EOL);
-    }
+    bufp.consumeIf(t.FOOTNOTE_PARAGRAPH_SPLIT);
     if (bufp.peekTokens(...poetryStart)) {
-      const fnPoetryParser = new FootnotePoetryParser(bufp);
       bufp.consume(t.EOL);
+      const fnPoetryParser = new FootnotePoetryParser(bufp);
       footnote.children.push(fnPoetryParser.parse(footnote));
+      bufp.consumeIf(t.FOOTNOTE_PARAGRAPH_SPLIT);
     }
+    bufp.consumeIf(t.EOL);
   }
 
   footnote.endToken = parser.expectLookBehind(-1); // right bracket `]`

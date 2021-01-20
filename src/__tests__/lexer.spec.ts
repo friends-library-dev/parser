@@ -148,10 +148,23 @@ describe(`lexer`, () => {
   test('triple-plus', () => {
     expect(simpleTokens(`+++[+++`)).toMatchObject([
       { type: t.TRIPLE_PLUS, literal: `+++` },
-      { type: t.LEFT_BRACKET, literal: `[` },
+      { type: t.RAW_PASSTHROUGH, literal: `[` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
     ]);
   });
+
+  test('quadruple-plus', () => {
+    expect(simpleTokens(`++++\n<br />\n++++\n\nfoo`)).toMatchObject([
+      { type: t.QUADRUPLE_PLUS, literal: `++++` },
+      { type: t.EOL, literal: `\n` },
+      { type: t.RAW_PASSTHROUGH, literal: `<br />\n` },
+      { type: t.QUADRUPLE_PLUS, literal: `++++` },
+      { type: t.DOUBLE_EOL, literal: `\n\n` },
+      { type: t.TEXT, literal: `foo` },
+    ]);
+  });
+
+  // TODO: 1) test multi-line block passthrough, 2) test multichar inline passthrough
 
   test(`trailing embedded double-dash`, () => {
     const [foo, dblDash] = tokens(`foo--`);
@@ -255,7 +268,7 @@ describe(`lexer`, () => {
     expect(simpleTokens(`1+++.+++ foo`)).toMatchObject([
       { type: t.TEXT, literal: `1` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
-      { type: t.DOT, literal: `.` },
+      { type: t.RAW_PASSTHROUGH, literal: `.` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
       { type: t.WHITESPACE, literal: ` ` },
       { type: t.TEXT, literal: `foo` },
@@ -429,7 +442,7 @@ describe(`lexer`, () => {
       { type: t.TEXT, literal: `Dear` },
       { type: t.WHITESPACE, literal: ` ` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
-      { type: t.UNDERSCORE, literal: `______` },
+      { type: t.RAW_PASSTHROUGH, literal: `______` },
       { type: t.TRIPLE_PLUS, literal: `+++` },
       { type: t.WHITESPACE, literal: ` ` },
       { type: t.TEXT, literal: `followed` },

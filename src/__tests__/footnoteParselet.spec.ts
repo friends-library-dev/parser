@@ -268,7 +268,7 @@ footnote:[Herp derp
      - - - - - -
      Herp
      Derp \`
-{footnote-paragraph-split}I
+{footnote-paragraph-split}
 Hello Mama.]
     `).trim() + `\n\n`,
     );
@@ -305,6 +305,7 @@ Hello Mama.]
               },
             ],
           },
+          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello Mama.` }] },
         ],
       },
     ]);

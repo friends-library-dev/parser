@@ -14,6 +14,7 @@ export default class Lexer implements LexerInterface {
   public lines: Line[] = [];
   public lastToken?: Token;
   public bufferedToken?: Token;
+  private passThruState?: 'block' | 'inline';
 
   public constructor(...inputs: LexerInput[]) {
     this.inputs = inputs;
@@ -45,6 +46,12 @@ export default class Lexer implements LexerInterface {
     const line = this.currentLine();
     if (!line) {
       return this.makeToken(t.EOD, null);
+    }
+
+    if (this.passThruState === `inline`) {
+      return this.getInlinePassThru(line);
+    } else if (this.passThruState === `block`) {
+      return this.getBlockPassThru(line);
     }
 
     const char = line.content[line.charIdx];
@@ -110,7 +117,18 @@ export default class Lexer implements LexerInterface {
         return this.makeToken(t.FORWARD_SLASH, line);
       case '+':
         if (this.peekChar() === `+`) {
-          return this.makeGreedyToken(t.TRIPLE_PLUS, line, 3);
+          tok = this.makeGreedyToken(t.TRIPLE_PLUS, line);
+          if (tok.literal.length === 3) {
+            this.passThruState = `inline`;
+            return tok;
+          } else if (tok.literal.length === 4) {
+            tok.type = t.QUADRUPLE_PLUS;
+            this.passThruState = `block`;
+            return tok;
+          } else {
+            tok.type = t.ILLEGAL;
+          }
+          return tok;
         } else {
           return this.makeToken(t.PLUS, line);
         }
@@ -309,6 +327,35 @@ export default class Lexer implements LexerInterface {
     }
 
     return this.nextLine();
+  }
+
+  private getBlockPassThru(line: Line): Token {
+    // first EOL after `++++`
+    if (line.charIdx === 4 && line.content[line.charIdx] === `\n`) {
+      const tk = this.makeToken(t.EOL, line);
+      this.nextLine();
+      return tk;
+    }
+
+    if (line.content === `++++\n`) {
+      this.passThruState = undefined;
+      return this.makeGreedyToken(t.QUADRUPLE_PLUS, line);
+    }
+
+    // make a raw passthrough line, keep returning lines until we exit passthrough
+    const token = this.makeToken(t.RAW_PASSTHROUGH, line);
+    this.setLiteral(token, line.content, line);
+    this.nextLine();
+    return token;
+  }
+
+  private getInlinePassThru(line: Line): Token {
+    const restOfLine = line.content.substring(line.charIdx);
+    const token = this.makeToken(t.RAW_PASSTHROUGH, line);
+    this.setLiteral(token, restOfLine.replace(/\+\+\+.*\n/, ``), line);
+    this.passThruState = undefined;
+    this.bufferedToken = this.makeGreedyToken(t.TRIPLE_PLUS, line);
+    return token;
   }
 }
 
