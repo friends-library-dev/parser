@@ -19,6 +19,10 @@ export default class BlockParser {
       return this.parseUnorderedList(parent, context);
     }
 
+    if (this.peekStartPassthroughBlock()) {
+      return this.parsePassthroughBlock(parent);
+    }
+
     const descriptionList = this.parseDescriptionList(parent);
     if (descriptionList) {
       return descriptionList;
@@ -64,6 +68,19 @@ export default class BlockParser {
       return descriptionListParser.parse(parent);
     }
     return undefined;
+  }
+
+  private parsePassthroughBlock(parent: AstNode): AstNode {
+    const block = new Node(n.BLOCK_PASSTHROUGH, parent, { startToken: this.p.current });
+    this.p.consumeMany(t.QUADRUPLE_PLUS, t.EOL);
+    const guard = this.p.makeWhileGuard(`BlockParser.parsePassThroughBlock()`);
+    while (guard() && this.p.currentIs(t.RAW_PASSTHROUGH)) {
+      block.value += this.p.consume().literal;
+    }
+    block.endToken = this.p.current; // `++++`
+    this.p.consumeMany(t.QUADRUPLE_PLUS, t.EOX);
+
+    return block;
   }
 
   private peekStartUnorderedList(): boolean {
@@ -127,6 +144,11 @@ export default class BlockParser {
       block.children.push(thematicBreak);
       return;
     }
+
+    if (this.peekStartPassthroughBlock()) {
+      block.children.push(this.parsePassthroughBlock(block));
+      return;
+    }
     const para = new Node(n.PARAGRAPH, block, { context, startToken: this.p.current });
     block.children.push(para);
     para.children = this.p.parseUntilAnyOf(para, [t.DOUBLE_EOL], [t.EOL, t.EOF]);
@@ -176,6 +198,10 @@ export default class BlockParser {
       return true;
     }
     return false;
+  }
+
+  private peekStartPassthroughBlock(): boolean {
+    return this.p.peekTokens(t.QUADRUPLE_PLUS, t.EOL);
   }
 
   private makeBlock(parent: AstNode, context?: Context): AstNode {

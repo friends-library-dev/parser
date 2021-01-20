@@ -467,6 +467,45 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  it(`can parse a block passthrough`, () => {
+    const block = getParsedBlock(`
+      ++++
+      <br />
+      <br />
+      ++++
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK_PASSTHROUGH,
+      value: `<br />\n<br />\n`,
+    });
+  });
+
+  it(`can parse a block passthrough inside another group`, () => {
+    const block = getParsedBlock(`
+      [.numbered]
+      ====
+
+      ++++
+      <br />
+      <br />
+      ++++
+
+      ====
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `example` },
+      children: [
+        {
+          type: n.BLOCK_PASSTHROUGH,
+          value: `<br />\n<br />\n`,
+        },
+      ],
+    });
+  });
 });
 
 function getParsedBlock(adoc: string): AstNode {

@@ -34,6 +34,18 @@ describe(`Parser.parseUntil() using parselets`, () => {
     ]);
   });
 
+  it(`can handle redacted words (escaped)`, () => {
+    const parser = getParser(`Hello +++_______+++ world\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello ` },
+      { type: n.REDACTED, value: `_______` },
+      { type: n.TEXT, value: ` world` },
+    ]);
+  });
+
   it(`can handle emdash entity`, () => {
     const parser = getParser(`Epistles 1 &#8212; 31\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);

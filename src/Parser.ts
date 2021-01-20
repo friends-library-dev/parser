@@ -368,7 +368,9 @@ export default class Parser {
       throw new Error(display);
     } else {
       console.log(`\n${display}`);
-      // console.trace();
+      if ((process?.argv || []).includes(`-t`)) {
+        console.trace();
+      }
       process.exit(1);
     }
   }

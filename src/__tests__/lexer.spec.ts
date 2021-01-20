@@ -153,6 +153,14 @@ describe(`lexer`, () => {
     ]);
   });
 
+  test('multi-char inline passthrough', () => {
+    expect(simpleTokens(`+++3 + 5 = 7+++`)).toMatchObject([
+      { type: t.TRIPLE_PLUS, literal: `+++` },
+      { type: t.RAW_PASSTHROUGH, literal: `3 + 5 = 7` },
+      { type: t.TRIPLE_PLUS, literal: `+++` },
+    ]);
+  });
+
   test('quadruple-plus', () => {
     expect(simpleTokens(`++++\n<br />\n++++\n\nfoo`)).toMatchObject([
       { type: t.QUADRUPLE_PLUS, literal: `++++` },
@@ -164,7 +172,17 @@ describe(`lexer`, () => {
     ]);
   });
 
-  // TODO: 1) test multi-line block passthrough, 2) test multichar inline passthrough
+  test('multi-line passthrough block', () => {
+    expect(simpleTokens(`++++\n<br />\n<br />\n++++\n\nfoo`)).toMatchObject([
+      { type: t.QUADRUPLE_PLUS, literal: `++++` },
+      { type: t.EOL, literal: `\n` },
+      { type: t.RAW_PASSTHROUGH, literal: `<br />\n` },
+      { type: t.RAW_PASSTHROUGH, literal: `<br />\n` },
+      { type: t.QUADRUPLE_PLUS, literal: `++++` },
+      { type: t.DOUBLE_EOL, literal: `\n\n` },
+      { type: t.TEXT, literal: `foo` },
+    ]);
+  });
 
   test(`trailing embedded double-dash`, () => {
     const [foo, dblDash] = tokens(`foo--`);
