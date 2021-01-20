@@ -4,7 +4,7 @@ import PoetryParser from '../parsers/PoetryParser';
 import { AstNode, NODE as n } from '../types';
 import { getParser, getBlock, assertAllNodesHaveTokens } from './helpers';
 
-describe('PoetryParser.parse()', () => {
+describe(`PoetryParser.parse()`, () => {
   it(`wraps lines in line nodes, and groups lines into stanzas`, () => {
     const poetry = getParsedPoetry(`
        Hello Mama

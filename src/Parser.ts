@@ -2,7 +2,6 @@ import {
   Token,
   TokenType,
   TOKEN as t,
-  NODE as n,
   AstNode,
   NodeType,
   TokenSpec,
@@ -11,18 +10,12 @@ import {
 } from './types';
 import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
-import Node from './nodes/AstNode';
 import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
 import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 import HeadingParser from './parsers/HeadingParser';
-
-// new line numbers?
-// compile time
-// chapter headings
-// tables :(
 
 export default class Parser {
   private static MAX_SHIFTED_TOKENS = 50;
@@ -72,7 +65,7 @@ export default class Parser {
       }
       nodes.push(parselet(this, parent));
     }
-    for (const _ of stopTokensGroups) {
+    for (let i = 0; i < stopTokensGroups.length; i++) {
       this.stopStack.shift();
     }
     return nodes;
@@ -358,13 +351,13 @@ export default class Parser {
     const { column: col } = this.current;
     const display = [
       `Parse error: ${msg}\nat ${location(this.current)}`,
-      `\n\n\x1b[35m${String(this.current.line).padStart(5, ' ')}\x1b[0m`,
+      `\n\n\x1b[35m${String(this.current.line).padStart(5, ` `)}\x1b[0m`,
       `\x1b[2m: ${line.trimEnd()}\x1b[0m\n`,
-      `${' '.padStart(col.start + 6, ' ')}`,
+      `${` `.padStart(col.start + 6, ` `)}`,
       `\x1b[31m${`^`.padStart(col.end - col.start + 1, `^`)}-- ERR!\x1b[0m\n`,
     ].join(``);
 
-    if (this.isJestTest() || typeof window !== 'undefined') {
+    if (this.isJestTest() || typeof window !== `undefined`) {
       throw new Error(display);
     } else {
       console.log(`\n${display}`);

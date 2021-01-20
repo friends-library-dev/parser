@@ -16,8 +16,6 @@ export default class FootnotePoetryParser {
       if (this.p.peekTokens(t.BACKTICK, [t.WHITESPACE, `    `])) {
         this.p.consume();
         this.p.consume();
-      } else {
-        // this.p.consume(t.FOOTNOTE_STANZA);
       }
       const stanza = new Node(n.VERSE_STANZA, block, { startToken: this.p.current });
       stanza.children = this.parseLines(stanza);
@@ -26,7 +24,6 @@ export default class FootnotePoetryParser {
       stanza.endToken = this.p.lastSignificantToken();
       if (this.p.currentIs(t.FOOTNOTE_STANZA)) {
         this.p.consumeMany(t.FOOTNOTE_STANZA, t.EOL);
-      } else {
       }
     }
     block.children = stanzas;

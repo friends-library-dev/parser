@@ -18,15 +18,15 @@ export default class Context {
     this._startToken = token;
   }
 
-  public set endToken(token: Token) {
-    this._endToken = token;
-  }
-
   public get startToken(): Token {
     if (!this._startToken) {
       throw new Error(`Unexpected missing Context.startToken`);
     }
     return this._startToken;
+  }
+
+  public set endToken(token: Token) {
+    this._endToken = token;
   }
 
   public get endToken(): Token {

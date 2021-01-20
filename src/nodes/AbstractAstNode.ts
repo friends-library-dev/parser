@@ -21,15 +21,15 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     this._startToken = token;
   }
 
-  public set endToken(token: Token) {
-    this._endToken = token;
-  }
-
   public get startToken(): Token {
     if (!this._startToken) {
       throw new Error(`Unexpected missing AstNode.startToken`);
     }
     return this._startToken;
+  }
+
+  public set endToken(token: Token) {
+    this._endToken = token;
   }
 
   public get endToken(): Token {
@@ -52,7 +52,7 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     };
   }
 
-  public print(withTokens?: true) {
+  public print(withTokens?: true): void {
     console.log(JSON.stringify(this.toJSON(withTokens), null, 2));
   }
 }

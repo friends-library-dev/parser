@@ -37,7 +37,7 @@ export default class HeadingParser {
     return false;
   }
 
-  private parseOldStyle(heading: AstNode) {
+  private parseOldStyle(heading: AstNode): void {
     const delim: TokenSpec[] = [
       [t.WHITESPACE, ` `],
       t.FORWARD_SLASH,

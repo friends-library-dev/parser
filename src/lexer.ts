@@ -22,6 +22,7 @@ export default class Lexer implements LexerInterface {
 
   public tokens(): Token[] {
     const tokens: Token[] = [];
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const current = this.nextToken();
       tokens.push(current);
@@ -61,37 +62,37 @@ export default class Lexer implements LexerInterface {
     }
 
     switch (char) {
-      case ',':
+      case `,`:
         return this.makeToken(t.COMMA, line);
-      case '.':
+      case `.`:
         return this.makeToken(t.DOT, line);
-      case '[':
+      case `[`:
         return this.makeToken(t.LEFT_BRACKET, line);
-      case ']':
+      case `]`:
         return this.makeToken(t.RIGHT_BRACKET, line);
-      case '(':
+      case `(`:
         return this.makeToken(t.LEFT_PARENS, line);
-      case ')':
+      case `)`:
         return this.makeToken(t.RIGHT_PARENS, line);
-      case '^':
+      case `^`:
         return this.makeToken(t.CARET, line);
-      case '_':
+      case `_`:
         return this.makeGreedyToken(t.UNDERSCORE, line);
-      case '|':
+      case `|`:
         return this.makeToken(t.PIPE, line);
-      case ' ':
+      case ` `:
         return this.makeGreedyToken(t.WHITESPACE, line);
-      case '=':
+      case `=`:
         return this.makeGreedyToken(t.EQUALS, line);
-      case '$':
+      case `$`:
         return this.makeToken(t.DOLLAR_SYMBOL, line);
-      case '£':
+      case `£`:
         return this.makeToken(t.POUND_SYMBOL, line);
-      case '#':
+      case `#`:
         return this.makeToken(t.HASH, line);
-      case '°':
+      case `°`:
         return this.makeToken(t.DEGREE_SYMBOL, line);
-      case '\n':
+      case `\n`: {
         tok = this.makeToken(t.EOL, line);
         const nextLine = this.nextLine();
         if (nextLine && nextLine.content === `\n`) {
@@ -100,7 +101,8 @@ export default class Lexer implements LexerInterface {
           this.nextLine();
         }
         return tok;
-      case `&`:
+      }
+      case `&`: {
         const entityMatch = line.content.substring(line.charIdx).match(/^&#?[a-z0-9]+;/);
         if (entityMatch !== null) {
           tok = this.makeToken(t.ENTITY, line);
@@ -109,13 +111,14 @@ export default class Lexer implements LexerInterface {
         } else {
           return this.makeToken(t.AMPERSAND, line);
         }
-      case '/':
-        if (line.charIdx === 0 && this.peekChar() === '/') {
+      }
+      case `/`:
+        if (line.charIdx === 0 && this.peekChar() === `/`) {
           line.charIdx += line.content.length;
           return this.nextToken();
         }
         return this.makeToken(t.FORWARD_SLASH, line);
-      case '+':
+      case `+`:
         if (this.peekChar() === `+`) {
           tok = this.makeGreedyToken(t.TRIPLE_PLUS, line);
           if (tok.literal.length === 3) {
@@ -132,7 +135,7 @@ export default class Lexer implements LexerInterface {
         } else {
           return this.makeToken(t.PLUS, line);
         }
-      case ':':
+      case `:`:
         tok = this.makeGreedyToken(t.DOUBLE_COLON, line);
         if (tok.literal.length === 1) {
           tok.type = t.TEXT;
@@ -140,12 +143,13 @@ export default class Lexer implements LexerInterface {
           tok.type = t.ILLEGAL;
         }
         return tok;
-      case '{':
+      case `{`:
         if (line.charIdx === 0 && line.content === `${FOOTNOTE_PARA_SPLIT}\n`) {
           tok = this.makeToken(t.FOOTNOTE_PARAGRAPH_SPLIT, line);
           return this.setLiteral(tok, FOOTNOTE_PARA_SPLIT, line);
         }
-      case '*':
+        return this.makeToken(t.ILLEGAL, line);
+      case `*`:
         tok = this.makeGreedyToken(t.ASTERISK, line);
         if (tok.literal.length === 3) {
           tok.type = t.TRIPLE_ASTERISK;
@@ -155,7 +159,7 @@ export default class Lexer implements LexerInterface {
           tok.type = t.ILLEGAL;
         }
         return tok;
-      case '-':
+      case `-`:
         if (line.content.substring(line.charIdx) === `${FOOTNOTE_STANZA}\n`) {
           tok = this.makeToken(t.FOOTNOTE_STANZA, line);
           return this.setLiteral(tok, FOOTNOTE_STANZA, line);
@@ -165,7 +169,7 @@ export default class Lexer implements LexerInterface {
         if (this.peekChar() === `"`) {
           tok = this.makeToken(t.RIGHT_DOUBLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
-        } else if (this.peekChar() == `'`) {
+        } else if (this.peekChar() === `'`) {
           tok = this.makeToken(t.RIGHT_SINGLE_CURLY, line, false);
           return this.requireAppendChar(tok, line);
         } else {
@@ -187,7 +191,7 @@ export default class Lexer implements LexerInterface {
         } else {
           return this.makeToken(t.STRAIGHT_DOUBLE_QUOTE, line);
         }
-      default:
+      default: {
         tok = this.makeToken(t.TEXT, line, false);
         while (!isTextBoundaryChar(this.peekChar())) {
           const nextChar = this.requireNextChar();
@@ -202,7 +206,7 @@ export default class Lexer implements LexerInterface {
           line.charIdx -= reverseChars;
           tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
         }
-        if (tok.literal === 'footnote:') {
+        if (tok.literal === `footnote:`) {
           tok.type = t.FOOTNOTE_PREFIX;
         } else if (
           // first test just for perf
@@ -214,6 +218,7 @@ export default class Lexer implements LexerInterface {
           line.charIdx -= `footnote:`.length;
         }
         return tok;
+      }
     }
   }
 
@@ -359,7 +364,7 @@ export default class Lexer implements LexerInterface {
   }
 }
 
-function isTextBoundaryChar(char: string | null) {
+function isTextBoundaryChar(char: string | null): boolean {
   if (char === null) {
     return true;
   }

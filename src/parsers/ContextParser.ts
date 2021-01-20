@@ -18,7 +18,7 @@ export default class ContextParser {
     this.parseType();
     this.parseId();
 
-    let guard = this.p.makeWhileGuard(`ContextParser.parse(<classes>)`, 10);
+    const guard = this.p.makeWhileGuard(`ContextParser.parse(<classes>)`, 10);
     while (guard() && this.p.currentIs(t.DOT)) {
       this.p.consume(t.DOT);
       this.context.classList.push(this.parseIdentifier());

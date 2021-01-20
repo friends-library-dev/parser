@@ -3,25 +3,25 @@ import { NODE as n } from '../types';
 import DescriptionListParser from '../parsers/DescriptionListParser';
 import { assertAllNodesHaveTokens, getBlock, getParser } from './helpers';
 
-describe('DescriptionListParser.peekStart()', () => {
-  it('returns false for upcoming line without double-colon', () => {
+describe(`DescriptionListParser.peekStart()`, () => {
+  it(`returns false for upcoming line without double-colon`, () => {
     const dlParser = getDlParser(`Hello world`);
     expect(dlParser.peekStart()).toBe(false);
   });
 
-  it('returns true for upcoming line same-line description list', () => {
+  it(`returns true for upcoming line same-line description list`, () => {
     const dlParser = getDlParser(`Hello:: world`);
     expect(dlParser.peekStart()).toBe(true);
   });
 
-  it('returns true for upcoming line multi-line description list', () => {
+  it(`returns true for upcoming line multi-line description list`, () => {
     const dlParser = getDlParser(`Hello::\nworld`);
     expect(dlParser.peekStart()).toBe(true);
   });
 });
 
-describe('DescriptionListParser.parse()', () => {
-  it('can parse a list of one pair', () => {
+describe(`DescriptionListParser.parse()`, () => {
+  it(`can parse a list of one pair`, () => {
     const dlParser = getDlParser(`Hello:: world`);
     const list = dlParser.parse(getBlock());
     assertAllNodesHaveTokens(list);
@@ -45,7 +45,7 @@ describe('DescriptionListParser.parse()', () => {
     });
   });
 
-  it('can parse a list of multiple pairs', () => {
+  it(`can parse a list of multiple pairs`, () => {
     const dlParser = getDlParser(`Hello::\nworld\n\nHerp:: derp`);
     const list = dlParser.parse(getBlock());
     assertAllNodesHaveTokens(list);

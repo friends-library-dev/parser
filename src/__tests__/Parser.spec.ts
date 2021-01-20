@@ -25,7 +25,7 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              children: [{ type: n.TEXT, value: 'Chapter 1' }],
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
               meta: { level: 2 },
             },
             {
@@ -33,7 +33,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                  children: [{ type: n.TEXT, value: `Hello world` }],
                 },
               ],
             },
@@ -58,8 +58,8 @@ describe(`Parser.parse()`, () => {
             {
               type: n.HEADING,
               children: [
-                { type: n.SYMBOL, value: `'\``, meta: { subType: 'LEFT_SINGLE_CURLY' } },
-                { type: n.TEXT, value: 'Tis a Chapter Title' },
+                { type: n.SYMBOL, value: `'\``, meta: { subType: `LEFT_SINGLE_CURLY` } },
+                { type: n.TEXT, value: `Tis a Chapter Title` },
               ],
               meta: { level: 2 },
             },
@@ -68,7 +68,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                  children: [{ type: n.TEXT, value: `Hello world` }],
                 },
               ],
             },
@@ -93,7 +93,7 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              children: [{ type: n.TEXT, value: 'Chapter 1' }],
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
               meta: { level: 2 },
             },
             {
@@ -101,7 +101,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                  children: [{ type: n.TEXT, value: `Hello world` }],
                 },
               ],
             },
@@ -205,7 +205,7 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              children: [{ type: n.TEXT, value: 'Chapter 1' }],
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
               meta: { level: 2 },
             },
             {
@@ -213,7 +213,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                  children: [{ type: n.TEXT, value: `Hello world` }],
                 },
               ],
             },
@@ -241,7 +241,7 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              children: [{ type: n.TEXT, value: 'Chapter 1' }],
+              children: [{ type: n.TEXT, value: `Chapter 1` }],
               meta: { level: 2 },
             },
             {
@@ -249,7 +249,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Hello world' }],
+                  children: [{ type: n.TEXT, value: `Hello world` }],
                 },
               ],
             },
@@ -258,7 +258,7 @@ describe(`Parser.parse()`, () => {
               children: [
                 {
                   type: n.PARAGRAPH,
-                  children: [{ type: n.TEXT, value: 'Goodbye world' }],
+                  children: [{ type: n.TEXT, value: `Goodbye world` }],
                 },
               ],
             },

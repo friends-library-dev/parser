@@ -170,7 +170,7 @@ export default class BlockParser {
         (p) => p.peekTokens(t.EOL, QUAD_UNDERSCORE, t.EOX),
         3,
       );
-    } else if (block.meta?.subType == `verse`) {
+    } else if (block.meta?.subType === `verse`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOL);
       this.p = this.p.getBufferedParser((p) => p.peekTokens(QUAD_UNDERSCORE, t.EOX), 2);
     } else if (this.p.peekTokens(t.DOUBLE_DASH, t.DOUBLE_EOL)) {

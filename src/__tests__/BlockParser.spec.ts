@@ -13,7 +13,7 @@ describe(`BlockParser.parse()`, () => {
       children: [
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Hello world' }],
+          children: [{ type: n.TEXT, value: `Hello world` }],
         },
       ],
     });
@@ -30,7 +30,7 @@ describe(`BlockParser.parse()`, () => {
       children: [
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Hello world goodbye world' }],
+          children: [{ type: n.TEXT, value: `Hello world goodbye world` }],
         },
       ],
     });
@@ -95,16 +95,16 @@ describe(`BlockParser.parse()`, () => {
       children: [
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'First para' }],
+          children: [{ type: n.TEXT, value: `First para` }],
         },
         {
           type: n.PARAGRAPH,
           context: { classList: [`offset`] },
-          children: [{ type: n.TEXT, value: 'With context' }],
+          children: [{ type: n.TEXT, value: `With context` }],
         },
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Last para' }],
+          children: [{ type: n.TEXT, value: `Last para` }],
         },
       ],
     });
@@ -124,7 +124,7 @@ describe(`BlockParser.parse()`, () => {
       children: [
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Hello world' }],
+          children: [{ type: n.TEXT, value: `Hello world` }],
         },
       ],
     });
@@ -146,7 +146,7 @@ describe(`BlockParser.parse()`, () => {
         {
           type: n.PARAGRAPH,
           children: [
-            { type: n.TEXT, value: 'Hello world' },
+            { type: n.TEXT, value: `Hello world` },
             {
               type: n.FOOTNOTE,
               children: [
@@ -178,15 +178,15 @@ describe(`BlockParser.parse()`, () => {
       children: [
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Hello world' }],
+          children: [{ type: n.TEXT, value: `Hello world` }],
         },
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Goodbye world' }],
+          children: [{ type: n.TEXT, value: `Goodbye world` }],
         },
         {
           type: n.PARAGRAPH,
-          children: [{ type: n.TEXT, value: 'Hello Papa' }],
+          children: [{ type: n.TEXT, value: `Hello Papa` }],
         },
       ],
     });

@@ -3,7 +3,7 @@ import HeadingParser from '../parsers/HeadingParser';
 import { AstNode, NODE as n } from '../types';
 import { getParser, getBlock, assertAllNodesHaveTokens } from './helpers';
 
-describe('HeadingParse.parse()', () => {
+describe(`HeadingParse.parse()`, () => {
   it(`handles simple heading`, () => {
     const heading = getParsedHeading(`== Chapter 1`);
     assertAllNodesHaveTokens(heading);
