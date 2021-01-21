@@ -1,6 +1,6 @@
 {
   "name": "@friends-library/parser",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "asciidoc parser",
   "main": "./dist/index.js",
   "browser": false,
