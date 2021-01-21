@@ -1,5 +1,4 @@
-import Context from '../Context';
-import { AstNode, AstNode as AstNodeInterface, Token, NodeType } from '../types';
+import { AstNode, AstNode as AstNodeInterface, Token, NodeType, Context } from '../types';
 
 export default abstract class AbstractAstNode implements AstNodeInterface {
   public children: AstNode[] = [];

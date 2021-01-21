@@ -1,7 +1,6 @@
-import { AstNode, TOKEN as t, TokenSpec, NODE as n } from '../types';
+import { AstNode, TOKEN as t, TokenSpec, NODE as n, Context } from '../types';
 import Parser from '../Parser';
 import PoetryParser from './PoetryParser';
-import Context from '../Context';
 import Node from '../nodes/AstNode';
 import DescriptionListParser from './DescriptionListParser';
 

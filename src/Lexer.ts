@@ -1,14 +1,20 @@
 import {
-  LexerInput,
+  AsciidocFile,
   Lexer as LexerInterface,
   Token,
   TokenType,
-  Line,
   TOKEN as t,
 } from './types';
 
+interface Line {
+  content: string;
+  number: number;
+  charIdx: number;
+  filename?: string;
+}
+
 export default class Lexer implements LexerInterface {
-  public inputs: LexerInput[] = [];
+  public inputs: AsciidocFile[] = [];
   public inputIdx = -1;
   public line: null | Line = null;
   public lines: Line[] = [];
@@ -16,20 +22,18 @@ export default class Lexer implements LexerInterface {
   public bufferedToken?: Token;
   private passThruState?: 'block' | 'inline';
 
-  public constructor(...inputs: LexerInput[]) {
+  public constructor(...inputs: AsciidocFile[]) {
     this.inputs = inputs;
   }
 
   public tokens(): Token[] {
-    const tokens: Token[] = [];
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const current = this.nextToken();
+    let current = this.nextToken();
+    const tokens: Token[] = [current];
+    while (current.type !== t.EOD) {
+      current = this.nextToken();
       tokens.push(current);
-      if (current.type === t.EOD) {
-        return tokens;
-      }
     }
+    return tokens;
   }
 
   public nextToken(): Token {

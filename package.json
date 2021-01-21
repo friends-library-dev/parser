@@ -1,7 +1,7 @@
 {
   "name": "@friends-library/parser",
-  "version": "1.0.0",
-  "description": "experimental asciidoc parser",
+  "version": "0.0.0",
+  "description": "asciidoc parser",
   "main": "./dist/index.js",
   "browser": false,
   "author": "Jared Henderson <jared@netrivet.com>",

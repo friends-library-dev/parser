@@ -6,9 +6,10 @@ import {
   NodeType,
   TokenSpec,
   TokenTypeMatcher,
-  Lexer,
+  Lexer as LexerInterface,
+  Context,
+  AsciidocFile,
 } from './types';
-import Context from './Context';
 import DocumentNode from './nodes/DocumentNode';
 import getParselet from './parselets';
 import ChapterParser from './parsers/ChapterParser';
@@ -16,6 +17,7 @@ import BlockParser from './parsers/BlockParser';
 import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 import HeadingParser from './parsers/HeadingParser';
+import Lexer from './Lexer';
 
 export default class Parser {
   private static MAX_SHIFTED_TOKENS = 50;
@@ -23,7 +25,13 @@ export default class Parser {
   private stopStack: Array<TokenSpec[]> = [];
   private shifted: Token[] = [];
 
-  constructor(public lexer: Lexer) {}
+  public static parseDocument(...inputs: AsciidocFile[]): AstNode {
+    const lexer = new Lexer(...inputs);
+    const parser = new Parser(lexer);
+    return parser.parse();
+  }
+
+  constructor(public lexer: LexerInterface) {}
 
   public parse(): AstNode {
     const document = new DocumentNode();

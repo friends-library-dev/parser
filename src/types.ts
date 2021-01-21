@@ -1,4 +1,3 @@
-import Context from './Context';
 import Parser from './Parser';
 
 export const TOKEN = {
@@ -41,11 +40,11 @@ export const TOKEN = {
   BACKTICK: `BACKTICK`,
   RAW_PASSTHROUGH: `RAW_PASSTHROUGH`,
   DOT: `DOT`,
+  ILLEGAL: `ILLEGAL`,
   EOL: `EOL`,
   DOUBLE_EOL: `DOUBLE_EOL`,
   EOF: `EOF`,
   EOD: `EOD`, // end of (possibly multi-file) document
-  ILLEGAL: `ILLEGAL`,
   EOX: `EOX`, // special matcher token: `EOX` -- not technically a token type
 } as const;
 
@@ -64,21 +63,9 @@ export type Token = {
   };
 };
 
-export interface Line {
-  content: string;
-  number: number;
-  charIdx: number;
-  filename?: string;
-}
-
 export interface Lexer {
   tokens(): Token[];
   nextToken(): Token;
-}
-
-export interface LexerInput {
-  adoc: string;
-  filename?: string;
 }
 
 export const NODE = {
@@ -120,6 +107,19 @@ export const ENTITY = {
 
 export type EntityType = keyof typeof ENTITY;
 
+export interface Context {
+  classList: string[];
+  type?: 'quote' | 'verse' | 'epigraph' | 'discrete';
+  id?: string;
+  quoteAttribution?: Token[];
+  quoteSource?: Token[];
+  shortTitle?: Token[];
+  startToken: Token;
+  endToken: Token;
+  toJSON: (withTokens?: true) => Record<string, unknown>;
+  print: (withTokens?: true) => void;
+}
+
 export interface AstNode {
   type: NodeType;
   value: string;
@@ -138,4 +138,28 @@ export interface AstNode {
 
 export interface Parselet {
   (parser: Parser, parent: AstNode): AstNode;
+}
+
+export interface VisitFn<Output = unknown, Context = unknown> {
+  (data: { node: AstNode; output: Output; context: Context }): unknown;
+}
+
+export interface Visitable<Output = unknown, Context = unknown> {
+  enter?: VisitFn<Output, Context>;
+  exit?: VisitFn<Output, Context>;
+}
+
+type ToCamel<S extends string> = S extends `${infer Head}_${infer Tail}`
+  ? `${Head}${Capitalize<ToCamel<Tail>>}`
+  : S;
+
+export type Camelcase<T extends string> = ToCamel<Lowercase<T>>;
+
+export type Visitor<Output = unknown, Context = unknown> = {
+  [N in NodeType | 'node' as `${Camelcase<string & N>}`]?: Visitable<Output, Context>;
+};
+
+export interface AsciidocFile {
+  adoc: string;
+  filename?: string;
 }

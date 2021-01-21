@@ -1,6 +1,5 @@
-import Context from '../Context';
+import { AstNode as AstNodeInterface, NodeType, Token, Context } from '../types';
 import AbstractAstNode from './AbstractAstNode';
-import { AstNode as AstNodeInterface, NodeType, Token } from '../types';
 
 interface Config {
   value?: string;
