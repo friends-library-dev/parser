@@ -68,6 +68,12 @@ export default class Lexer implements LexerInterface {
     switch (char) {
       case `,`:
         return this.makeToken(t.COMMA, line);
+      case `?`:
+        return this.makeToken(t.QUESTION_MARK, line);
+      case `;`:
+        return this.makeToken(t.SEMICOLON, line);
+      case `!`:
+        return this.makeToken(t.EXCLAMATION_MARK, line);
       case `.`:
         return this.makeToken(t.DOT, line);
       case `[`:
@@ -142,7 +148,7 @@ export default class Lexer implements LexerInterface {
       case `:`:
         tok = this.makeGreedyToken(t.DOUBLE_COLON, line);
         if (tok.literal.length === 1) {
-          tok.type = t.TEXT;
+          tok.type = t.COLON;
         } else if (tok.literal.length !== 2) {
           tok.type = t.ILLEGAL;
         }
@@ -210,16 +216,19 @@ export default class Lexer implements LexerInterface {
           line.charIdx -= reverseChars;
           tok.literal = tok.literal.substring(0, tok.literal.length - reverseChars);
         }
-        if (tok.literal === `footnote:`) {
+        if (tok.literal === `footnote` && this.currentChar() === `:`) {
           tok.type = t.FOOTNOTE_PREFIX;
+          tok.literal += `:`;
+          line.charIdx++;
         } else if (
           // first test just for perf
-          tok.literal[tok.literal.length - 1] === `:` &&
-          tok.literal.match(/footnote:$/)
+          tok.literal[tok.literal.length - 1] === `e` &&
+          this.currentChar() === `:` &&
+          tok.literal.match(/footnote$/)
         ) {
-          tok.literal = tok.literal.replace(/footnote:$/, ``);
-          tok.column.end -= `footnote:`.length;
-          line.charIdx -= `footnote:`.length;
+          tok.literal = tok.literal.replace(/footnote$/, ``);
+          tok.column.end -= `footnote`.length;
+          line.charIdx -= `footnote`.length;
         }
         return tok;
       }
@@ -287,6 +296,14 @@ export default class Lexer implements LexerInterface {
     token.column.end += literal.length - 1;
     line.charIdx += literal.length - 1;
     return token;
+  }
+
+  private currentChar(): string | null {
+    const line = this.line;
+    if (line === null) {
+      return null;
+    }
+    return line.content[line.charIdx] ?? null;
   }
 
   private peekChar(): string | null {
@@ -372,29 +389,35 @@ function isTextBoundaryChar(char: string | null): boolean {
   if (char === null) {
     return true;
   }
-  return [
-    ` `,
-    `\n`,
-    `.`,
-    `,`,
-    `]`,
-    `[`,
-    `^`,
-    `\``,
-    `'`,
-    `_`,
-    `"`,
-    `+`,
-    `$`,
-    `°`,
-    `&`,
-    `#`,
-    `(`,
-    `)`,
-    `*`,
-    `=`,
-  ].includes(char);
+  return BOUNDARY_MAP[char] ?? false;
 }
 
 const FOOTNOTE_PARA_SPLIT = `{footnote-paragraph-split}`;
 const FOOTNOTE_STANZA = `- - - - - -`;
+
+const BOUNDARY_MAP: { [k: string]: true } = {
+  ' ': true,
+  '\n': true,
+  '.': true,
+  ',': true,
+  ']': true,
+  '[': true,
+  '^': true,
+  '`': true,
+  "'": true,
+  _: true,
+  '"': true,
+  '+': true,
+  $: true,
+  '°': true,
+  '&': true,
+  '#': true,
+  '(': true,
+  ')': true,
+  '*': true,
+  '=': true,
+  '!': true,
+  '?': true,
+  ':': true,
+  ';': true,
+};

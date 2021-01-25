@@ -22,6 +22,64 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  it(`can handle misc punctuation`, () => {
+    const parser = getParser(`Hello world! "\`Hello\`"!\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello world! ` },
+      { type: n.SYMBOL, meta: { subType: t.LEFT_DOUBLE_CURLY } },
+      { type: n.TEXT, value: `Hello` },
+      { type: n.SYMBOL, meta: { subType: t.RIGHT_DOUBLE_CURLY } },
+      { type: n.TEXT, value: `!` },
+    ]);
+  });
+
+  it(`can extract monetary nodes`, () => {
+    const parser = getParser(`Gave me £40 sterling\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Gave me ` },
+      {
+        type: n.MONEY,
+        value: `£40`,
+        meta: { data: { currencyType: t.POUND_SYMBOL, amount: 40 } },
+      },
+      { type: n.TEXT, value: ` sterling` },
+    ]);
+  });
+
+  const moneyCases: Array<[string, string, string, number, string, string]> = [
+    ['Foo $30,000 bar', `$30,000`, t.DOLLAR_SYMBOL, 30000, 'Foo ', ' bar'],
+    ['gave £40, then', `£40`, t.POUND_SYMBOL, 40, 'gave ', ', then'],
+    ['value of £42;', `£42`, t.POUND_SYMBOL, 42, 'value of ', `;`],
+    ['(£800,000 sterling)', `£800,000`, t.POUND_SYMBOL, 800000, '(', ` sterling)`],
+    ['gave £4, then', `£4`, t.POUND_SYMBOL, 4, 'gave ', ', then'],
+    ['Foo £50. Bar', `£50`, t.POUND_SYMBOL, 50, 'Foo ', '. Bar'],
+    [`estimated at £100,000,`, `£100,000`, t.POUND_SYMBOL, 100000, `estimated at `, `,`],
+    [`fine £1,125 sterling.`, `£1,125`, t.POUND_SYMBOL, 1125, `fine `, ` sterling.`],
+  ];
+
+  test.each(moneyCases)(
+    `parses money from %s`,
+    (input, value, symbol, amount, before, after) => {
+      const parser = getParser(`${input}\n`);
+      const nodes = parser.parseUntil(getPara(), t.EOL);
+      nodes.forEach(assertAllNodesHaveTokens);
+      expect(nodes).toHaveLength(after ? 3 : 2);
+      expect(nodes).toMatchObject([
+        { type: n.TEXT, value: before },
+        {
+          type: n.MONEY,
+          value,
+          meta: { data: { currencyType: symbol, amount } },
+        },
+        ...(after ? [{ type: n.TEXT, value: after }] : []),
+      ]);
+    },
+  );
+
   it(`can handle redacted words`, () => {
     const parser = getParser(`Hello _______ world\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
@@ -108,11 +166,14 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const parser = getParser(`fined £40\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
     nodes.forEach(assertAllNodesHaveTokens);
-    expect(nodes).toHaveLength(3);
+    expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `fined ` },
-      { type: n.SYMBOL, value: `£`, meta: { subType: t.POUND_SYMBOL } },
-      { type: n.TEXT, value: `40` },
+      {
+        type: n.MONEY,
+        value: `£40`,
+        meta: { data: { currencyType: t.POUND_SYMBOL, amount: 40 } },
+      },
     ]);
   });
 
@@ -120,11 +181,14 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const parser = getParser(`fined $40\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
     nodes.forEach(assertAllNodesHaveTokens);
-    expect(nodes).toHaveLength(3);
+    expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
       { type: n.TEXT, value: `fined ` },
-      { type: n.SYMBOL, value: `$`, meta: { subType: t.DOLLAR_SYMBOL } },
-      { type: n.TEXT, value: `40` },
+      {
+        type: n.MONEY,
+        value: `$40`,
+        meta: { data: { currencyType: t.DOLLAR_SYMBOL, amount: 40 } },
+      },
     ]);
   });
 
@@ -271,6 +335,22 @@ describe(`Parser.parseUntil() using parselets`, () => {
     expect(nodes[1]!.endToken).toMatchObject({
       type: t.UNDERSCORE,
       literal: `_`,
+    });
+  });
+
+  it(`can handle double-underscore emphasis child nodes`, () => {
+    const parser = getParser(`Hello __world__ foo\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      { type: n.TEXT, value: `Hello ` },
+      { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `world` }] },
+      { type: n.TEXT, value: ` foo` },
+    ]);
+    expect(nodes[1]!.endToken).toMatchObject({
+      type: t.UNDERSCORE,
+      literal: `__`,
     });
   });
 

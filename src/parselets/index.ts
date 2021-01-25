@@ -14,6 +14,10 @@ export default function getParselet(token: Token): Parselet | null {
     case t.TEXT:
     case t.EOL:
     case t.DOT:
+    case t.QUESTION_MARK:
+    case t.EXCLAMATION_MARK:
+    case t.COLON:
+    case t.SEMICOLON:
     case t.WHITESPACE:
     case t.LEFT_PARENS:
     case t.RIGHT_BRACKET:

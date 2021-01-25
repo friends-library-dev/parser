@@ -2,7 +2,7 @@ import Node from '../nodes/AstNode';
 import { Parselet, TOKEN as t, NODE as n } from '../types';
 
 const underscore: Parselet = (parser, parent) => {
-  if (parser.current.literal === `_`) {
+  if (parser.current.literal === `_` || parser.current.literal === `__`) {
     return emphasis(parser, parent);
   }
 
@@ -24,8 +24,8 @@ const emphasis: Parselet = (parser, parent) => {
   const open = parser.current;
   const node = new Node(n.EMPHASIS, parent, { startToken: open });
   parser.consume();
-  node.children = parser.parseUntil(node, [t.UNDERSCORE, `_`]);
+  node.children = parser.parseUntil(node, [t.UNDERSCORE, open.literal]);
   node.endToken = parser.current;
-  parser.consumeClose([t.UNDERSCORE, `_`], n.EMPHASIS, open);
+  parser.consumeClose([t.UNDERSCORE, open.literal], n.EMPHASIS, open);
   return node;
 };

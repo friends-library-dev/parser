@@ -58,7 +58,9 @@ describe(`ContextParser.parse()`, () => {
     expect(context?.quoteSource?.map(simplifyToken)).toMatchObject([
       { type: t.TEXT, literal: `John` },
       { type: t.WHITESPACE, literal: ` ` },
-      { type: t.TEXT, literal: `1:4-5` },
+      { type: t.TEXT, literal: `1` },
+      { type: t.COLON, literal: `:` },
+      { type: t.TEXT, literal: `4-5` },
     ]);
   });
 
@@ -97,7 +99,9 @@ describe(`ContextParser.parse()`, () => {
     expect(context?.quoteSource?.map(simplifyToken)).toMatchObject([
       { type: t.TEXT, literal: `John` },
       { type: t.WHITESPACE, literal: ` ` },
-      { type: t.TEXT, literal: `1:4-5` },
+      { type: t.TEXT, literal: `1` },
+      { type: t.COLON, literal: `:` },
+      { type: t.TEXT, literal: `4-5` },
     ]);
   });
 

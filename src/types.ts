@@ -40,6 +40,10 @@ export const TOKEN = {
   BACKTICK: `BACKTICK`,
   RAW_PASSTHROUGH: `RAW_PASSTHROUGH`,
   DOT: `DOT`,
+  SEMICOLON: `SEMICOLON`,
+  COLON: `COLON`,
+  EXCLAMATION_MARK: `EXCLAMATION_MARK`,
+  QUESTION_MARK: `QUESTION_MARK`,
   ILLEGAL: `ILLEGAL`,
   EOL: `EOL`,
   DOUBLE_EOL: `DOUBLE_EOL`,
@@ -95,6 +99,7 @@ export const NODE = {
   DESCRIPTION_LIST_ITEM_TERM: `DESCRIPTION_LIST_ITEM_TERM`,
   DESCRIPTION_LIST_ITEM_CONTENT: `DESCRIPTION_LIST_ITEM_CONTENT`,
   ENTITY: `ENTITY`,
+  MONEY: `MONEY`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -131,6 +136,9 @@ export interface AstNode {
   meta: {
     subType?: string;
     level?: number;
+    data?: {
+      [k: string]: string | number;
+    };
   };
   toJSON: (withTokens?: true) => Record<string, unknown>;
   print: (withTokens?: true) => void;

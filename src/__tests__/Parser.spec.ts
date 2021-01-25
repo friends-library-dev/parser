@@ -570,7 +570,13 @@ describe(`Parser.parse()`, () => {
         type: n.BLOCK,
         meta: { subType: `quote` },
         context: {
-          quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:1` }],
+          quoteSource: [
+            { literal: `John` },
+            { literal: ` ` },
+            { literal: `1` },
+            { literal: `:` },
+            { literal: `1` },
+          ],
         },
         children: [
           {
@@ -583,7 +589,13 @@ describe(`Parser.parse()`, () => {
         type: n.BLOCK,
         meta: { subType: `quote` },
         context: {
-          quoteSource: [{ literal: `John` }, { literal: ` ` }, { literal: `1:2` }],
+          quoteSource: [
+            { literal: `John` },
+            { literal: ` ` },
+            { literal: `1` },
+            { literal: `:` },
+            { literal: `2` },
+          ],
         },
         children: [
           {

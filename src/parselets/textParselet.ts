@@ -21,6 +21,7 @@ const textParselet: Parselet = (parser, parent) => {
       t.EOL,
       t.COMMA,
       t.DOT,
+      t.EXCLAMATION_MARK,
       t.LEFT_PARENS,
       t.RIGHT_PARENS,
       t.RIGHT_BRACKET,

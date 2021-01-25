@@ -108,7 +108,9 @@ describe(`lexer`, () => {
       { type: t.TEXT, literal: `Ps` },
       { type: t.DOT, literal: `.` },
       { type: t.WHITESPACE, literal: ` ` },
-      { type: t.TEXT, literal: `37:18` },
+      { type: t.TEXT, literal: `37` },
+      { type: t.COLON, literal: `:` },
+      { type: t.TEXT, literal: `18` },
       { type: t.RIGHT_BRACKET, literal: `]` },
     ]);
   });
@@ -339,11 +341,14 @@ describe(`lexer`, () => {
 
   test(`other punctuation`, () => {
     expect(simpleTokens(`foo? foo; foo!`)).toMatchObject([
-      { type: t.TEXT, literal: `foo?` },
+      { type: t.TEXT, literal: `foo` },
+      { type: t.QUESTION_MARK, literal: `?` },
       { type: t.WHITESPACE, literal: ` ` },
-      { type: t.TEXT, literal: `foo;` },
+      { type: t.TEXT, literal: `foo` },
+      { type: t.SEMICOLON, literal: `;` },
       { type: t.WHITESPACE, literal: ` ` },
-      { type: t.TEXT, literal: `foo!` },
+      { type: t.TEXT, literal: `foo` },
+      { type: t.EXCLAMATION_MARK, literal: `!` },
     ]);
   });
 
@@ -449,7 +454,7 @@ describe(`lexer`, () => {
       { type: t.WHITESPACE, literal: ` ` },
       { type: t.TEXT, literal: `viz` },
       { type: t.DOT, literal: `.` },
-      { type: t.TEXT, literal: `:` },
+      { type: t.COLON, literal: `:` },
       { type: t.EOL, literal: `\n` },
       { type: t.TEXT, literal: `foo` },
     ]);
