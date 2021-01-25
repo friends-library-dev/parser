@@ -29,25 +29,17 @@ export default class PoetryParser {
       !this.p.peekTokensAnyOf([t.DOUBLE_EOL], [[t.UNDERSCORE, `____`]], [t.EOF])
     ) {
       const line = new Node(n.VERSE_LINE, stanza, { startToken: this.p.current });
-      line.children = this.parseLine(line);
+      this.parseLine(line);
       lines.push(line);
       line.endToken = this.p.lastSignificantToken();
     }
     return lines;
   }
 
-  private parseLine(line: AstNode): AstNode[] {
-    // for now let's (only semi-naively) assume that verse lines don't contain other nodes
-    const textNode = new Node(n.TEXT, line, { startToken: this.p.current });
-    const guard = this.p.makeWhileGuard(`PoetryParser.parseLine()`);
-    while (guard() && !this.p.currentOneOf(t.EOL, t.DOUBLE_EOL)) {
-      textNode.value += this.p.current.literal;
-      this.p.consume();
-    }
-    textNode.endToken = this.p.lastSignificantToken();
+  private parseLine(line: AstNode): void {
+    line.children = this.p.parseUntil(line, t.EOX);
     if (this.p.currentIs(t.EOL)) {
       this.p.consume(t.EOL);
     }
-    return [textNode];
   }
 }

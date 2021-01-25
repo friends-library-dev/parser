@@ -22,6 +22,31 @@ describe(`PoetryParser.parse()`, () => {
     ]);
   });
 
+  it(`places symbols into correct nodes`, () => {
+    const poetry = getParsedPoetry(`
+       Hello "\`Mama\`"
+       Hello Papa
+     `);
+    poetry.forEach(assertAllNodesHaveTokens);
+    expect(poetry.map((s) => s.toJSON())).toMatchObject([
+      {
+        type: n.VERSE_STANZA,
+        children: [
+          {
+            type: n.VERSE_LINE,
+            children: [
+              { type: n.TEXT, value: `Hello ` },
+              { type: n.SYMBOL, meta: { subType: `LEFT_DOUBLE_CURLY` } },
+              { type: n.TEXT, value: `Mama` },
+              { type: n.SYMBOL, meta: { subType: `RIGHT_DOUBLE_CURLY` } },
+            ],
+          },
+          { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+        ],
+      },
+    ]);
+  });
+
   it(`can handle multiple stanzas`, () => {
     const poetry = getParsedPoetry(`
        Hello Mama
