@@ -836,4 +836,24 @@ describe(`Parser.parse()`, () => {
       ],
     });
   });
+
+  it(`can parse a chapter after a description list`, () => {
+    const chap1 = `
+    == Chapter 1
+
+    Foo: bar
+
+    Baz:: bang
+    `;
+
+    const chap2 = `
+    == Chapter 2
+
+    Hello world
+    `;
+
+    const document = parseAdocFile(chap1, chap2);
+
+    expect(document.children).toHaveLength(2);
+  });
 });

@@ -39,9 +39,10 @@ export default class Parser {
     this.parseDocumentEpigraphs(document);
 
     const guard = this.makeWhileGuard(`Parser.parse()`);
-    while (guard() && !this.currentOneOf(t.EOF, t.EOD)) {
+    while (guard() && !this.currentIs(t.EOD)) {
       const chapterParser = new ChapterParser(this);
       document.children.push(chapterParser.parse(document));
+      this.consumeIf(t.EOF);
     }
 
     document.endToken = this.current;

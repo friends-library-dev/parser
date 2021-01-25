@@ -5,17 +5,17 @@ import Node from '../nodes/AstNode';
 import DocumentNode from '../nodes/DocumentNode';
 import Parser from '../Parser';
 
-export function parseAdocFile(adoc: string): AstNode {
-  const parser = getParser(prepareAdocFile(adoc));
+export function parseAdocFile(...adoc: string[]): AstNode {
+  const parser = getParser(...prepareAdocFile(...adoc));
   return parser.parse();
 }
 
-export function prepareAdocFile(adoc: string): string {
-  return stripIndent(adoc).trim() + `\n`;
+export function prepareAdocFile(...adocs: string[]): string[] {
+  return adocs.map((adoc) => stripIndent(adoc).trim() + `\n`);
 }
 
-export function getParser(adoc: string): Parser {
-  const lexer = new Lexer({ adoc });
+export function getParser(...adocs: string[]): Parser {
+  const lexer = new Lexer(...adocs.map((adoc) => ({ adoc })));
   return new Parser(lexer);
 }
 
