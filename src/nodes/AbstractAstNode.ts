@@ -1,4 +1,12 @@
-import { AstNode, AstNode as AstNodeInterface, Token, NodeType, Context } from '../types';
+import {
+  AstNode,
+  AstNode as AstNodeInterface,
+  DocumentNode,
+  Token,
+  NodeType,
+  Context,
+  NODE as n,
+} from '../types';
 
 export default abstract class AbstractAstNode implements AstNodeInterface {
   public children: AstNode[] = [];
@@ -9,11 +17,109 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
   protected _endToken: Token | undefined;
 
   public get parent(): AstNodeInterface {
-    throw new Error(`AbstractAstNode.parent not implemented`);
+    throw new Error(`AbstractAstNode.parent not implemented for type: ${this.type}`);
+  }
+
+  public document(): DocumentNode {
+    let current: AstNodeInterface = this;
+    while (!current.isDocument()) {
+      current = current.parent;
+    }
+    return current;
   }
 
   public get type(): NodeType {
     throw new Error(`AbstractAstNode.type not implemented`);
+  }
+
+  public descendsFrom(type: NodeType): boolean {
+    let current: AstNodeInterface = this;
+    while (!current.isDocument()) {
+      current = current.parent;
+      if (current.type === type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public isDocument(): this is DocumentNode {
+    return false;
+  }
+
+  public isParagraph(): boolean {
+    return this.type === n.PARAGRAPH;
+  }
+
+  public isOpenBlock(): boolean {
+    return this.meta.subType === `open`;
+  }
+
+  public isNumberedBlock(): boolean {
+    return this.isExampleBlock() && this.hasClass(`numbered-group`);
+  }
+
+  public isExampleBlock(): boolean {
+    return this.meta.subType === `example`;
+  }
+
+  public isPoetryBlock(): boolean {
+    return this.type === n.BLOCK && this.meta.subType === `verse`;
+  }
+
+  public isQuoteBlock(): boolean {
+    return this.type === n.BLOCK && this.context?.type === `quote`;
+  }
+
+  public isAttributedQuoteBlock(): boolean {
+    if (!this.isQuoteBlock()) {
+      return false;
+    }
+    const context = this.context;
+    return !!(context?.quoteSource?.length || context?.quoteSource?.length);
+  }
+
+  public hasClass(className: string): boolean {
+    return this.context?.classList.includes(className) ?? false;
+  }
+
+  public siblingIndex(): number {
+    return this.parent.children.indexOf(this);
+  }
+
+  public nextSibling(): AstNode | null {
+    return this.parent.children[this.siblingIndex() + 1] ?? null;
+  }
+
+  public isFirstChild(): boolean {
+    return this.siblingIndex() === 0;
+  }
+
+  public isLastChild(): boolean {
+    return this.siblingIndex() === this.parent.children.length - 1;
+  }
+
+  public isOnlyChild(): boolean {
+    return this.parent.children.length === 1;
+  }
+
+  public hasSiblings(): boolean {
+    return !this.isOnlyChild();
+  }
+
+  public isInFootnote(): boolean {
+    return this.descendsFrom(n.FOOTNOTE);
+  }
+
+  public setMetaData(key: string, value: string | number | boolean): void {
+    if (!this.meta.data) {
+      this.meta.data = {};
+    }
+    this.meta.data[key] = value;
+  }
+
+  public getMetaData(key: string): string | number | boolean | undefined {
+    return this.meta.data?.[key];
   }
 
   public set startToken(token: Token) {

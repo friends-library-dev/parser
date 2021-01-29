@@ -856,4 +856,15 @@ describe(`Parser.parse()`, () => {
 
     expect(document.children).toHaveLength(2);
   });
+
+  test(`footnote nodes are added to document`, () => {
+    const node = parseAdocFile(`
+      == Chapter 1.footnote:[Howdy]
+      
+      Hello world.^
+      footnote:[Hello]
+    `);
+
+    expect(node.document().footnotes).toHaveLength(2);
+  });
 });

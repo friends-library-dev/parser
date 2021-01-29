@@ -10,31 +10,108 @@ describe(`HeadingParse.parse()`, () => {
     expect(heading.toJSON()).toMatchObject({
       type: n.HEADING,
       meta: { level: 2 },
-      children: [{ type: n.TEXT, value: `Chapter 1` }],
+      children: [
+        {
+          type: n.HEADING_SEQUENCE_IDENTIFIER,
+          value: `Chapter 1`,
+          meta: { data: { number: 1, kind: `Chapter` } },
+        },
+      ],
     });
   });
 
-  it(`handles old-style heading`, () => {
-    const heading = getParsedHeading(`== Old / Style / Heading`);
+  const sequences: Array<[string, string, string, number, string[]]> = [
+    [`Chapter 1`, `Chapter 1`, `Chapter`, 1, []],
+    [`Sección 999`, `Sección 999`, `Sección`, 999, []],
+    [`Capítulo xiii.`, `Capítulo xiii.`, `Capítulo`, 13, []],
+    [`Section III: Beep`, `Section III:`, `Section`, 3, [`Beep`]],
+    [`Sección I: Boop`, `Sección I:`, `Sección`, 1, [`Boop`]],
+  ];
+
+  test.each(sequences)(`"%s" parsed correctly`, (input, seq, kind, number, title) => {
+    const heading = getParsedHeading(`== ${input}`);
     assertAllNodesHaveTokens(heading);
     expect(heading.toJSON()).toMatchObject({
       type: n.HEADING,
       meta: { level: 2 },
       children: [
         {
-          type: n.OLD_STYLE_LINE,
-          meta: { level: 1 },
-          children: [{ type: n.TEXT, value: `Old` }],
+          type: n.HEADING_SEQUENCE_IDENTIFIER,
+          value: seq,
+          meta: { data: { kind, number } },
+        },
+        ...(title.length
+          ? [
+              {
+                type: n.HEADING_TITLE,
+                children: title.map((t) => ({ type: n.TEXT, value: t })),
+              },
+            ]
+          : []),
+      ],
+    });
+  });
+
+  it(`handles segmented heading`, () => {
+    const heading = getParsedHeading(`== Segment 1 / Segment 2 / Segment 3`);
+    assertAllNodesHaveTokens(heading);
+    expect(heading.toJSON()).toMatchObject({
+      type: n.HEADING,
+      meta: { level: 2 },
+      children: [
+        {
+          type: n.HEADING_TITLE,
+          children: [
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 1 },
+              children: [{ type: n.TEXT, value: `Segment 1` }],
+            },
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 2 },
+              children: [{ type: n.TEXT, value: `Segment 2` }],
+            },
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 3 },
+              children: [{ type: n.TEXT, value: `Segment 3` }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`handles sequenced + segmented heading`, () => {
+    const heading = getParsedHeading(`== Chapter IV: Segment 1 / Segment _2_`);
+    assertAllNodesHaveTokens(heading);
+    expect(heading.toJSON()).toMatchObject({
+      type: n.HEADING,
+      meta: { level: 2 },
+      children: [
+        {
+          type: n.HEADING_SEQUENCE_IDENTIFIER,
+          value: `Chapter IV:`,
+          meta: { data: { number: 4, kind: `Chapter`, roman: `IV` } },
         },
         {
-          type: n.OLD_STYLE_LINE,
-          meta: { level: 2 },
-          children: [{ type: n.TEXT, value: `Style` }],
-        },
-        {
-          type: n.OLD_STYLE_LINE,
-          meta: { level: 3 },
-          children: [{ type: n.TEXT, value: `Heading` }],
+          type: n.HEADING_TITLE,
+          children: [
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 1 },
+              children: [{ type: n.TEXT, value: `Segment 1` }],
+            },
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 2 },
+              children: [
+                { type: n.TEXT, value: `Segment ` },
+                { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `2` }] },
+              ],
+            },
+          ],
         },
       ],
     });

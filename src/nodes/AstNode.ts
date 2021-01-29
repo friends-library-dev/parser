@@ -55,7 +55,15 @@ export default class AstNode extends AbstractAstNode implements AstNodeInterface
     return this._type;
   }
 
+  public set type(type: NodeType) {
+    this._type = type;
+  }
+
   public get parent(): AstNodeInterface {
     return this._parent;
+  }
+
+  public set parent(parent: AstNodeInterface) {
+    this._parent = parent;
   }
 }

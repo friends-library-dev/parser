@@ -27,5 +27,17 @@ const emphasis: Parselet = (parser, parent) => {
   node.children = parser.parseUntil(node, [t.UNDERSCORE, open.literal]);
   node.endToken = parser.current;
   parser.consumeClose([t.UNDERSCORE, open.literal], n.EMPHASIS, open);
+
+  if (
+    open.column.start === 1 &&
+    (parent.hasClass(`discourse-part`) || parent.parent.hasClass(`discourse-part`)) &&
+    node.children.length === 1 &&
+    node.children[0]?.type === n.TEXT
+  ) {
+    const dpId = node.children[0];
+    dpId.type = n.DISCOURSE_PART_IDENTIFIER;
+    dpId.parent = parent;
+    return dpId;
+  }
   return node;
 };

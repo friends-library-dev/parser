@@ -59,10 +59,3 @@ export default class DescriptionListParser {
     return list;
   }
 }
-
-/* 
-
-List
-Item
-Term:: Content
-*/

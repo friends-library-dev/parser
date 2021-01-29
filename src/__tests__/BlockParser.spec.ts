@@ -566,6 +566,70 @@ describe(`BlockParser.parse()`, () => {
       ],
     });
   });
+
+  it(`handles finding discourse-part identifiers`, () => {
+    const block = getParsedBlock(`
+      [.discourse-part]
+      Question: Hello world.
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      context: { classList: [`discourse-part`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [
+            { type: n.DISCOURSE_PART_IDENTIFIER, value: `Question:` },
+            { type: n.TEXT, value: ` Hello world.` },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`handles manual discourse-part identifiers`, () => {
+    const block = getParsedBlock(`
+      [.discourse-part]
+      __Landlord.__--So John, are you busy
+    `);
+    assertAllNodesHaveTokens(block);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      context: { classList: [`discourse-part`] },
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [
+            { type: n.DISCOURSE_PART_IDENTIFIER, value: `Landlord.` },
+            { type: n.SYMBOL, meta: { subType: `DOUBLE_DASH` } },
+            { type: n.TEXT, value: `So John, are you busy` },
+          ],
+        },
+      ],
+    });
+  });
+
+  const dpIdCases: Array<[string, string, string]> = [
+    [`Question: Foo bar?`, `Question:`, ` Foo bar`],
+    [`Question. After period,`, `Question.`, ` After period,`],
+    [`Answer:\nNext line.`, `Answer:`, ` Next line.`],
+    [`Answer 143: Hash baz`, `Answer 143:`, ` Hash baz`],
+    [`Objection: Herp`, `Objection:`, ` Herp`],
+    [`Inquiry 13:\nBeep`, `Inquiry 13:`, ` Beep`],
+    [`Pregunta: Herp`, `Pregunta:`, ` Herp`],
+    [`Respuesta: Herp`, `Respuesta:`, ` Herp`],
+    [`Respuesta: Herp`, `Respuesta:`, ` Herp`],
+  ];
+
+  test.each(dpIdCases)(`"%s" broken into [%s] and [%s]`, (input, id, textAfter) => {
+    const block = getParsedBlock(`[.discourse-part]\n${input}`);
+    assertAllNodesHaveTokens(block);
+    expect(block.children[0]?.children.slice(0, 2).map((c) => c.toJSON())).toMatchObject([
+      { type: n.DISCOURSE_PART_IDENTIFIER, value: id },
+      { type: n.TEXT, value: textAfter },
+    ]);
+  });
 });
 
 function getParsedBlock(adoc: string): AstNode {

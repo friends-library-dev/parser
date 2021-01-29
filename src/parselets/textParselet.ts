@@ -1,10 +1,17 @@
+import { Parselet, TOKEN as t, NODE as n, Token, AstNode } from '../types';
 import Node from '../nodes/AstNode';
 import Parser from '../Parser';
-import { Parselet, TOKEN as t, NODE as n, Token } from '../types';
+import DiscoursePartIdentifierParser from '../parsers/DiscoursePartIdentifierParser';
 
 const textParselet: Parselet = (parser, parent) => {
   if (parser.currentIs(t.DOT) && parser.current.column.start === 1) {
     parser.error(`line starting with dot not implemented`);
+  }
+
+  const discourseParser = new DiscoursePartIdentifierParser(parser);
+  const discoursePartId = discourseParser.parse(parent);
+  if (discoursePartId) {
+    return discoursePartId;
   }
 
   const node = new Node(n.TEXT, parent, { value: parser.current.literal });

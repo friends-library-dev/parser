@@ -76,6 +76,9 @@ export const NODE = {
   DOCUMENT: `DOCUMENT`,
   CHAPTER: `CHAPTER`,
   HEADING: `HEADING`,
+  HEADING_SEQUENCE_IDENTIFIER: `HEADING_SEQUENCE_IDENTIFIER`,
+  HEADING_TITLE: `HEADING_TITLE`,
+  HEADING_SEGMENT: `HEADING_SEGMENT`,
   SECTION: `SECTION`,
   PARAGRAPH: `PARAGRAPH`,
   EMPHASIS: `EMPHASIS`,
@@ -93,11 +96,11 @@ export const NODE = {
   INLINE: `INLINE`,
   FOOTNOTE: `FOOTNOTE`,
   REDACTED: `REDACTED`,
-  OLD_STYLE_LINE: `OLD_STYLE_LINE`,
   DESCRIPTION_LIST: `DESCRIPTION_LIST`,
   DESCRIPTION_LIST_ITEM: `DESCRIPTION_LIST_ITEM`,
   DESCRIPTION_LIST_ITEM_TERM: `DESCRIPTION_LIST_ITEM_TERM`,
   DESCRIPTION_LIST_ITEM_CONTENT: `DESCRIPTION_LIST_ITEM_CONTENT`,
+  DISCOURSE_PART_IDENTIFIER: `DISCOURSE_PART_IDENTIFIER`,
   ENTITY: `ENTITY`,
   MONEY: `MONEY`,
 } as const;
@@ -133,28 +136,61 @@ export interface AstNode {
   startToken: Token;
   endToken: Token;
   parent: AstNode;
+  toJSON: (withTokens?: true) => Record<string, unknown>;
+  print: (withTokens?: true) => void;
+  isDocument: () => this is DocumentNode;
+  document: () => DocumentNode;
+  isAttributedQuoteBlock(): boolean;
+  isQuoteBlock(): boolean;
+  isOpenBlock(): boolean;
+  isExampleBlock(): boolean;
+  isNumberedBlock(): boolean;
+  isPoetryBlock(): boolean;
+  isFirstChild(): boolean;
+  isLastChild(): boolean;
+  isOnlyChild(): boolean;
+  isParagraph(): boolean;
+  hasSiblings(): boolean;
+  isInFootnote(): boolean;
+  descendsFrom(type: NodeType): boolean;
+  siblingIndex(): number;
+  nextSibling(): AstNode | null;
+  hasClass(className: string): boolean;
+  setMetaData(key: string, value: string | number | boolean): void;
+  getMetaData(key: string): string | number | boolean | undefined;
   meta: {
     subType?: string;
     level?: number;
     data?: {
-      [k: string]: string | number;
+      [k: string]: string | number | boolean;
     };
   };
-  toJSON: (withTokens?: true) => Record<string, unknown>;
-  print: (withTokens?: true) => void;
 }
+
+export type DocumentNode = AstNode & {
+  epigraphs: AstNode[];
+  footnotes: AstNode[];
+};
 
 export interface Parselet {
   (parser: Parser, parent: AstNode): AstNode;
 }
 
-export interface VisitFn<Output = unknown, Context = unknown> {
-  (data: { node: AstNode; output: Output; context: Context }): unknown;
+export interface VisitData<Output = unknown, Context = unknown> {
+  node: AstNode;
+  output: Output;
+  context: Context;
+  index: number;
+}
+
+export interface VisitFn<Output = unknown, Context = unknown, ReturnType = unknown> {
+  (data: VisitData<Output, Context>): ReturnType;
 }
 
 export interface Visitable<Output = unknown, Context = unknown> {
   enter?: VisitFn<Output, Context>;
   exit?: VisitFn<Output, Context>;
+  dispatch?: (node: AstNode) => Visitable<Output, Context>;
 }
 
 type ToCamel<S extends string> = S extends `${infer Head}_${infer Tail}`
@@ -163,8 +199,13 @@ type ToCamel<S extends string> = S extends `${infer Head}_${infer Tail}`
 
 export type Camelcase<T extends string> = ToCamel<Lowercase<T>>;
 
+type ContextualNode = `${NodeType}_IN_${NodeType}`;
+
 export type Visitor<Output = unknown, Context = unknown> = {
-  [N in NodeType | 'node' as `${Camelcase<string & N>}`]?: Visitable<Output, Context>;
+  [N in NodeType | ContextualNode | 'node' as `${Camelcase<string & N>}`]?: Visitable<
+    Output,
+    Context
+  >;
 };
 
 export interface AsciidocFile {
