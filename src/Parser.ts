@@ -203,6 +203,14 @@ export default class Parser {
     return groups.some((tokens) => this.peekTokens(...tokens));
   }
 
+  public peekJoinedLiterals(numTokens: number): string {
+    let joined = ``;
+    for (let i = 0; i < numTokens; i++) {
+      joined += this.lookAhead(i).literal;
+    }
+    return joined;
+  }
+
   public peekHeading(): boolean {
     const [token1, token2] = this.firstTokensAfterOptionalContext();
     if (this.tokenIs(token1, t.EQUALS) && this.tokenIs(token2, t.WHITESPACE)) {

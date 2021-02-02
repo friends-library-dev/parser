@@ -3,7 +3,19 @@ import Parser from '../Parser';
 import Node from '../nodes/AstNode';
 
 export default class DiscoursePartIdentifierParser {
-  public constructor(private p: Parser) {}
+  protected terminators = [t.DOT, t.COLON];
+  protected className = `discourse-part`;
+  protected idStarters = [
+    `question`,
+    'pregunta',
+    'answer',
+    'respuesta',
+    'objection',
+    'objeción',
+    'inquiry',
+  ];
+
+  public constructor(protected p: Parser) {}
 
   public parse(parent: AstNode): AstNode | null {
     if (!this.identifierPossible(parent)) {
@@ -11,7 +23,7 @@ export default class DiscoursePartIdentifierParser {
     }
 
     const firstWord = this.p.current.literal;
-    if (!IDENTIFIER_STARTERS.includes(firstWord.toLowerCase())) {
+    if (!this.idStarters.includes(firstWord.toLowerCase())) {
       return null;
     }
 
@@ -38,8 +50,8 @@ export default class DiscoursePartIdentifierParser {
     return node;
   }
 
-  private consumeTerminator(node: AstNode): boolean {
-    if (this.p.currentOneOf(t.DOT, t.COLON)) {
+  protected consumeTerminator(node: AstNode): boolean {
+    if (this.p.currentOneOf(...this.terminators)) {
       node.value += this.p.current.literal;
       node.endToken = this.p.consume();
       return true;
@@ -47,25 +59,15 @@ export default class DiscoursePartIdentifierParser {
     return false;
   }
 
-  private identifierPossible(parent: AstNode): boolean {
+  protected identifierPossible(parent: AstNode): boolean {
     if (this.p.current.column.start !== 1 || this.p.current.type !== n.TEXT) {
       return false;
     }
 
-    if (!parent.hasClass(`discourse-part`) && !parent.parent.hasClass(`discourse-part`)) {
+    if (!parent.hasClass(this.className) && !parent.parent.hasClass(this.className)) {
       return false;
     }
 
     return true;
   }
 }
-
-const IDENTIFIER_STARTERS = [
-  `question`,
-  'pregunta',
-  'answer',
-  'respuesta',
-  'objection',
-  'objeción',
-  'inquiry',
-];

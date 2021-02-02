@@ -2,6 +2,7 @@ import { Parselet, TOKEN as t, NODE as n, Token, AstNode } from '../types';
 import Node from '../nodes/AstNode';
 import Parser from '../Parser';
 import DiscoursePartIdentifierParser from '../parsers/DiscoursePartIdentifierParser';
+import PostscriptIdentifierParser from '../parsers/PostscriptIdentifierParser';
 
 const textParselet: Parselet = (parser, parent) => {
   if (parser.currentIs(t.DOT) && parser.current.column.start === 1) {
@@ -12,6 +13,12 @@ const textParselet: Parselet = (parser, parent) => {
   const discoursePartId = discourseParser.parse(parent);
   if (discoursePartId) {
     return discoursePartId;
+  }
+
+  const psParser = new PostscriptIdentifierParser(parser);
+  const psId = psParser.parse(parent);
+  if (psId) {
+    return psId;
   }
 
   const node = new Node(n.TEXT, parent, { value: parser.current.literal });
@@ -33,9 +40,17 @@ const textParselet: Parselet = (parser, parent) => {
       t.RIGHT_PARENS,
       t.RIGHT_BRACKET,
       t.AMPERSAND,
+      t.TRIPLE_PLUS,
     ) &&
     !parser.stopTokensFound()
   ) {
+    const passthruResult = handlePassthru(node, parser);
+    if (passthruResult === `continue`) {
+      continue;
+    } else if (passthruResult === `return`) {
+      return endNode(node, parser);
+    }
+
     const token = parser.consume();
     switch (token.type) {
       case t.WHITESPACE:
@@ -51,11 +66,39 @@ const textParselet: Parselet = (parser, parent) => {
         break;
     }
   }
-  node.endToken = parser.lastSignificantToken();
-  return node;
+  return endNode(node, parser);
 };
 
 export default textParselet;
+
+function handlePassthru(
+  node: AstNode,
+  parser: Parser,
+): `proceed` | 'return' | 'continue' {
+  if (!parser.currentIs(t.TRIPLE_PLUS)) {
+    return `proceed`;
+  }
+
+  // we only consume (certain) INLINE passthroughs
+  if (!parser.peekTokens(t.TRIPLE_PLUS, t.RAW_PASSTHROUGH, t.TRIPLE_PLUS)) {
+    return `return`;
+  }
+
+  if (!parser.peek.literal.match(/^(\.|\[|\]|-|;|\*)$/)) {
+    return `return`;
+  }
+
+  parser.consume(t.TRIPLE_PLUS);
+  node.endToken = parser.consume(t.RAW_PASSTHROUGH);
+  node.value += node.endToken.literal;
+  parser.consume(t.TRIPLE_PLUS);
+  return `continue`;
+}
+
+function endNode(node: AstNode, parser: Parser): AstNode {
+  node.endToken = parser.lastSignificantToken();
+  return node;
+}
 
 function shouldConvertEolToSpace(parser: Parser, token: Token): boolean {
   // final paragraph in blockquote should not have a trailing space

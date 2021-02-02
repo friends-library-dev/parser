@@ -2,6 +2,12 @@ import DocumentNode from '../nodes/DocumentNode';
 import { NODE as n, TOKEN as t } from '../types';
 import { assertAllNodesHaveTokens, getParser, parseAdocFile } from './helpers';
 
+const PREFACE_CH_HEADING_NODE = {
+  type: n.HEADING,
+  children: [{ type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: `Preface` }] }],
+  meta: { level: 2 },
+};
+
 describe(`Parser.parseContext()`, () => {
   test(`parsing basic context`, () => {
     const parser = getParser(`[.offset]\n`);
@@ -13,7 +19,7 @@ describe(`Parser.parseContext()`, () => {
 describe(`Parser.parse()`, () => {
   it(`can parse a hello-world chapter`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
       
       Hello world
     `);
@@ -25,7 +31,9 @@ describe(`Parser.parse()`, () => {
           children: [
             {
               type: n.HEADING,
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
+              children: [
+                { type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: `Preface` }] },
+              ],
               meta: { level: 2 },
             },
             {
@@ -58,8 +66,17 @@ describe(`Parser.parse()`, () => {
             {
               type: n.HEADING,
               children: [
-                { type: n.SYMBOL, value: `'\``, meta: { subType: `LEFT_SINGLE_CURLY` } },
-                { type: n.TEXT, value: `Tis a Chapter Title` },
+                {
+                  type: n.HEADING_TITLE,
+                  children: [
+                    {
+                      type: n.SYMBOL,
+                      value: `'\``,
+                      meta: { subType: `LEFT_SINGLE_CURLY` },
+                    },
+                    { type: n.TEXT, value: `Tis a Chapter Title` },
+                  ],
+                },
               ],
               meta: { level: 2 },
             },
@@ -80,7 +97,7 @@ describe(`Parser.parse()`, () => {
 
   it(`can parse a comment line`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
       
       // here is a comment
       Hello world
@@ -91,11 +108,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-              meta: { level: 2 },
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               children: [
@@ -113,7 +126,7 @@ describe(`Parser.parse()`, () => {
 
   it(`attaches start and end tokens to nodes`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
       
       Hello world
     `);
@@ -153,23 +166,23 @@ describe(`Parser.parse()`, () => {
     });
     expect(heading.endToken).toMatchObject({
       type: t.TEXT,
-      literal: `1`,
-      line: 1,
-      column: { start: 12, end: 12 },
-    });
-
-    const headingText = heading.children[0]!;
-    expect(headingText.startToken).toMatchObject({
-      type: t.TEXT,
-      literal: `Chapter`,
+      literal: `Preface`,
       line: 1,
       column: { start: 4, end: 10 },
     });
-    expect(headingText.endToken).toMatchObject({
+
+    const headingTitle = heading.children[0]!;
+    expect(headingTitle.startToken).toMatchObject({
       type: t.TEXT,
-      literal: `1`,
+      literal: `Preface`,
       line: 1,
-      column: { start: 12, end: 12 },
+      column: { start: 4, end: 10 },
+    });
+    expect(headingTitle.endToken).toMatchObject({
+      type: t.TEXT,
+      literal: `Preface`,
+      line: 1,
+      column: { start: 4, end: 10 },
     });
 
     const block = chapter.children[1]!;
@@ -192,7 +205,7 @@ describe(`Parser.parse()`, () => {
   it(`can handle context on chapter heading`, () => {
     const document = parseAdocFile(`
       [#ch1]
-      == Chapter 1
+      == Preface
       
       Hello world
     `);
@@ -203,11 +216,7 @@ describe(`Parser.parse()`, () => {
           type: n.CHAPTER,
           context: { id: `ch1` },
           children: [
-            {
-              type: n.HEADING,
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-              meta: { level: 2 },
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               children: [
@@ -226,7 +235,7 @@ describe(`Parser.parse()`, () => {
   it(`can handle section with multiple paragraphs`, () => {
     const document = parseAdocFile(`
       [#ch1]
-      == Chapter 1
+      == Preface
       
       Hello world
 
@@ -239,11 +248,7 @@ describe(`Parser.parse()`, () => {
           type: n.CHAPTER,
           context: { id: `ch1` },
           children: [
-            {
-              type: n.HEADING,
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-              meta: { level: 2 },
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               children: [
@@ -270,7 +275,7 @@ describe(`Parser.parse()`, () => {
 
   it(`can parse a sub-section`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
       
       === Subsection
 
@@ -282,18 +287,19 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.SECTION,
               meta: { level: 3 },
               children: [
                 {
                   type: n.HEADING,
-                  children: [{ type: n.TEXT, value: `Subsection` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Subsection` }],
+                    },
+                  ],
                   meta: { level: 3 },
                 },
                 {
@@ -315,7 +321,7 @@ describe(`Parser.parse()`, () => {
 
   it(`can parse a sections decreasing by one`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
       
       === Level 3
 
@@ -331,18 +337,19 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.SECTION,
               meta: { level: 3 },
               children: [
                 {
                   type: n.HEADING,
-                  children: [{ type: n.TEXT, value: `Level 3` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Level 3` }],
+                    },
+                  ],
                   meta: { level: 3 },
                 },
                 {
@@ -352,7 +359,12 @@ describe(`Parser.parse()`, () => {
                     {
                       type: n.HEADING,
                       meta: { level: 4 },
-                      children: [{ type: n.TEXT, value: `Level 4` }],
+                      children: [
+                        {
+                          type: n.HEADING_TITLE,
+                          children: [{ type: n.TEXT, value: `Level 4` }],
+                        },
+                      ],
                     },
                   ],
                 },
@@ -365,7 +377,12 @@ describe(`Parser.parse()`, () => {
                 {
                   type: n.HEADING,
                   meta: { level: 3 },
-                  children: [{ type: n.TEXT, value: `Back to level 3` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Back to level 3` }],
+                    },
+                  ],
                 },
                 {
                   type: n.BLOCK,
@@ -386,7 +403,7 @@ describe(`Parser.parse()`, () => {
 
   it(`can parse contexts on chapter-level blocks`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       [.offset]
       Hello world
@@ -398,11 +415,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               context: { classList: [`offset`] },
@@ -421,7 +434,7 @@ describe(`Parser.parse()`, () => {
 
   it(`can parse contexts on sections`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       [.blurb]
       === Subsection
@@ -435,11 +448,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -448,7 +457,12 @@ describe(`Parser.parse()`, () => {
                 {
                   type: n.HEADING,
                   meta: { level: 3 },
-                  children: [{ type: n.TEXT, value: `Subsection` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Subsection` }],
+                    },
+                  ],
                 },
                 {
                   type: n.BLOCK,
@@ -469,7 +483,7 @@ describe(`Parser.parse()`, () => {
 
   test(`sub-sections of same level close previous section`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       === Subsection 1
 
@@ -485,11 +499,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -497,7 +507,12 @@ describe(`Parser.parse()`, () => {
                 {
                   type: n.HEADING,
                   meta: { level: 3 },
-                  children: [{ type: n.TEXT, value: `Subsection 1` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Subsection 1` }],
+                    },
+                  ],
                 },
                 {
                   type: n.BLOCK,
@@ -517,7 +532,12 @@ describe(`Parser.parse()`, () => {
                 {
                   type: n.HEADING,
                   meta: { level: 3 },
-                  children: [{ type: n.TEXT, value: `Subsection 2` }],
+                  children: [
+                    {
+                      type: n.HEADING_TITLE,
+                      children: [{ type: n.TEXT, value: `Subsection 2` }],
+                    },
+                  ],
                 },
                 {
                   type: n.BLOCK,
@@ -544,8 +564,13 @@ describe(`Parser.parse()`, () => {
     `);
     const heading = document.children[0]!.children[0]!;
     expect(heading.toJSON().children).toMatchObject([
-      { type: n.TEXT, value: `Chapter ` },
-      { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `emphasis` }] },
+      {
+        type: n.HEADING_TITLE,
+        children: [
+          { type: n.TEXT, value: `Chapter ` },
+          { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `emphasis` }] },
+        ],
+      },
     ]);
   });
 
@@ -561,7 +586,7 @@ describe(`Parser.parse()`, () => {
       Epigraph 2
       ____
 
-      == Chapter 1
+      == Preface
 
       Hello world
     `);
@@ -609,7 +634,7 @@ describe(`Parser.parse()`, () => {
 
   test(`chapter-synopsis`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       [.chapter-synopsis]
       * Item 1
@@ -624,11 +649,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.UNORDERED_LIST,
               context: { classList: [`chapter-synopsis`] },
@@ -660,7 +681,7 @@ describe(`Parser.parse()`, () => {
 
   test(`numbered-groups not nested`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       Hello world
 
@@ -683,11 +704,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               children: [
@@ -720,7 +737,7 @@ describe(`Parser.parse()`, () => {
 
   test(`third-level heading inside of numbered group inside of embedded-content-doc`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       [.embedded-content-document]
       --
@@ -745,11 +762,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               meta: { subType: `open` },
@@ -762,7 +775,12 @@ describe(`Parser.parse()`, () => {
                   children: [
                     {
                       type: n.HEADING,
-                      children: [{ type: n.TEXT, value: `Subheading` }],
+                      children: [
+                        {
+                          type: n.HEADING_TITLE,
+                          children: [{ type: n.TEXT, value: `Subheading` }],
+                        },
+                      ],
                     },
                     {
                       type: n.PARAGRAPH,
@@ -781,7 +799,7 @@ describe(`Parser.parse()`, () => {
 
   test(`syllogism inside embedded-doc`, () => {
     const document = parseAdocFile(`
-      == Chapter 1
+      == Preface
 
       [.embedded-content-document]
       --
@@ -802,11 +820,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              meta: { level: 2 },
-              children: [{ type: n.TEXT, value: `Chapter 1` }],
-            },
+            PREFACE_CH_HEADING_NODE,
             {
               type: n.BLOCK,
               context: { classList: [`embedded-content-document`] },

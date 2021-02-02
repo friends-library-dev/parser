@@ -96,10 +96,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
         children: [
           {
             type: n.PARAGRAPH,
-            children: [
-              { type: n.TEXT, value: `[Hello` },
-              { type: n.INLINE_PASSTHROUGH, value: `]` },
-            ],
+            children: [{ type: n.TEXT, value: `[Hello]` }],
           },
         ],
       },

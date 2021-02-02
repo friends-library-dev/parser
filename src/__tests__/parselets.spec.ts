@@ -1,6 +1,12 @@
 import { TOKEN as t, NODE as n } from '../types';
 import { getPara, getParser, assertAllNodesHaveTokens } from './helpers';
 
+const o = {
+  text: (value: string) => {
+    return { type: n.TEXT, value };
+  },
+};
+
 describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle text nodes`, () => {
     const parser = getParser(`Hello world\n`);
@@ -20,6 +26,12 @@ describe(`Parser.parseUntil() using parselets`, () => {
       type: n.TEXT,
       value: `Hello & world`,
     });
+  });
+
+  it(`consumes adoc-syntax passthru's normal nodes`, () => {
+    const parser = getParser(`G+++.+++ F. +++[+++mark+++]+++\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toMatchObject([o.text(`G. F. [mark]`)]);
   });
 
   it(`can handle misc punctuation`, () => {

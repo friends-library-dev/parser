@@ -6,7 +6,6 @@ export {
   AsciidocFile,
   Visitor,
   Visitable,
-  VisitorEvent,
   VisitData,
   VisitFn,
   NodeType,
