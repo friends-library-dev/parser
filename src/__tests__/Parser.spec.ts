@@ -51,6 +51,36 @@ describe(`Parser.parse()`, () => {
     });
   });
 
+  it(`can parse a paragraph beginning with a right brace`, () => {
+    const document = parseAdocFile(`
+      == Preface
+      
+      [.offset]
+      +++[+++The narration continues...]
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            PREFACE_CH_HEADING_NODE,
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [{ type: n.TEXT, value: `[The narration continues...]` }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse a chapter with heading starting with a symbol`, () => {
     const document = parseAdocFile(`
       == '\`Tis a Chapter Title
@@ -590,7 +620,7 @@ describe(`Parser.parse()`, () => {
 
       Hello world
     `);
-    expect((document as DocumentNode).epigraphs).toMatchObject([
+    expect(document.epigraphs.children).toMatchObject([
       {
         type: n.BLOCK,
         meta: { subType: `quote` },
@@ -872,13 +902,13 @@ describe(`Parser.parse()`, () => {
   });
 
   test(`footnote nodes are added to document`, () => {
-    const node = parseAdocFile(`
+    const document = parseAdocFile(`
       == Chapter 1.footnote:[Howdy]
       
       Hello world.^
       footnote:[Hello]
     `);
 
-    expect(node.document().footnotes).toHaveLength(2);
+    expect(document.footnotes.children).toHaveLength(2);
   });
 });

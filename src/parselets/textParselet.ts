@@ -28,6 +28,12 @@ const textParselet: Parselet = (parser, parent) => {
   node.startToken = parser.consume();
   node.endToken = node.startToken;
 
+  // handle special case where we're starting a line with something like `+++[+++`
+  if (parser.peekTokens(t.RAW_PASSTHROUGH, t.TRIPLE_PLUS)) {
+    node.value = parser.consume().literal;
+    parser.consume();
+  }
+
   while (
     parser.currentOneOf(
       t.TEXT,

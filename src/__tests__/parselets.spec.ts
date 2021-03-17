@@ -311,13 +311,21 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
-  it(`can handle triple-plus passthrough`, () => {
-    const parser = getParser(`+++[+++mark\n`);
+  it(`well-known triple-plus passthrough converted to text`, () => {
+    const parser = getParser(`+++[+++mark+++]+++\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    nodes.forEach(assertAllNodesHaveTokens);
+    expect(nodes).toHaveLength(1);
+    expect(nodes).toMatchObject([{ type: n.TEXT, value: `[mark]` }]);
+  });
+
+  it(`unusual triple-plus passthrough become nodes`, () => {
+    const parser = getParser(`+++•+++mark\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      { type: n.INLINE_PASSTHROUGH, value: `[` },
+      { type: n.INLINE_PASSTHROUGH, value: `•` },
       { type: n.TEXT, value: `mark` },
     ]);
   });

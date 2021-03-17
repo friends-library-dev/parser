@@ -104,6 +104,7 @@ export const NODE = {
   POSTSCRIPT_IDENTIFIER: `POSTSCRIPT_IDENTIFIER`,
   ENTITY: `ENTITY`,
   MONEY: `MONEY`,
+  COLLECTION: `COLLECTION`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -137,10 +138,12 @@ export interface AstNode {
   startToken: Token;
   endToken: Token;
   parent: AstNode;
+  chapter: AstNode;
   toJSON: (withTokens?: true) => Record<string, unknown>;
   print: (withTokens?: true) => void;
   isDocument: () => this is DocumentNode;
   document: () => DocumentNode;
+  parentIsDocument(): boolean;
   isAttributedQuoteBlock(): boolean;
   isQuoteBlock(): boolean;
   isOpenBlock(): boolean;
@@ -156,9 +159,13 @@ export interface AstNode {
   descendsFrom(type: NodeType): boolean;
   siblingIndex(): number;
   nextSibling(): AstNode | null;
+  expectFirstChild(type?: NodeType): AstNode;
   hasClass(className: string): boolean;
   setMetaData(key: string, value: string | number | boolean): void;
   getMetaData(key: string): string | number | boolean | undefined;
+  expectStringMetaData(key: string): string;
+  expectNumberMetaData(key: string): number;
+  expectBooleanMetaData(key: string): boolean;
   meta: {
     subType?: string;
     level?: number;
@@ -169,8 +176,9 @@ export interface AstNode {
 }
 
 export type DocumentNode = AstNode & {
-  epigraphs: AstNode[];
-  footnotes: AstNode[];
+  epigraphs: AstNode;
+  footnotes: AstNode;
+  chapters: AstNode[];
 };
 
 export interface Parselet {
@@ -191,7 +199,7 @@ export interface VisitFn<Output = unknown, Context = unknown, ReturnType = unkno
 export interface Visitable<Output = unknown, Context = unknown> {
   enter?: VisitFn<Output, Context>;
   exit?: VisitFn<Output, Context>;
-  dispatch?: (node: AstNode) => Visitable<Output, Context>;
+  dispatch?: (data: VisitData<Output, Context>) => Visitable<Output, Context>;
 }
 
 type ToCamel<S extends string> = S extends `${infer Head}_${infer Tail}`

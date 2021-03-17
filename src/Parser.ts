@@ -7,6 +7,7 @@ import {
   TokenSpec,
   TokenTypeMatcher,
   Lexer as LexerInterface,
+  DocumentNode as DocumentNodeInterface,
   Context,
   AsciidocFile,
 } from './types';
@@ -25,7 +26,7 @@ export default class Parser {
   private stopStack: Array<TokenSpec[]> = [];
   private shifted: Token[] = [];
 
-  public static parseDocument(...inputs: AsciidocFile[]): AstNode {
+  public static parseDocument(...inputs: AsciidocFile[]): DocumentNodeInterface {
     const lexer = new Lexer(...inputs);
     const parser = new Parser(lexer);
     return parser.parse();
@@ -33,7 +34,7 @@ export default class Parser {
 
   constructor(public lexer: LexerInterface) {}
 
-  public parse(): AstNode {
+  public parse(): DocumentNodeInterface {
     const document = new DocumentNode();
     document.startToken = this.current;
     this.parseDocumentEpigraphs(document);
@@ -68,7 +69,7 @@ export default class Parser {
     const nodes: AstNode[] = [];
     const guard = this.makeWhileGuard(`Parser.parseUntilAnyOf()`);
     while (guard() && !this.stopTokensFound()) {
-      const parselet = getParselet(this.current);
+      const parselet = getParselet(this.current, this);
       if (parselet === null) {
         this.error(`no parselet found for token type=${this.current.type}`);
       }
@@ -110,7 +111,7 @@ export default class Parser {
     if (this.peekTokens(t.LEFT_BRACKET, [t.TEXT, `quote`], t.DOT, [t.TEXT, `epigraph`])) {
       const blockParser = new BlockParser(this);
       const epigraph = blockParser.parse(document);
-      document.epigraphs.push(epigraph);
+      document.epigraphs.children.push(epigraph);
       this.parseDocumentEpigraphs(document);
     }
   }

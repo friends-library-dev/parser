@@ -20,6 +20,14 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     throw new Error(`AbstractAstNode.parent not implemented for type: ${this.type}`);
   }
 
+  public get chapter(): AstNodeInterface {
+    let current: AstNodeInterface = this;
+    while (current.type !== n.CHAPTER) {
+      current = current.parent;
+    }
+    return current;
+  }
+
   public document(): DocumentNode {
     let current: AstNodeInterface = this;
     while (!current.isDocument()) {
@@ -45,6 +53,10 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
 
   public isDocument(): this is DocumentNode {
     return false;
+  }
+
+  public parentIsDocument(): boolean {
+    return !this.isDocument() && this.parent.isDocument();
   }
 
   public isParagraph(): boolean {
@@ -111,6 +123,21 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     return this.descendsFrom(n.FOOTNOTE);
   }
 
+  public expectFirstChild(type?: NodeType): AstNode {
+    const firstChild = this.children[0];
+    if (!firstChild) {
+      throw new Error(`Unexpected missing first child`);
+    }
+
+    if (type && firstChild.type !== type) {
+      throw new Error(
+        `Unexpected wrong type for first child. Expected ${type}, got: ${firstChild.type}`,
+      );
+    }
+
+    return firstChild;
+  }
+
   public setMetaData(key: string, value: string | number | boolean): void {
     if (!this.meta.data) {
       this.meta.data = {};
@@ -120,6 +147,30 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
 
   public getMetaData(key: string): string | number | boolean | undefined {
     return this.meta.data?.[key];
+  }
+
+  public expectBooleanMetaData(key: string): boolean {
+    const data = this.getMetaData(key);
+    if (data !== true && data !== false) {
+      throw new Error(`Unexpected non-boolean metadata for key=${key}, val=${data}`);
+    }
+    return data;
+  }
+
+  public expectNumberMetaData(key: string): number {
+    const data = this.getMetaData(key);
+    if (typeof data !== `number`) {
+      throw new Error(`Unexpected non-number metadata for key=${key}, val=${data}`);
+    }
+    return data;
+  }
+
+  public expectStringMetaData(key: string): string {
+    const data = this.getMetaData(key);
+    if (typeof data !== `string`) {
+      throw new Error(`Unexpected non-string metadata for key=${key}, val=${data}`);
+    }
+    return data;
   }
 
   public set startToken(token: Token) {

@@ -1,5 +1,6 @@
 export { default as Parser } from './Parser';
 export { default as traverse } from './traverse';
+export { default as Node } from './nodes/AstNode';
 export {
   AstNode,
   DocumentNode,
@@ -12,4 +13,5 @@ export {
   Token,
   TOKEN,
   NODE,
+  ENTITY,
 } from './types';

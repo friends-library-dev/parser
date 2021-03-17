@@ -7,16 +7,16 @@ export default function traverse<Output = unknown, Context = unknown>(
   context: Context,
   index = 0,
 ): void {
+  const data = { node, output, context, index };
   let methods: Visitable<Output, Context> | undefined;
   for (const type of getTypes(node)) {
     methods = methods ?? visitor[type];
   }
 
   if (methods?.dispatch) {
-    methods = methods.dispatch(node);
+    methods = methods.dispatch(data);
   }
 
-  const data = { node, output, context, index };
   methods?.enter ? methods.enter(data) : visitor.node?.enter?.(data);
 
   for (let i = 0; i < node.children.length; i++) {
@@ -29,13 +29,13 @@ export default function traverse<Output = unknown, Context = unknown>(
 function getTypes(
   node: AstNode,
 ): Array<Camelcase<NodeType | `${NodeType}_IN_${NodeType}`>> {
-  if (node.type === n.CHAPTER || node.isDocument()) {
+  if (node.isDocument() || node.parentIsDocument()) {
     return [camelCase(node.type)];
   }
 
   let types: ReturnType<typeof getTypes> = [];
   let current = node.parent;
-  while (current.type !== n.CHAPTER) {
+  while (!current.parentIsDocument()) {
     types.push(camelCase(`${node.type}_IN_${current.type}` as const));
     current = current.parent;
   }

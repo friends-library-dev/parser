@@ -105,13 +105,13 @@ export default class HeadingParser {
     const guard = this.p.makeWhileGuard(`HeadingParser.parseOldStyle()`);
     let level = 1;
     while (guard() && !this.p.peekTokensAnyOf(delim, [t.EOX])) {
-      const osLine = new Node(n.HEADING_SEGMENT, title, {
+      const segment = new Node(n.HEADING_SEGMENT, title, {
         level: level++,
         startToken: this.p.current,
       });
-      osLine.children = this.p.parseUntilAnyOf(osLine, delim, [t.EOX]);
-      osLine.endToken = this.p.lastSignificantToken();
-      title.children.push(osLine);
+      segment.children = this.p.parseUntilAnyOf(segment, delim, [t.EOX]);
+      segment.endToken = this.p.lastSignificantToken();
+      title.children.push(segment);
       if (this.p.peekTokens(...delim)) {
         this.p.consumeMany(t.WHITESPACE, t.FORWARD_SLASH, t.WHITESPACE);
       }

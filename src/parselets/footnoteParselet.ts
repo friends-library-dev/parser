@@ -66,7 +66,7 @@ const footnoteParselet: Parselet = (parser, parent) => {
     parser.error(`unexpected footnote ending token`);
   }
 
-  footnote.document().footnotes.push(footnote);
+  footnote.document().footnotes.children.push(footnote);
   return footnote;
 };
 

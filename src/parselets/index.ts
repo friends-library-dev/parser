@@ -7,8 +7,9 @@ import leftBracketParselet from './leftBracketParselet';
 import inlinePassthroughParselet from './inlinePassthroughParselet';
 import footnoteParselet from './footnoteParselet';
 import entityParselet from './entityParselet';
+import { Parser } from '..';
 
-export default function getParselet(token: Token): Parselet | null {
+export default function getParselet(token: Token, parser: Parser): Parselet | null {
   switch (token.type) {
     case t.COMMA:
     case t.TEXT:
@@ -40,6 +41,9 @@ export default function getParselet(token: Token): Parselet | null {
     case t.LEFT_BRACKET:
       return leftBracketParselet;
     case t.TRIPLE_PLUS:
+      if (token.column.start === 1 && parser.peek.literal === `[`) {
+        return textParselet;
+      }
       return inlinePassthroughParselet;
     case t.UNDERSCORE:
       return underscoreParselet;
