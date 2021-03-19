@@ -15,7 +15,8 @@ export default class HeadingParser {
     });
     this.p.consumeMany(t.EQUALS, t.WHITESPACE);
 
-    if (this.hasSequenceIdentifier()) {
+    // only parse sequence identifiers for chapter-level (2) headings
+    if (heading.meta.level === 2 && this.hasSequenceIdentifier()) {
       this.parseSequenceIdentifier(heading);
     }
 

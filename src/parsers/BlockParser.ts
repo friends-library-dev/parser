@@ -44,7 +44,9 @@ export default class BlockParser {
         const poetryParser = new PoetryParser(this.p);
         block.children = poetryParser.parse(block);
       } else if (this.peekStartInnerBlock()) {
+        const restoreAfterSubBufferedParse = this.p;
         block.children.push(this.parse(block));
+        this.p = restoreAfterSubBufferedParse;
       } else if (this.peekStartUnorderedList()) {
         block.children.push(this.parseUnorderedList(block, this.p.parseContext()));
       } else if (this.p.peekHeading()) {

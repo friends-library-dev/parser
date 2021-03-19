@@ -12,7 +12,8 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
   public children: AstNode[] = [];
   public value = ``;
   public meta: AstNodeInterface['meta'] = {};
-  public context: Context | undefined;
+  private _context: Context | undefined;
+
   protected _startToken: Token | undefined;
   protected _endToken: Token | undefined;
 
@@ -195,6 +196,20 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
     return this._endToken;
   }
 
+  public get context(): Context | undefined {
+    return this._context;
+  }
+
+  public set context(context: Context | undefined) {
+    this._context = context;
+    if (!this._context) {
+      return;
+    }
+    if (this._context.classList.filter(indicatesSignedSection).length > 0) {
+      this.chapter.setMetaData(`hasSignedSection`, true);
+    }
+  }
+
   public toJSON(withTokens?: true): Record<string, unknown> {
     return {
       type: this.type,
@@ -211,4 +226,11 @@ export default abstract class AbstractAstNode implements AstNodeInterface {
   public print(withTokens?: true): void {
     console.log(JSON.stringify(this.toJSON(withTokens), null, 2));
   }
+}
+
+function indicatesSignedSection(kls: string): boolean {
+  if (kls === `salutation` || kls === `letter-heading`) {
+    return true;
+  }
+  return kls.startsWith(`signed-section`);
 }

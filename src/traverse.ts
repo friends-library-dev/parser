@@ -1,4 +1,4 @@
-import { AstNode, Visitable, Camelcase, Visitor, NodeType, NODE as n } from './types';
+import { AstNode, Visitable, Camelcase, Visitor, NodeType } from './types';
 
 export default function traverse<Output = unknown, Context = unknown>(
   node: AstNode,
@@ -33,7 +33,7 @@ function getTypes(
     return [camelCase(node.type)];
   }
 
-  let types: ReturnType<typeof getTypes> = [];
+  const types: ReturnType<typeof getTypes> = [];
   let current = node.parent;
   while (!current.parentIsDocument()) {
     types.push(camelCase(`${node.type}_IN_${current.type}` as const));

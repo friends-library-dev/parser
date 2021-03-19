@@ -29,7 +29,9 @@ export default class Parser {
   public static parseDocument(...inputs: AsciidocFile[]): DocumentNodeInterface {
     const lexer = new Lexer(...inputs);
     const parser = new Parser(lexer);
-    return parser.parse();
+    const doc = parser.parse();
+    // doc.print();
+    return doc;
   }
 
   constructor(public lexer: LexerInterface) {}
@@ -339,6 +341,7 @@ export default class Parser {
     return () => {
       numIterations++;
       if (numIterations >= maxIterations) {
+        console.trace();
         this.error(`Infinite loop detected in ${identifier}`);
       }
       return true;

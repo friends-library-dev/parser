@@ -1,11 +1,16 @@
 import stripIndent from 'strip-indent';
-import { Token, AstNode, DocumentNode as IDocumentNode, NODE as n } from '../types';
+import {
+  Token,
+  AstNode,
+  DocumentNode as DocumentNodeInterface,
+  NODE as n,
+} from '../types';
 import Lexer from '../Lexer';
 import Node from '../nodes/AstNode';
 import DocumentNode from '../nodes/DocumentNode';
 import Parser from '../Parser';
 
-export function parseAdocFile(...adoc: string[]): IDocumentNode {
+export function parseAdocFile(...adoc: string[]): DocumentNodeInterface {
   const parser = getParser(...prepareAdocFile(...adoc));
   return parser.parse();
 }
@@ -53,3 +58,19 @@ export function simplifyToken(token: Token): Pick<Token, 'type' | 'literal'> {
     literal: token.literal,
   };
 }
+
+export const T = {
+  text: (value: string): Record<string, unknown> => {
+    return { type: n.TEXT, value };
+  },
+  paragraph: (value: string, classList?: string[]): Record<string, unknown> => {
+    return {
+      type: n.PARAGRAPH,
+      children: [T.text(value)],
+      ...(classList ? T.context(classList) : {}),
+    };
+  },
+  context: (classList: string[] = []): { context: { classList: string[] } } => {
+    return { context: { classList } };
+  },
+};

@@ -34,7 +34,8 @@ export default class SectionParser {
 
       if (after1.type === t.EQUALS && after2.type === t.WHITESPACE) {
         const sectionLevel = after1.literal.length;
-        if (Math.abs(this.level - sectionLevel) > 1) {
+        // unless we're restarting with a new chapter, a difference greater than 1 is error
+        if (sectionLevel !== 2 && Math.abs(this.level - sectionLevel) > 1) {
           this.p.error(`unexpected heading level`);
         }
         if (sectionLevel <= this.level) {

@@ -1,7 +1,7 @@
 import stripIndent from 'strip-indent';
 import HeadingParser from '../parsers/HeadingParser';
 import { AstNode, NODE as n } from '../types';
-import { getParser, getBlock, assertAllNodesHaveTokens } from './helpers';
+import { T, getParser, getBlock, assertAllNodesHaveTokens } from './helpers';
 
 describe(`HeadingParse.parse()`, () => {
   it(`handles simple heading`, () => {
@@ -110,6 +110,35 @@ describe(`HeadingParse.parse()`, () => {
                 { type: n.TEXT, value: `Segment ` },
                 { type: n.EMPHASIS, children: [{ type: n.TEXT, value: `2` }] },
               ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  // don't pull the `Section 1.` out into a sequence identifier like a chapter
+  it(`segmented level 3 with parseable sequence identifier, parsed as plain segment`, () => {
+    const heading = getParsedHeading(
+      `[.old-style]\n=== Section 1. / Our Happy State Before the Fall`,
+    );
+    assertAllNodesHaveTokens(heading);
+    expect(heading.toJSON()).toMatchObject({
+      type: n.HEADING,
+      meta: { level: 3 },
+      children: [
+        {
+          type: n.HEADING_TITLE,
+          children: [
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 1 },
+              children: [T.text(`Section 1.`)],
+            },
+            {
+              type: n.HEADING_SEGMENT,
+              meta: { level: 2 },
+              children: [T.text(`Our Happy State Before the Fall`)],
             },
           ],
         },

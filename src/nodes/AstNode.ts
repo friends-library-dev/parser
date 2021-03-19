@@ -14,7 +14,6 @@ export default class AstNode extends AbstractAstNode implements AstNodeInterface
   public children: AstNodeInterface[] = [];
   public value = ``;
   public meta: AstNodeInterface['meta'] = {};
-  public context: Context | undefined;
 
   public constructor(
     private _type: NodeType,

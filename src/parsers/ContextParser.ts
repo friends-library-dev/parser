@@ -14,6 +14,11 @@ export default class ContextParser {
       return undefined;
     }
 
+    // reject lines starting with inline-context, like `[.book-title]#Apology# foo`
+    if (this.isInlineContext()) {
+      return undefined;
+    }
+
     this.context.startToken = this.p.consume(t.LEFT_BRACKET);
     this.parseType();
     this.parseId();
@@ -137,5 +142,19 @@ export default class ContextParser {
       this.p.consume();
     }
     return identifier;
+  }
+
+  private isInlineContext(): boolean {
+    let distance = 1;
+    let current = this.p.lookAhead(distance);
+    const guard = this.p.makeWhileGuard(`ContextParser.isInlineContext()`);
+    while (
+      guard() &&
+      !this.p.tokenIs(current, t.RIGHT_BRACKET) &&
+      !this.p.tokenIs(current, t.EOX)
+    ) {
+      current = this.p.lookAhead(++distance);
+    }
+    return this.p.lookAhead(distance + 1).type === t.HASH;
   }
 }

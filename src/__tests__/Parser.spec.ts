@@ -1,6 +1,5 @@
-import DocumentNode from '../nodes/DocumentNode';
 import { NODE as n, TOKEN as t } from '../types';
-import { assertAllNodesHaveTokens, getParser, parseAdocFile } from './helpers';
+import { assertAllNodesHaveTokens, getParser, parseAdocFile, T } from './helpers';
 
 const PREFACE_CH_HEADING_NODE = {
   type: n.HEADING,
@@ -604,6 +603,38 @@ describe(`Parser.parse()`, () => {
     ]);
   });
 
+  it(`can parse block quote`, () => {
+    const document = parseAdocFile(`
+      == Preface
+
+      Hello world
+
+      [quote]
+      ____
+      Here is a quote.
+      ____
+    `);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            PREFACE_CH_HEADING_NODE,
+            {
+              type: n.BLOCK,
+              children: [T.paragraph(`Hello world`)],
+            },
+            {
+              type: n.BLOCK,
+              children: [T.paragraph(`Here is a quote.`)],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse document epigraphs`, () => {
     const document = parseAdocFile(`
       [quote.epigraph, , John 1:1]
@@ -910,5 +941,71 @@ describe(`Parser.parse()`, () => {
     `);
 
     expect(document.footnotes.children).toHaveLength(2);
+  });
+
+  test(`stuff after postscript is not lost`, () => {
+    const document = parseAdocFile(`
+      == Preface
+      
+      [.embedded-content-document.letter]
+      --
+
+      Hello world.
+
+      [.signed-section-signature]
+      G+++.+++ F.
+
+      [.postscript]
+      ====
+
+      The Postscript.
+
+      ====
+      
+      [.signed-section-signature]
+      G+++.+++ F.
+
+      [.signed-section-context-close]
+      London
+
+      --
+
+      [.the-end]
+      Finis.
+    `);
+
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            PREFACE_CH_HEADING_NODE,
+            {
+              type: n.BLOCK,
+              meta: { subType: `open` },
+              ...T.context([`embedded-content-document`, `letter`]),
+              children: [
+                T.paragraph(`Hello world.`),
+                T.paragraph(`G. F.`, [`signed-section-signature`]),
+                {
+                  type: n.BLOCK,
+                  ...T.context([`postscript`]),
+                  meta: { subType: `example` },
+                  children: [T.paragraph(`The Postscript.`)],
+                },
+                T.paragraph(`G. F.`, [`signed-section-signature`]),
+                T.paragraph(`London`, [`signed-section-context-close`]),
+              ],
+            },
+            {
+              type: n.BLOCK,
+              ...T.context([`the-end`]),
+              children: [T.paragraph(`Finis.`)],
+            },
+          ],
+        },
+      ],
+    });
   });
 });

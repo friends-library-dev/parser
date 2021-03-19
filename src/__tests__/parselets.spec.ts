@@ -1,11 +1,5 @@
 import { TOKEN as t, NODE as n } from '../types';
-import { getPara, getParser, assertAllNodesHaveTokens } from './helpers';
-
-const o = {
-  text: (value: string) => {
-    return { type: n.TEXT, value };
-  },
-};
+import { T, getPara, getParser, assertAllNodesHaveTokens } from './helpers';
 
 describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle text nodes`, () => {
@@ -28,10 +22,21 @@ describe(`Parser.parseUntil() using parselets`, () => {
     });
   });
 
+  it(`can handle sub-word emphasis`, () => {
+    const parser = getParser(`Hello w__orl__d\n`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toHaveLength(3);
+    expect(nodes).toMatchObject([
+      T.text(`Hello w`),
+      { type: n.EMPHASIS, children: [T.text(`orl`)] },
+      T.text(`d`),
+    ]);
+  });
+
   it(`consumes adoc-syntax passthru's normal nodes`, () => {
     const parser = getParser(`G+++.+++ F. +++[+++mark+++]+++\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
-    expect(nodes).toMatchObject([o.text(`G. F. [mark]`)]);
+    expect(nodes).toMatchObject([T.text(`G. F. [mark]`)]);
   });
 
   it(`can handle misc punctuation`, () => {
@@ -63,12 +68,12 @@ describe(`Parser.parseUntil() using parselets`, () => {
   });
 
   const moneyCases: Array<[string, string, string, number, string, string]> = [
-    ['Foo $30,000 bar', `$30,000`, t.DOLLAR_SYMBOL, 30000, 'Foo ', ' bar'],
-    ['gave £40, then', `£40`, t.POUND_SYMBOL, 40, 'gave ', ', then'],
-    ['value of £42;', `£42`, t.POUND_SYMBOL, 42, 'value of ', `;`],
-    ['(£800,000 sterling)', `£800,000`, t.POUND_SYMBOL, 800000, '(', ` sterling)`],
-    ['gave £4, then', `£4`, t.POUND_SYMBOL, 4, 'gave ', ', then'],
-    ['Foo £50. Bar', `£50`, t.POUND_SYMBOL, 50, 'Foo ', '. Bar'],
+    [`Foo $30,000 bar`, `$30,000`, t.DOLLAR_SYMBOL, 30000, `Foo `, ` bar`],
+    [`gave £40, then`, `£40`, t.POUND_SYMBOL, 40, `gave `, `, then`],
+    [`value of £42;`, `£42`, t.POUND_SYMBOL, 42, `value of `, `;`],
+    [`(£800,000 sterling)`, `£800,000`, t.POUND_SYMBOL, 800000, `(`, ` sterling)`],
+    [`gave £4, then`, `£4`, t.POUND_SYMBOL, 4, `gave `, `, then`],
+    [`Foo £50. Bar`, `£50`, t.POUND_SYMBOL, 50, `Foo `, `. Bar`],
     [`estimated at £100,000,`, `£100,000`, t.POUND_SYMBOL, 100000, `estimated at `, `,`],
     [`fine £1,125 sterling.`, `£1,125`, t.POUND_SYMBOL, 1125, `fine `, ` sterling.`],
   ];

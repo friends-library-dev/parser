@@ -7,12 +7,12 @@ export default class DiscoursePartIdentifierParser {
   protected className = `discourse-part`;
   protected idStarters = [
     `question`,
-    'pregunta',
-    'answer',
-    'respuesta',
-    'objection',
-    'objeción',
-    'inquiry',
+    `pregunta`,
+    `answer`,
+    `respuesta`,
+    `objection`,
+    `objeción`,
+    `inquiry`,
   ];
 
   public constructor(protected p: Parser) {}

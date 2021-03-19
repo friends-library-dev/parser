@@ -1,6 +1,6 @@
 import stripIndent from 'strip-indent';
 import { TOKEN as t, NODE as n } from '../types';
-import { getPara, getParser, assertAllNodesHaveTokens } from './helpers';
+import { getPara, getParser, assertAllNodesHaveTokens, T } from './helpers';
 
 describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle sameline footnotes`, () => {
@@ -8,14 +8,8 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.EOL);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
+      T.text(`Hello world`),
+      { type: n.FOOTNOTE, children: [T.paragraph(`Hello`)] },
     ]);
   });
 
@@ -24,12 +18,9 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
-      { type: n.TEXT, value: `? For` },
+      T.text(`Hello world`),
+      { type: n.FOOTNOTE, children: [T.paragraph(`Hello`)] },
+      T.text(`? For`),
     ]);
   });
 
@@ -38,7 +29,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
+      T.text(`Hello world`),
       {
         type: n.FOOTNOTE,
         children: [
@@ -48,9 +39,9 @@ describe(`Parser.parseUntil() using parselets`, () => {
               {
                 type: n.INLINE,
                 context: { classList: [`book-title`] },
-                children: [{ type: n.TEXT, value: `Apology` }],
+                children: [T.text(`Apology`)],
               },
-              { type: n.TEXT, value: ` Hello` },
+              T.text(` Hello`),
             ],
           },
         ],
@@ -65,7 +56,7 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
+      T.text(`Hello world`),
       {
         type: n.FOOTNOTE,
         children: [
@@ -75,9 +66,9 @@ describe(`Parser.parseUntil() using parselets`, () => {
               {
                 type: n.INLINE,
                 context: { classList: [`underline`] },
-                children: [{ type: n.TEXT, value: `Underlined` }],
+                children: [T.text(`Underlined`)],
               },
-              { type: n.TEXT, value: ` Hello` },
+              T.text(` Hello`),
             ],
           },
         ],
@@ -90,17 +81,9 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(3);
     expect(nodes).toMatchObject([
-      { type: n.TEXT, value: `Hello world` },
-      {
-        type: n.FOOTNOTE,
-        children: [
-          {
-            type: n.PARAGRAPH,
-            children: [{ type: n.TEXT, value: `[Hello]` }],
-          },
-        ],
-      },
-      { type: n.TEXT, value: `? For` },
+      T.text(`Hello world`),
+      { type: n.FOOTNOTE, children: [T.paragraph(`[Hello]`)] },
+      T.text(`? For`),
     ]);
   });
 
@@ -109,14 +92,8 @@ describe(`Parser.parseUntil() using parselets`, () => {
     const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
-      {
-        type: n.FOOTNOTE,
-        children: [{ type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello` }] }],
-      },
+      T.text(`Hello world.`),
+      { type: n.FOOTNOTE, children: [T.paragraph(`Hello`)] },
     ]);
     expect(nodes[1]!.endToken).toMatchObject({ type: t.RIGHT_BRACKET });
   });
@@ -129,17 +106,44 @@ describe(`Parser.parseUntil() using parselets`, () => {
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
+      T.text(`Hello world.`),
       {
-        type: n.TEXT,
-        value: `Hello world.`,
+        type: n.FOOTNOTE,
+        children: [T.paragraph(`Hello.`), T.paragraph(`Goodbye.`)],
+      },
+    ]);
+  });
+
+  test(`book title followed by footnote`, () => {
+    const adoc =
+      `
+Hello world
+[.book-title]#The Fanatic History,#^
+footnote:[Es decir, _Historia de los Fanaticos._]
+goodbye world.
+    `.trim() + `\n\n`;
+    const parser = getParser(adoc);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toMatchObject([
+      T.text(`Hello world `),
+      {
+        type: n.INLINE,
+        ...T.context([`book-title`]),
+        children: [T.text(`The Fanatic History,`)],
       },
       {
         type: n.FOOTNOTE,
         children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello.` }] },
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Goodbye.` }] },
+          {
+            type: n.PARAGRAPH,
+            children: [
+              T.text(`Es decir, `),
+              { type: n.EMPHASIS, children: [T.text(`Historia de los Fanaticos.`)] },
+            ],
+          },
         ],
       },
+      T.text(` goodbye world.`),
     ]);
   });
 
@@ -163,14 +167,11 @@ footnote:[Herp derp
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
+      T.text(`Hello world.`),
       {
         type: n.FOOTNOTE,
         children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Herp derp` }] },
+          T.paragraph(`Herp derp`),
           {
             type: n.BLOCK,
             meta: { subType: `verse` },
@@ -178,8 +179,8 @@ footnote:[Herp derp
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Beep` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Boop` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Beep`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Boop`)] },
                 ],
               },
             ],
@@ -204,14 +205,11 @@ Hello world.]
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
+      T.text(`Hello world.`),
       {
         type: n.FOOTNOTE,
         children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Herp derp` }] },
+          T.paragraph(`Herp derp`),
           {
             type: n.BLOCK,
             meta: { subType: `verse` },
@@ -219,13 +217,13 @@ Hello world.]
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Beep` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Boop` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Beep`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Boop`)] },
                 ],
               },
             ],
           },
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello world.` }] },
+          T.paragraph(`Hello world.`),
         ],
       },
     ]);
@@ -248,14 +246,11 @@ footnote:[Herp derp
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
+      T.text(`Hello world.`),
       {
         type: n.FOOTNOTE,
         children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Herp derp` }] },
+          T.paragraph(`Herp derp`),
           {
             type: n.BLOCK,
             meta: { subType: `verse` },
@@ -263,15 +258,15 @@ footnote:[Herp derp
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Beep` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Boop` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Beep`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Boop`)] },
                 ],
               },
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Herp` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Derp` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Herp`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Derp`)] },
                 ],
               },
             ],
@@ -301,14 +296,11 @@ Hello Mama.]
     nodes.forEach(assertAllNodesHaveTokens);
     expect(nodes).toHaveLength(2);
     expect(nodes).toMatchObject([
-      {
-        type: n.TEXT,
-        value: `Hello world.`,
-      },
+      T.text(`Hello world.`),
       {
         type: n.FOOTNOTE,
         children: [
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Herp derp` }] },
+          T.paragraph(`Herp derp`),
           {
             type: n.BLOCK,
             meta: { subType: `verse` },
@@ -316,20 +308,20 @@ Hello Mama.]
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Beep` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Boop` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Beep`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Boop`)] },
                 ],
               },
               {
                 type: n.VERSE_STANZA,
                 children: [
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Herp` }] },
-                  { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Derp` }] },
+                  { type: n.VERSE_LINE, children: [T.text(`Herp`)] },
+                  { type: n.VERSE_LINE, children: [T.text(`Derp`)] },
                 ],
               },
             ],
           },
-          { type: n.PARAGRAPH, children: [{ type: n.TEXT, value: `Hello Mama.` }] },
+          T.paragraph(`Hello Mama.`),
         ],
       },
     ]);

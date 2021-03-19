@@ -1,6 +1,6 @@
 import { AstNode, NODE as n } from '../types';
 import BlockParser from '../parsers/BlockParser';
-import { assertAllNodesHaveTokens, getChapter, getParser } from './helpers';
+import { assertAllNodesHaveTokens, getChapter, getParser, T } from './helpers';
 import stripIndent from 'strip-indent';
 
 describe(`BlockParser.parse()`, () => {
@@ -159,6 +159,29 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a paragraph beginning with a book-title`, () => {
+    const block = getParsedBlock(`
+      [.book-title]#Apology,# hello world
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      children: [
+        {
+          type: n.PARAGRAPH,
+          children: [
+            {
+              type: n.INLINE,
+              ...T.context([`book-title`]),
+              children: [T.text(`Apology,`)],
+            },
+            T.text(` hello world`),
+          ],
+        },
+      ],
+    });
+  });
+
   it(`can parse a blockquote with multiple paragraphs`, () => {
     const block = getParsedBlock(`
       [quote, ,]
@@ -229,6 +252,42 @@ describe(`BlockParser.parse()`, () => {
             },
           ],
         },
+      ],
+    });
+  });
+
+  it(`can parse an example block within an open-block, with more stuff after`, () => {
+    const block = getParsedBlock(`
+      [.embedded-content-document.letter]
+      --
+
+      Hello world
+
+      [.postscript]
+      ====
+
+      Goodbye
+
+      ====
+
+      Dont forget me!
+
+      --
+    `);
+
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `open` },
+      ...T.context([`embedded-content-document`, `letter`]),
+      children: [
+        T.paragraph(`Hello world`),
+        {
+          type: n.BLOCK,
+          meta: { subType: `example` },
+          ...T.context([`postscript`]),
+          children: [T.paragraph(`Goodbye`)],
+        },
+        T.paragraph(`Dont forget me!`),
       ],
     });
   });
@@ -393,8 +452,32 @@ describe(`BlockParser.parse()`, () => {
         {
           type: n.VERSE_STANZA,
           children: [
-            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Mama` }] },
-            { type: n.VERSE_LINE, children: [{ type: n.TEXT, value: `Hello Papa` }] },
+            { type: n.VERSE_LINE, children: [T.text(`Hello Mama`)] },
+            { type: n.VERSE_LINE, children: [T.text(`Hello Papa`)] },
+          ],
+        },
+      ],
+    });
+  });
+
+  it(`can parse a verse block with a comment`, () => {
+    const block = getParsedBlock(`
+      [verse]
+      ____
+      Hello Mama
+      // 👋 this is a comment!
+      Hello Papa
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `verse` },
+      children: [
+        {
+          type: n.VERSE_STANZA,
+          children: [
+            { type: n.VERSE_LINE, children: [T.text(`Hello Mama`)] },
+            { type: n.VERSE_LINE, children: [T.text(`Hello Papa`)] },
           ],
         },
       ],
@@ -546,7 +629,7 @@ describe(`BlockParser.parse()`, () => {
 
   it(`can parse a block passthrough inside another group`, () => {
     const block = getParsedBlock(`
-      [.numbered]
+      [.numbered-group]
       ====
 
       ++++
