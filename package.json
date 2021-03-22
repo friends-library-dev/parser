@@ -14,7 +14,8 @@
     "lint:fix": "fldev lint:fix",
     "ts:check": "fldev ts:check",
     "format": "fldev format",
-    "compile": "fldev ts:compile"
+    "compile": "fldev ts:compile",
+    "prepublishOnly": "npm run compile"
   },
   "devDependencies": {
     "@friends-library/dev": "^4.1.18",
