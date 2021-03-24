@@ -16,7 +16,7 @@ export default class SectionParser {
 
     const level = this.p.current.literal.length;
     if (level !== this.level) {
-      this.p.error(`expected heading level ${this.level}, got ${level}`);
+      this.p.throwError(`expected heading level ${this.level}, got ${level}`);
     }
 
     const heading = this.p.parseHeading(section);
@@ -36,7 +36,7 @@ export default class SectionParser {
         const sectionLevel = after1.literal.length;
         // unless we're restarting with a new chapter, a difference greater than 1 is error
         if (sectionLevel !== 2 && Math.abs(this.level - sectionLevel) > 1) {
-          this.p.error(`unexpected heading level`);
+          this.p.throwError(`unexpected heading level`);
         }
         if (sectionLevel <= this.level) {
           // got to another heading of the same level (or one less)
