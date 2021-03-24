@@ -31,8 +31,19 @@ export default class ParserError extends Error {
     return this.token.line;
   }
 
+  /**
+   * @deprecated Use columnStart and columnEnd instead
+   */
   public get column(): number {
     return this.token.column.start;
+  }
+
+  public get columnStart(): number {
+    return this.token.column.start;
+  }
+
+  public get columnEnd(): number {
+    return this.token.column.end;
   }
 }
 
