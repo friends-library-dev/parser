@@ -122,7 +122,7 @@ export default class BlockParser {
       )
     ) {
       if (!context) {
-        this.p.error(`thematic break missing context`);
+        this.p.throwError(`thematic break missing context`);
       }
       this.p.consume(t.THEMATIC_BREAK);
       if (this.p.currentIs(t.DOUBLE_EOL)) {

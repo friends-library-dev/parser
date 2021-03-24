@@ -19,6 +19,7 @@ import ContextParser from './parsers/ContextParser';
 import BufferedLexer from './BufferedLexer';
 import HeadingParser from './parsers/HeadingParser';
 import Lexer from './Lexer';
+import ParserError from './ParserError';
 
 export default class Parser {
   private static MAX_SHIFTED_TOKENS = 50;
@@ -29,9 +30,7 @@ export default class Parser {
   public static parseDocument(...inputs: AsciidocFile[]): DocumentNodeInterface {
     const lexer = new Lexer(...inputs);
     const parser = new Parser(lexer);
-    const doc = parser.parse();
-    // doc.print();
-    return doc;
+    return parser.parse();
   }
 
   constructor(public lexer: LexerInterface) {}
@@ -73,7 +72,7 @@ export default class Parser {
     while (guard() && !this.stopTokensFound()) {
       const parselet = getParselet(this.current, this);
       if (parselet === null) {
-        this.error(`no parselet found for token type=${this.current.type}`);
+        this.throwError(`no parselet found for token type=${this.current.type}`);
       }
       nodes.push(parselet(this, parent));
     }
@@ -128,7 +127,7 @@ export default class Parser {
 
   public assertLineStart(): void {
     if (this.current.column.start !== 1) {
-      this.error(`line start assertion failed`);
+      this.throwError(`line start assertion failed`);
     }
   }
 
@@ -149,7 +148,7 @@ export default class Parser {
         ];
       }
     }
-    this.error(`error finding first token after optional context`);
+    this.throwError(`error finding first token after optional context`);
   }
 
   public getBufferedParser(
@@ -162,7 +161,7 @@ export default class Parser {
       const token = this.consume();
       tokens.push(token);
       if (token.type === t.EOD && !shouldStop(this)) {
-        this.error(`failed to find ending tokens for buffered parser`);
+        this.throwError(`failed to find ending tokens for buffered parser`);
       }
     }
 
@@ -190,7 +189,7 @@ export default class Parser {
     for (let i = 0; i < specs.length; i++) {
       const spec = specs[i];
       if (spec === undefined) {
-        throw new Error(`Unexpected missing token in peekTokens()`);
+        this.throwError(`Unexpected missing token in peekTokens()`);
       }
       if (!this.tokenIs(this.lookAhead(i), spec)) {
         return false;
@@ -200,7 +199,7 @@ export default class Parser {
   }
 
   /**
-   * Do the next tokens match ANY of the possiple arrays of specs?
+   * Do the next tokens match ANY of the possible arrays of specs?
    */
   public peekTokensAnyOf(...groups: TokenSpec[][]): boolean {
     return groups.some((tokens) => this.peekTokens(...tokens));
@@ -245,7 +244,7 @@ export default class Parser {
   public consume(spec?: TokenSpec): Token {
     const token = this.lookAhead(0);
     if (spec && !this.tokenIs(token, spec)) {
-      this.error(`unexpected token ${this.logToken(token, ``)}\nexpected ${spec}`);
+      this.throwError(`unexpected token ${this.logToken(token, ``)}, expected ${spec}`);
     }
     this.shiftToken();
     return token;
@@ -284,7 +283,7 @@ export default class Parser {
 
     const token = this.tokens[distance];
     if (!token) {
-      this.error(`unexpected missing token in Parser.lookAhead()`);
+      this.throwError(`unexpected missing token in Parser.lookAhead()`);
     }
     return token;
   }
@@ -303,7 +302,7 @@ export default class Parser {
     }
     const token = this.lookBehind(distance);
     if (!token) {
-      this.error(`unexpected missing token in Parser.expectLookBehind()`);
+      this.throwError(`unexpected missing token in Parser.expectLookBehind()`);
     }
     return token;
   }
@@ -325,7 +324,7 @@ export default class Parser {
     try {
       return this.consume(tokenSpec);
     } catch {
-      throw new Error(
+      this.throwError(
         `Parse error: unclosed ${nodeType} node, opened at ${location(open)}`,
       );
     }
@@ -342,7 +341,7 @@ export default class Parser {
       numIterations++;
       if (numIterations >= maxIterations) {
         console.trace();
-        this.error(`Infinite loop detected in ${identifier}`);
+        this.throwError(`Infinite loop detected in ${identifier}`);
       }
       return true;
     };
@@ -352,7 +351,7 @@ export default class Parser {
     return typeof process?.env?.JEST_WORKER_ID !== `undefined`;
   }
 
-  public error(msg: string): never {
+  public throwError(msg: string): never {
     let line = ``;
     const errorLine = this.current.line;
     let index = 0;
@@ -369,24 +368,7 @@ export default class Parser {
       current = this.shifted[index++];
     }
 
-    const { column: col } = this.current;
-    const display = [
-      `Parse error: ${msg}\nat ${location(this.current)}`,
-      `\n\n\x1b[35m${String(this.current.line).padStart(5, ` `)}\x1b[0m`,
-      `\x1b[2m: ${line.trimEnd()}\x1b[0m\n`,
-      `${` `.padStart(col.start + 6, ` `)}`,
-      `\x1b[31m${`^`.padStart(col.end - col.start + 1, `^`)}-- ERR!\x1b[0m\n`,
-    ].join(``);
-
-    if (this.isJestTest() || typeof window !== `undefined`) {
-      throw new Error(display);
-    } else {
-      console.log(`\n${display}`);
-      if ((process?.argv || []).includes(`-t`)) {
-        console.trace();
-      }
-      process.exit(1);
-    }
+    throw new ParserError(msg, line, location(this.current), this.current);
   }
 
   public log(msg = ``, distance = 3): void {

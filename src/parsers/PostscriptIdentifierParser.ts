@@ -59,7 +59,7 @@ export default class PostscriptIdentifierParser extends DiscoursePartIdentifierP
     }
 
     if (numConsumedChars !== (match[0] ?? ``).length) {
-      this.p.error(`unexpected result creating postscript identifier`);
+      this.p.throwError(`unexpected result creating postscript identifier`);
     }
 
     return node;

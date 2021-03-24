@@ -26,7 +26,7 @@ function entityType(tokenLiteral: string, parser: Parser): EntityType {
     case `&amp;`:
       return e.AMPERSAND;
     default:
-      throw parser.error(`unknown entity type: ${tokenLiteral}`);
+      throw parser.throwError(`unknown entity type: ${tokenLiteral}`);
   }
 }
 

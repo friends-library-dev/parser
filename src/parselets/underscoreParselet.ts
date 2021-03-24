@@ -14,7 +14,7 @@ const underscore: Parselet = (parser, parent) => {
       value: redacted.literal,
     });
   }
-  throw parser.error(`unexpected underscore token`);
+  throw parser.throwError(`unexpected underscore token`);
 };
 
 export default underscore;

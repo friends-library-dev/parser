@@ -13,7 +13,7 @@ const inlinePassThrough: Parselet = (parser, parent) => {
     });
   }
   if (!parser.currentIs(t.TRIPLE_PLUS)) {
-    parser.error(`unclosed inline passthrough`);
+    parser.throwError(`unclosed inline passthrough`);
   }
   node.endToken = parser.consume(t.TRIPLE_PLUS);
   return node;

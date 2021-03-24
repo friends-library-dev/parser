@@ -12,7 +12,7 @@ const footnoteParselet: Parselet = (parser, parent) => {
   parser.consumeMany(t.FOOTNOTE_PREFIX, t.LEFT_BRACKET);
 
   if (parser.currentIs(t.RIGHT_BRACKET)) {
-    parser.error(`unexpected empty footnote`);
+    parser.throwError(`unexpected empty footnote`);
   }
 
   const bufp = parser.getBufferedParser((p) => {
@@ -63,7 +63,7 @@ const footnoteParselet: Parselet = (parser, parent) => {
 
   footnote.endToken = parser.expectLookBehind(-1); // right bracket `]`
   if (!parser.tokenIs(footnote.endToken, t.RIGHT_BRACKET)) {
-    parser.error(`unexpected footnote ending token`);
+    parser.throwError(`unexpected footnote ending token`);
   }
 
   footnote.document().footnotes.children.push(footnote);

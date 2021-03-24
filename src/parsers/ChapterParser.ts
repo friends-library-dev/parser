@@ -12,7 +12,7 @@ export default class ChapterParser {
     const chapter = new Node(n.CHAPTER, parent, { context, startToken: this.p.current });
 
     if (!this.p.peekTokens([t.EQUALS, `==`], t.WHITESPACE)) {
-      this.p.error(`unexpected missing chapter heading`);
+      this.p.throwError(`unexpected missing chapter heading`);
     }
 
     const heading = this.p.parseHeading(chapter);

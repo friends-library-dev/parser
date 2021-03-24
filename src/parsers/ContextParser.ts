@@ -60,7 +60,7 @@ export default class ContextParser {
 
   private parseShortTitle(): void {
     if (!this.p.peekTokens([t.TEXT, `short`], [t.EQUALS, `=`], t.STRAIGHT_DOUBLE_QUOTE)) {
-      this.p.error(`expected short title (e.g. short="<title>")`);
+      this.p.throwError(`expected short title (e.g. short="<title>")`);
     }
     this.p.consume(t.TEXT);
     this.p.consume(t.EQUALS);
@@ -127,7 +127,7 @@ export default class ContextParser {
         this.context.type = `verse`;
         return;
       default:
-        this.p.error(`unexpected context type: ${literal}`);
+        this.p.throwError(`unexpected context type: ${literal}`);
     }
   }
 

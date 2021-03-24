@@ -6,7 +6,7 @@ import PostscriptIdentifierParser from '../parsers/PostscriptIdentifierParser';
 
 const textParselet: Parselet = (parser, parent) => {
   if (parser.currentIs(t.DOT) && parser.current.column.start === 1) {
-    parser.error(`line starting with dot not implemented`);
+    parser.throwError(`line starting with dot not implemented`);
   }
 
   const discourseParser = new DiscoursePartIdentifierParser(parser);
