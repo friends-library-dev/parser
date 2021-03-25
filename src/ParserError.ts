@@ -48,11 +48,23 @@ export default class ParserError extends Error {
 }
 
 function isBrowser(): boolean {
-  return typeof window !== `undefined` && typeof window.document !== `undefined`;
+  try {
+    return typeof window?.document !== `undefined`;
+  } catch {
+    return false;
+  }
+}
+
+function isCI(): boolean {
+  try {
+    return typeof process?.env?.CI !== `undefined`;
+  } catch {
+    return false;
+  }
 }
 
 function c(type: 'magenta' | 'gray' | 'red' | 'reset'): string {
-  if (isBrowser()) {
+  if (isBrowser() || isCI()) {
     return ``;
   }
   switch (type) {
