@@ -1,8 +1,24 @@
+import { describe, it, test } from '@jest/globals';
 import stripIndent from 'strip-indent';
 import { TOKEN as t, NODE as n } from '../types';
 import { getPara, getParser, assertAllNodesHaveTokens, T } from './helpers';
 
 describe(`Parser.parseUntil() using parselets`, () => {
+  test(`consecutive footnote paragraphs splits is error`, () => {
+    expect(() => {
+      const adoc = [
+        `Hello world^`,
+        `footnote:[Hello world`,
+        `{footnote-paragraph-split}`,
+        `{footnote-paragraph-split}`,
+        `goodbye world.]`,
+        ``,
+        ``,
+      ].join(`\n`);
+      getParser(adoc).parseUntil(getPara(), t.DOUBLE_EOL);
+    }).toThrow();
+  });
+
   it(`can handle sameline footnotes`, () => {
     const parser = getParser(`Hello worldfootnote:[Hello]\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
