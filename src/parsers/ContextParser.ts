@@ -20,6 +20,7 @@ export default class ContextParser {
     }
 
     this.context.startToken = this.p.consume(t.LEFT_BRACKET);
+    this.parseShortTitle(DONT_REQUIRE);
     this.parseType();
     this.parseId();
 
@@ -34,7 +35,7 @@ export default class ContextParser {
       this.p.consume(t.WHITESPACE);
       this.context.type === `quote` || this.context.type === `epigraph`
         ? this.parseQuoteMeta()
-        : this.parseShortTitle();
+        : this.parseShortTitle(REQUIRE);
     }
 
     this.p.consume(t.RIGHT_BRACKET);
@@ -58,9 +59,12 @@ export default class ContextParser {
     this.context.quoteSource = this.getAttributeTokens();
   }
 
-  private parseShortTitle(): void {
+  private parseShortTitle(require = true): void {
     if (!this.p.peekTokens([t.TEXT, `short`], [t.EQUALS, `=`], t.STRAIGHT_DOUBLE_QUOTE)) {
-      this.p.throwError(`expected short title (e.g. short="<title>")`);
+      if (require) {
+        this.p.throwError(`expected short title (e.g. short="<title>")`);
+      }
+      return;
     }
     this.p.consume(t.TEXT);
     this.p.consume(t.EQUALS);
@@ -158,3 +162,6 @@ export default class ContextParser {
     return this.p.lookAhead(distance + 1).type === t.HASH;
   }
 }
+
+const REQUIRE = true;
+const DONT_REQUIRE = false;
