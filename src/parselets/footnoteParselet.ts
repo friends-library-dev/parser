@@ -52,11 +52,17 @@ const footnoteParselet: Parselet = (parser, parent) => {
     para.endToken = bufp.lastSignificantToken();
     footnote.children.push(para);
     bufp.consumeIf(t.FOOTNOTE_PARAGRAPH_SPLIT);
+    if (bufp.peekTokens(t.EOL, t.FOOTNOTE_PARAGRAPH_SPLIT)) {
+      bufp.throwError(`illegal double footnote paragraph split`);
+    }
     if (bufp.peekTokens(...poetryStart)) {
       bufp.consume(t.EOL);
       const fnPoetryParser = new FootnotePoetryParser(bufp);
       footnote.children.push(fnPoetryParser.parse(footnote));
       bufp.consumeIf(t.FOOTNOTE_PARAGRAPH_SPLIT);
+      if (bufp.peekTokens(t.EOL, t.FOOTNOTE_PARAGRAPH_SPLIT)) {
+        bufp.throwError(`illegal double footnote paragraph split`);
+      }
     }
     bufp.consumeIf(t.EOL);
   }
