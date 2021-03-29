@@ -84,9 +84,30 @@ describe(`ContextParser.parse()`, () => {
     ]);
   });
 
-  test(`parses short title`, () => {
+  test(`parses short title with id`, () => {
     const context = getContext(`[#ch1, short="Hello world"]`);
     expect(context?.id).toBe(`ch1`);
+    expect(context?.shortTitle?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Hello` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `world` },
+    ]);
+  });
+
+  test(`parses short title with no id`, () => {
+    const context = getContext(`[short="Hello world"]`);
+    expect(context?.id).toBeUndefined();
+    expect(context?.shortTitle?.map(simplifyToken)).toMatchObject([
+      { type: t.TEXT, literal: `Hello` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `world` },
+    ]);
+  });
+
+  test(`parses short title with class but no id`, () => {
+    const context = getContext(`[.style-blurb, short="Hello world"]`);
+    expect(context?.id).toBeUndefined();
+    expect(context?.classList).toMatchObject([`style-blurb`]);
     expect(context?.shortTitle?.map(simplifyToken)).toMatchObject([
       { type: t.TEXT, literal: `Hello` },
       { type: t.WHITESPACE, literal: ` ` },
