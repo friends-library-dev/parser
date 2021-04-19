@@ -119,7 +119,7 @@ export default class Lexer implements LexerInterface {
           this.setLiteral(tok, entityMatch[0] || ``, line);
           return tok;
         } else {
-          return this.makeToken(t.AMPERSAND, line);
+          return this.makeToken(t.ENTITY, line);
         }
       }
       case `/`:

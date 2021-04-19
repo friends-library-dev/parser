@@ -23,6 +23,7 @@ function entityType(tokenLiteral: string, parser: Parser): EntityType {
       return e.EMDASH;
     case `&hellip;`:
       return e.ELLIPSES;
+    case `&`: /* fallthrough */
     case `&amp;`:
       return e.AMPERSAND;
     default:
