@@ -15,11 +15,21 @@ describe(`Parser.parseUntil() using parselets`, () => {
   it(`can handle text nodes with ampersands`, () => {
     const parser = getParser(`Hello & world\n`);
     const nodes = parser.parseUntil(getPara(), t.EOL);
-    expect(nodes).toHaveLength(1);
-    expect(nodes[0]).toMatchObject({
-      type: n.TEXT,
-      value: `Hello & world`,
-    });
+    expect(nodes).toMatchObject([
+      {
+        type: n.TEXT,
+        value: `Hello `,
+      },
+      {
+        type: n.ENTITY,
+        value: `&`,
+        meta: { subType: `AMPERSAND` },
+      },
+      {
+        type: n.TEXT,
+        value: ` world`,
+      },
+    ]);
   });
 
   it(`can handle sub-word emphasis`, () => {

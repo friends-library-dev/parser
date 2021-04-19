@@ -45,7 +45,6 @@ const textParselet: Parselet = (parser, parent) => {
       t.LEFT_PARENS,
       t.RIGHT_PARENS,
       t.RIGHT_BRACKET,
-      t.AMPERSAND,
       t.TRIPLE_PLUS,
     ) &&
     !parser.stopTokensFound()

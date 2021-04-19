@@ -427,19 +427,23 @@ describe(`lexer`, () => {
   });
 
   test(`entities`, () => {
-    expect(simpleTokens(`foo&hellip; &hellip;&#8212; &mdash; &amp; &`)).toMatchObject([
-      { type: t.TEXT, literal: `foo` },
-      { type: t.ENTITY, literal: `&hellip;` },
-      { type: t.WHITESPACE, literal: ` ` },
-      { type: t.ENTITY, literal: `&hellip;` },
-      { type: t.ENTITY, literal: `&#8212;` },
-      { type: t.WHITESPACE, literal: ` ` },
-      { type: t.ENTITY, literal: `&mdash;` },
-      { type: t.WHITESPACE, literal: ` ` },
-      { type: t.ENTITY, literal: `&amp;` },
-      { type: t.WHITESPACE, literal: ` ` },
-      { type: t.AMPERSAND, literal: `&` },
-    ]);
+    expect(simpleTokens(`foo&hellip; &hellip;&#8212; &mdash; &amp; & foo`)).toMatchObject(
+      [
+        { type: t.TEXT, literal: `foo` },
+        { type: t.ENTITY, literal: `&hellip;` },
+        { type: t.WHITESPACE, literal: ` ` },
+        { type: t.ENTITY, literal: `&hellip;` },
+        { type: t.ENTITY, literal: `&#8212;` },
+        { type: t.WHITESPACE, literal: ` ` },
+        { type: t.ENTITY, literal: `&mdash;` },
+        { type: t.WHITESPACE, literal: ` ` },
+        { type: t.ENTITY, literal: `&amp;` },
+        { type: t.WHITESPACE, literal: ` ` },
+        { type: t.ENTITY, literal: `&` },
+        { type: t.WHITESPACE, literal: ` ` },
+        { type: t.TEXT, literal: `foo` },
+      ],
+    );
   });
 
   test(`non-standard chars`, () => {
