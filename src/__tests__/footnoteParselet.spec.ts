@@ -175,6 +175,7 @@ goodbye world.
 Hello world.^
 footnote:[Herp derp
 \`    Beep
+     Foo & Bar
      Boop \`]
     `).trim() + `\n\n`,
     );
@@ -196,6 +197,10 @@ footnote:[Herp derp
                 type: n.VERSE_STANZA,
                 children: [
                   { type: n.VERSE_LINE, children: [T.text(`Beep`)] },
+                  {
+                    type: n.VERSE_LINE,
+                    children: [T.text(`Foo `), { type: n.ENTITY }, T.text(` Bar`)],
+                  },
                   { type: n.VERSE_LINE, children: [T.text(`Boop`)] },
                 ],
               },

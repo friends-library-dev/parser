@@ -48,21 +48,14 @@ export default class FootnotePoetryParser {
   }
 
   private parseLine(line: AstNode): AstNode[] {
-    // for now let's (only semi-naively) assume that verse lines don't contain other nodes
-    const textNode = new Node(n.TEXT, line, { startToken: this.p.current });
-    const guard = this.p.makeWhileGuard(`FootnotePoetry.parseLine()`);
-    while (
-      guard() &&
-      !this.p.peekTokensAnyOf([t.EOL], END_FN_POETRY, [t.FOOTNOTE_STANZA])
-    ) {
-      textNode.value += this.p.current.literal;
-      this.p.consume();
-    }
-    textNode.endToken = this.p.lastSignificantToken();
+    const children = this.p.parseUntilAnyOf(line, [t.EOL], END_FN_POETRY, [
+      t.FOOTNOTE_STANZA,
+    ]);
+
     if (this.p.currentIs(t.EOL)) {
       this.p.consume(t.EOL);
     }
-    return [textNode];
+    return children;
   }
 }
 
