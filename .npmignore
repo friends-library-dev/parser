@@ -2,3 +2,5 @@
 tsconfig.tsbuildinfo
 jest.config.js
 **/__tests__/*
+!**/__tests__/helpers.js
+!**/__tests__/helpers.ts
