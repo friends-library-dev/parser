@@ -12,6 +12,8 @@ export default class DocumentNode
   implements AstNode, DocumentNodeInterface {
   public epigraphs: AstNode;
   public footnotes: AstNode;
+  public idChapterLocations: Record<string, number> = {};
+  public embeddableSections: Record<string, AstNode> = {};
 
   public constructor() {
     super();
@@ -47,6 +49,20 @@ export default class DocumentNode
     return {
       footnotes: this.footnotes.children.map((footnote) => footnote.toJSON(withTokens)),
       epigraphs: this.epigraphs.children.map((epigraph) => epigraph.toJSON(withTokens)),
+      ...(Object.keys(this.embeddableSections).length
+        ? {
+            embeddableSections: Object.keys(this.embeddableSections).reduce(
+              (map, key) => ({
+                ...map,
+                [key]: `[[AstNode]]`,
+              }),
+              {} as Record<string, string>,
+            ),
+          }
+        : {}),
+      ...(Object.keys(this.idChapterLocations).length
+        ? { idChapterLocations: this.idChapterLocations }
+        : {}),
       ...super.toJSON(withTokens),
     };
   }

@@ -24,6 +24,8 @@ import ParserError from './ParserError';
 export default class Parser {
   private static MAX_SHIFTED_TOKENS = 50;
   public tokens: Token[] = [];
+  public parsingChapterNum = 1;
+  public document: DocumentNodeInterface = new DocumentNode();
   private stopStack: Array<TokenSpec[]> = [];
   private shifted: Token[] = [];
 
@@ -37,14 +39,17 @@ export default class Parser {
 
   public parse(): DocumentNodeInterface {
     const document = new DocumentNode();
+    this.document = document;
     document.startToken = this.current;
     this.parseDocumentEpigraphs(document);
 
+    this.parsingChapterNum = 1;
     const guard = this.makeWhileGuard(`Parser.parse()`);
     while (guard() && !this.currentIs(t.EOD)) {
       const chapterParser = new ChapterParser(this);
       document.children.push(chapterParser.parse(document));
       this.consumeIf(t.EOF);
+      this.parsingChapterNum++;
     }
 
     document.endToken = this.current;
@@ -179,7 +184,10 @@ export default class Parser {
       }
     }
 
-    return new Parser(new BufferedLexer(tokens));
+    const parser = new Parser(new BufferedLexer(tokens));
+    parser.document = this.document;
+    parser.parsingChapterNum = this.parsingChapterNum;
+    return parser;
   }
 
   /**

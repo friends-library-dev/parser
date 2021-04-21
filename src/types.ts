@@ -24,6 +24,8 @@ export const TOKEN = {
   RIGHT_DOUBLE_CURLY: `RIGHT_DOUBLE_CURLY`,
   LEFT_BRACKET: `LEFT_BRACKET`,
   RIGHT_BRACKET: `RIGHT_BRACKET`,
+  XREF_OPEN: `XREF_OPEN`,
+  XREF_CLOSE: `XREF_CLOSE`,
   LEFT_PARENS: `LEFT_PARENS`,
   RIGHT_PARENS: `RIGHT_PARENS`,
   FOOTNOTE_PREFIX: `FOOTNOTE_PREFIX`,
@@ -104,6 +106,7 @@ export const NODE = {
   ENTITY: `ENTITY`,
   MONEY: `MONEY`,
   COLLECTION: `COLLECTION`,
+  XREF: `XREF`,
 } as const;
 
 export type NodeType = keyof typeof NODE;
@@ -178,6 +181,8 @@ export type DocumentNode = AstNode & {
   epigraphs: AstNode;
   footnotes: AstNode;
   chapters: AstNode[];
+  idChapterLocations: Record<string, number>;
+  embeddableSections: Record<string, AstNode>;
 };
 
 export interface Parselet {

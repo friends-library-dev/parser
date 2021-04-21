@@ -7,6 +7,7 @@ import leftBracketParselet from './leftBracketParselet';
 import inlinePassthroughParselet from './inlinePassthroughParselet';
 import footnoteParselet from './footnoteParselet';
 import entityParselet from './entityParselet';
+import xrefParselet from './xrefParselet';
 import { Parser } from '..';
 
 export default function getParselet(token: Token, parser: Parser): Parselet | null {
@@ -49,6 +50,8 @@ export default function getParselet(token: Token, parser: Parser): Parselet | nu
       return underscoreParselet;
     case t.ENTITY:
       return entityParselet;
+    case t.XREF_OPEN:
+      return xrefParselet;
   }
   return null;
 }
