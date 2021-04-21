@@ -73,4 +73,11 @@ export const T = {
   context: (classList: string[] = []): { context: { classList: string[] } } => {
     return { context: { classList } };
   },
+  chapterHeading: (text: string): Record<string, unknown> => {
+    return {
+      type: n.HEADING,
+      children: [{ type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: text }] }],
+      meta: { level: 2 },
+    };
+  },
 };

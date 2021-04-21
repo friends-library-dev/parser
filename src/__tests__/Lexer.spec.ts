@@ -475,6 +475,34 @@ describe(`lexer`, () => {
       { type: t.TEXT, literal: `followed` },
     ]);
   });
+
+  test(`internal xref (cross-reference) tokens`, () => {
+    expect(simpleTokens(`See <<ap-A,appendix A.>>`)).toMatchObject([
+      { type: t.TEXT, literal: `See` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.XREF_OPEN, literal: `<<` },
+      { type: t.TEXT, literal: `ap-A` },
+      { type: t.COMMA, literal: `,` },
+      { type: t.TEXT, literal: `appendix` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.TEXT, literal: `A` },
+      { type: t.DOT, literal: `.` },
+      { type: t.XREF_CLOSE, literal: `>>` },
+    ]);
+  });
+
+  test(`internal xref (cross-reference) tokens, w/ sentinal ?LINKABLE-BACK`, () => {
+    expect(simpleTokens(`See <<ap-A,?LINKABLE-BACK>>`)).toMatchObject([
+      { type: t.TEXT, literal: `See` },
+      { type: t.WHITESPACE, literal: ` ` },
+      { type: t.XREF_OPEN, literal: `<<` },
+      { type: t.TEXT, literal: `ap-A` },
+      { type: t.COMMA, literal: `,` },
+      { type: t.QUESTION_MARK, literal: `?` },
+      { type: t.TEXT, literal: `LINKABLE-BACK` },
+      { type: t.XREF_CLOSE, literal: `>>` },
+    ]);
+  });
 });
 
 function tokens(adoc: string): Token[] {

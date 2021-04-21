@@ -473,4 +473,53 @@ describe(`Parser.parseUntil() using parselets`, () => {
       },
     ]);
   });
+
+  it(`parses cross-references`, () => {
+    const parser = getParser(`Here is a <<note-A,end note link.>>`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toMatchObject([
+      T.text(`Here is a `),
+      {
+        type: n.XREF,
+        meta: { data: { target: `note-A` } },
+        children: [T.text(`end note link.`)],
+      },
+    ]);
+  });
+
+  it(`parses back-pointing cross-references`, () => {
+    const parser = getParser(`Here is a <<note-A__xref_src,?LINKABLE-BACK>>`);
+    const nodes = parser.parseUntil(getPara(), t.EOL);
+    expect(nodes).toMatchObject([
+      T.text(`Here is a `),
+      {
+        type: n.XREF,
+        meta: {
+          data: {
+            target: `note-A__xref_src`,
+            isLinkableBack: true,
+          },
+        },
+        children: [],
+      },
+    ]);
+  });
+
+  it(`parses cross-references beginning on newline`, () => {
+    const parser = getParser(`Here is a\n<<note-A,?LINKABLE-BACK>>\n\n`);
+    const nodes = parser.parseUntil(getPara(), t.DOUBLE_EOL);
+    expect(nodes).toMatchObject([
+      T.text(`Here is a `),
+      {
+        type: n.XREF,
+        meta: {
+          data: {
+            target: `note-A`,
+            isLinkableBack: true,
+          },
+        },
+        children: [],
+      },
+    ]);
+  });
 });

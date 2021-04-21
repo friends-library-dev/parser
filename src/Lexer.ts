@@ -128,6 +128,26 @@ export default class Lexer implements LexerInterface {
           return this.nextToken();
         }
         return this.makeToken(t.FORWARD_SLASH, line);
+      case `>`:
+        if (this.peekChar() === `>`) {
+          tok = this.makeGreedyToken(t.XREF_CLOSE, line);
+          if (tok.literal.length !== 2) {
+            tok.type = t.ILLEGAL;
+          }
+          return tok;
+        } else {
+          return this.makeToken(t.ILLEGAL, line);
+        }
+      case `<`:
+        if (this.peekChar() === `<`) {
+          tok = this.makeGreedyToken(t.XREF_OPEN, line);
+          if (tok.literal.length !== 2) {
+            tok.type = t.ILLEGAL;
+          }
+          return tok;
+        } else {
+          return this.makeToken(t.ILLEGAL, line);
+        }
       case `+`:
         if (this.peekChar() === `+`) {
           tok = this.makeGreedyToken(t.TRIPLE_PLUS, line);
@@ -420,4 +440,6 @@ const BOUNDARY_MAP: { [k: string]: true } = {
   '?': true,
   ':': true,
   ';': true,
+  '>': true,
+  '<': true,
 };

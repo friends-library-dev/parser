@@ -1,12 +1,6 @@
 import { NODE as n, TOKEN as t } from '../types';
 import { assertAllNodesHaveTokens, getParser, parseAdocFile, T } from './helpers';
 
-const PREFACE_CH_HEADING_NODE = {
-  type: n.HEADING,
-  children: [{ type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: `Preface` }] }],
-  meta: { level: 2 },
-};
-
 describe(`Parser.parseContext()`, () => {
   test(`parsing basic context`, () => {
     const parser = getParser(`[.offset]\n`);
@@ -28,13 +22,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            {
-              type: n.HEADING,
-              children: [
-                { type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: `Preface` }] },
-              ],
-              meta: { level: 2 },
-            },
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -47,6 +35,127 @@ describe(`Parser.parse()`, () => {
           ],
         },
       ],
+    });
+  });
+
+  it(`maintains a map of embeddable sections`, () => {
+    // an `embeddable section` is a section smaller than a chapter identified by a #id
+    const document = parseAdocFile(`
+      == Preface
+      
+      Hello world
+      
+      // vvvvvvvv---- context with id on h3 makes the section "embeddable"
+      [#embed-me]
+      === Appendix A
+
+      Goodbye world
+    `);
+    expect(document.chapters[0]!.children[2]!).toBe(
+      document.embeddableSections[`embed-me`],
+    );
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      embeddableSections: {
+        'embed-me': `[[AstNode]]`,
+      },
+    });
+  });
+
+  it(`maintains a map of cross-reference chapter locations`, () => {
+    const document = parseAdocFile(`
+      == Preface
+      
+      Hello <<note-A,world>>
+
+      == Intro
+
+      Goodbye <<note-B,world>>
+    `);
+    expect(document.toJSON()).toMatchObject({
+      type: n.DOCUMENT,
+      idChapterLocations: {
+        'note-A__xref_src': 1,
+        'note-B__xref_src': 2,
+      },
+      children: [
+        {
+          type: n.CHAPTER,
+          children: [
+            T.chapterHeading(`Preface`),
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [
+                    { type: n.TEXT, value: `Hello ` },
+                    {
+                      type: n.XREF,
+                      meta: { data: { target: `note-A` } },
+                      children: [T.text(`world`)],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: n.CHAPTER,
+          children: [
+            {
+              type: n.HEADING,
+              children: [
+                { type: n.HEADING_TITLE, children: [{ type: n.TEXT, value: `Intro` }] },
+              ],
+              meta: { level: 2 },
+            },
+            {
+              type: n.BLOCK,
+              children: [
+                {
+                  type: n.PARAGRAPH,
+                  children: [
+                    { type: n.TEXT, value: `Goodbye ` },
+                    {
+                      type: n.XREF,
+                      meta: { data: { target: `note-B` } },
+                      children: [T.text(`world`)],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  test(`buffered parsing does not mess up xref location`, () => {
+    const document = parseAdocFile(`
+      == Preface
+
+      Howdy.
+
+      == Prologue
+      
+      [.embedded-content-document.letter]
+      --
+
+      Hello <<note-A,world>>
+
+      --
+
+      == Intro
+
+      Goodbye <<note-B,world>>
+    `);
+
+    expect(document.idChapterLocations).toMatchObject({
+      'note-A__xref_src': 2,
+      'note-B__xref_src': 3,
     });
   });
 
@@ -64,7 +173,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -137,7 +246,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -245,7 +354,7 @@ describe(`Parser.parse()`, () => {
           type: n.CHAPTER,
           context: { id: `ch1` },
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -277,7 +386,7 @@ describe(`Parser.parse()`, () => {
           type: n.CHAPTER,
           context: { id: `ch1` },
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -316,7 +425,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -366,7 +475,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -444,7 +553,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               context: { classList: [`offset`] },
@@ -477,7 +586,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -528,7 +637,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.SECTION,
               meta: { level: 3 },
@@ -620,7 +729,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [T.paragraph(`Hello world`)],
@@ -710,7 +819,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.UNORDERED_LIST,
               context: { classList: [`chapter-synopsis`] },
@@ -765,7 +874,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               children: [
@@ -823,7 +932,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               meta: { subType: `open` },
@@ -881,7 +990,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               context: { classList: [`embedded-content-document`] },
@@ -980,7 +1089,7 @@ describe(`Parser.parse()`, () => {
         {
           type: n.CHAPTER,
           children: [
-            PREFACE_CH_HEADING_NODE,
+            T.chapterHeading(`Preface`),
             {
               type: n.BLOCK,
               meta: { subType: `open` },

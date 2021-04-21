@@ -14,6 +14,10 @@ export default class SectionParser {
       startToken: this.p.current,
     });
 
+    if (context?.id !== undefined) {
+      section.document().embeddableSections[context.id] = section;
+    }
+
     const level = this.p.current.literal.length;
     if (level !== this.level) {
       this.p.throwError(`expected heading level ${this.level}, got ${level}`);

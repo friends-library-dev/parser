@@ -100,10 +100,12 @@ export default class ContextParser {
   }
 
   private parseId(): void {
-    if (this.p.currentIs(t.HASH)) {
-      this.p.consume(t.HASH);
-      this.context.id = this.parseIdentifier();
+    if (!this.p.currentIs(t.HASH)) {
+      return;
     }
+    this.p.consume(t.HASH);
+    this.context.id = this.parseIdentifier();
+    this.p.document.idChapterLocations[this.context.id] = this.p.parsingChapterNum;
   }
 
   private parseType(): void {
