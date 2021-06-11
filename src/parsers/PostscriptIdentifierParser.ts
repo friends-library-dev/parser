@@ -4,8 +4,8 @@ import DiscoursePartIdentifierParser from './DiscoursePartIdentifierParser';
 
 export default class PostscriptIdentifierParser extends DiscoursePartIdentifierParser {
   // protected terminators = [t.DOT, t.C];
-  protected className = `postscript`;
-  protected idStarters = [
+  protected override className = `postscript`;
+  protected override idStarters = [
     `PS`,
     `Postscript`,
     `PostScript`,
@@ -15,7 +15,7 @@ export default class PostscriptIdentifierParser extends DiscoursePartIdentifierP
     `PosData`,
   ];
 
-  public parse(parent: AstNode): AstNode | null {
+  public override parse(parent: AstNode): AstNode | null {
     if (!this.identifierPossible(parent)) {
       return null;
     }
@@ -83,7 +83,7 @@ export default class PostscriptIdentifierParser extends DiscoursePartIdentifierP
     return node;
   }
 
-  protected identifierPossible(parent: AstNode): boolean {
+  protected override identifierPossible(parent: AstNode): boolean {
     if (!super.identifierPossible(parent)) {
       return false;
     }

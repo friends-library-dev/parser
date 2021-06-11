@@ -9,7 +9,8 @@ import Node from './AstNode';
 
 export default class DocumentNode
   extends AbstractAstNode
-  implements AstNode, DocumentNodeInterface {
+  implements AstNode, DocumentNodeInterface
+{
   public epigraphs: AstNode;
   public footnotes: AstNode;
   public idChapterLocations: Record<string, number> = {};
@@ -21,23 +22,23 @@ export default class DocumentNode
     this.footnotes = new Node(n.COLLECTION, this);
   }
 
-  public get type(): NodeType {
+  public override get type(): NodeType {
     return n.DOCUMENT;
   }
 
-  public get chapter(): AstNode {
+  public override get chapter(): AstNode {
     throw new Error(`Error: attempt to resolve chapter from document node`);
   }
 
-  public isDocument(): this is DocumentNodeInterface {
+  public override isDocument(): this is DocumentNodeInterface {
     return true;
   }
 
-  public parentIsDocument(): boolean {
+  public override parentIsDocument(): boolean {
     return false;
   }
 
-  public document(): DocumentNodeInterface {
+  public override document(): DocumentNodeInterface {
     return this;
   }
 
@@ -45,7 +46,7 @@ export default class DocumentNode
     return this.children;
   }
 
-  public toJSON(withTokens?: true): Record<string, unknown> {
+  public override toJSON(withTokens?: true): Record<string, unknown> {
     return {
       footnotes: this.footnotes.children.map((footnote) => footnote.toJSON(withTokens)),
       epigraphs: this.epigraphs.children.map((epigraph) => epigraph.toJSON(withTokens)),
