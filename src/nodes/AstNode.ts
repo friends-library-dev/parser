@@ -11,9 +11,9 @@ interface Config {
 }
 
 export default class AstNode extends AbstractAstNode implements AstNodeInterface {
-  public children: AstNodeInterface[] = [];
-  public value = ``;
-  public meta: AstNodeInterface['meta'] = {};
+  public override children: AstNodeInterface[] = [];
+  public override value = ``;
+  public override meta: AstNodeInterface['meta'] = {};
 
   public constructor(
     private _type: NodeType,
@@ -50,19 +50,19 @@ export default class AstNode extends AbstractAstNode implements AstNodeInterface
     }
   }
 
-  public get type(): NodeType {
+  public override get type(): NodeType {
     return this._type;
   }
 
-  public set type(type: NodeType) {
+  public override set type(type: NodeType) {
     this._type = type;
   }
 
-  public get parent(): AstNodeInterface {
+  public override get parent(): AstNodeInterface {
     return this._parent;
   }
 
-  public set parent(parent: AstNodeInterface) {
+  public override set parent(parent: AstNodeInterface) {
     this._parent = parent;
   }
 }
