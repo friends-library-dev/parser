@@ -111,6 +111,35 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a numbered group alone within a blockquote`, () => {
+    const block = getParsedBlock(`
+      [quote]
+      ____
+      
+      [.numbered-group]
+      ====
+      
+      [.numbered]
+      Foo
+
+      ====
+
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `quote` },
+      children: [
+        {
+          type: n.BLOCK,
+          meta: { subType: `example` },
+          ...T.context([`numbered-group`]),
+          children: [T.paragraph(`Foo`, [`numbered`])],
+        },
+      ],
+    });
+  });
+
   it(`can parse a paragraph with context`, () => {
     const block = getParsedBlock(`
       [quote, ,]
