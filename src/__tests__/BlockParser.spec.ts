@@ -77,6 +77,40 @@ describe(`BlockParser.parse()`, () => {
     });
   });
 
+  it(`can parse a numbered group within a blockquote`, () => {
+    const block = getParsedBlock(`
+      [quote]
+      ____
+      
+      [.numbered-group]
+      ====
+      
+      [.numbered]
+      Foo
+
+      [.numbered]
+      Bar
+
+      ====
+
+      Baz
+      ____
+    `);
+    expect(block.toJSON()).toMatchObject({
+      type: n.BLOCK,
+      meta: { subType: `quote` },
+      children: [
+        {
+          type: n.BLOCK,
+          meta: { subType: `example` },
+          ...T.context([`numbered-group`]),
+          children: [T.paragraph(`Foo`, [`numbered`]), T.paragraph(`Bar`, [`numbered`])],
+        },
+        T.paragraph(`Baz`),
+      ],
+    });
+  });
+
   it(`can parse a paragraph with context`, () => {
     const block = getParsedBlock(`
       [quote, ,]
