@@ -168,7 +168,7 @@ export default class BlockParser {
     if (block.meta?.subType === `quote`) {
       this.p.consumeMany(QUAD_UNDERSCORE, t.EOX);
       this.p = this.p.getBufferedParser(
-        (p) => p.peekTokens(t.EOL, QUAD_UNDERSCORE, t.EOX),
+        (p) => p.peekTokens(t.EOX, QUAD_UNDERSCORE, t.EOX),
         3,
       );
     } else if (block.meta?.subType === `verse`) {
