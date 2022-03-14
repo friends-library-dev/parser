@@ -86,6 +86,8 @@ describe(`Parser.parseUntil() using parselets`, () => {
     [`Foo £50. Bar`, `£50`, t.POUND_SYMBOL, 50, `Foo `, `. Bar`],
     [`estimated at £100,000,`, `£100,000`, t.POUND_SYMBOL, 100000, `estimated at `, `,`],
     [`fine £1,125 sterling.`, `£1,125`, t.POUND_SYMBOL, 1125, `fine `, ` sterling.`],
+    [`costing £4000, has`, `£4000`, t.POUND_SYMBOL, 4000, `costing `, `, has`],
+    [`for £2000; all`, `£2000`, t.POUND_SYMBOL, 2000, `for `, `; all`],
   ];
 
   test.each(moneyCases)(
