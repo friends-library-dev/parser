@@ -73,7 +73,7 @@ export default class HeadingParser {
       return false;
     }
 
-    if (!this.p.current.literal.match(/^(chapter|section|capítulo|sección)$/i)) {
+    if (!this.p.current.literal.match(/^(chapter|section|capítulo|sección|sermon)$/i)) {
       return false;
     }
 
